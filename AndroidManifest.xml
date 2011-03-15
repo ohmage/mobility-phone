@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="edu.ucla.cens.mobility"
+      
+      android:versionCode="1"
+      android:versionName="1.0">
+      <uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS"/>
+	<uses-permission android:name="android.permission.CONTROL_LOCATION_UPDATES"/>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE" /> 
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+    <provider android:name="edu.ucla.cens.mobility.MobilityContentProvider" android:authorities="edu.ucla.cens.mobility.MobilityContentProvider" />
+        <activity android:name=".MobilityControl"
+                  android:label="@string/app_name"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+	<service android:name=".ClassifierService"/>
+	<service android:name=".BootService"/>
+	<!--service
+			android:label="edu.ucla.cens.wifigpslocation.WiFiGPSLocationService"
+			android:name="edu.ucla.cens.wifigpslocation.WiFiGPSLocationService"
+			android:process=":remote"
+			android:exported="true">
+			<intent-filter>
+				<action android:name = "edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService" />
+			</intent-filter>
+		</service-->
+		<receiver android:name=".BootReceiver">
+        	<intent-filter>
+        		<action android:name="android.intent.action.BOOT_COMPLETED"/>
+        	</intent-filter>
+        </receiver>
+        <!--service
+			android:label="edu.ucla.cens.accelservice.AccelService"
+			android:name="edu.ucla.cens.accelservice.AccelService"
+			android:process=":remote"
+			android:exported="true">
+			<intent-filter>
+				<action android:name = "edu.ucla.cens.accelservice.IAccelService" />
+			</intent-filter>
+		</service-->
+		<receiver android:name="edu.ucla.cens.mobility.SampleReceiver">
+	    	<intent-filter>
+	    		<action android:name="edu.ucla.cens.mobility.record" />
+	    	</intent-filter>
+	    	
+		</receiver>
+    <receiver android:name="edu.ucla.cens.mobility.GarbageCollectReceiver">
+	    	<intent-filter>
+	    		<action android:name="edu.ucla.cens.mobility.garbagecollect" />
+	    	</intent-filter>
+	    	
+		</receiver>
+		<service android:name="edu.ucla.cens.mobility.GarbageCollectService"/>
+    </application>
+
+
+</manifest> 
