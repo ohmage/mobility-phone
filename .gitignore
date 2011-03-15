@@ -1,0 +1,7 @@
+build/
+.classpath
+.project
+default.properties
+bin/
+gen/
+assets/
