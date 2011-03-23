@@ -19,12 +19,12 @@
 		<item>1 minute</item>
 		<item>30 seconds</item>
 		<item>15 seconds</item>
-		<item>1 second</item>
+		
 	</string-array>
 	<string-array name="pref_mobility_rate_options_values">
 		<item>60</item>
 		<item>30</item>
 		<item>15</item>
-		<item>1</item>
+		
 	</string-array>
 </resources>
