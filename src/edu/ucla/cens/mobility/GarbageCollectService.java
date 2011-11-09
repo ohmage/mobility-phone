@@ -5,7 +5,7 @@ import android.os.IBinder;
 
 public class GarbageCollectService extends WakefulIntentService
 {
-	private final static int gctime = 5;
+	private final static int gctime = 20; //days
 	public GarbageCollectService()
 	{
 		super("ClassifierService");

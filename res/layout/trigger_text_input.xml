@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <EditText 
+    	android:id="@+id/text_input_editor"
+    	android:layout_height="wrap_content"  
+		android:layout_width="fill_parent"
+		android:ellipsize="end"
+		android:singleLine="true"
+    />
+    
+    
+	<LinearLayout 
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" 
+		android:id="@+id/LinearLayout01" 
+		android:orientation="horizontal"
+		android:weightSum="1"
+		android:layout_marginBottom="5dip"
+		android:layout_marginTop="5dip"
+		android:layout_below="@+id/text_input_editor">
+		
+		<Button android:id="@+id/text_input_postive" 
+			android:layout_height="wrap_content"  
+			android:layout_width="fill_parent" 
+			android:layout_marginLeft="5dip"
+			android:layout_marginRight="10dip"
+			android:layout_weight="0.5"
+			android:text="Done">
+		</Button>
+		
+		<Button android:id="@+id/text_input_negative" 
+			android:layout_height="wrap_content"  
+			android:layout_width="fill_parent" 
+			android:layout_weight="0.5"
+			android:layout_marginRight="5dip"
+			android:layout_marginLeft="10dip"
+			android:text="Cancel">
+		</Button>
+	</LinearLayout>
+
+</RelativeLayout>
+	

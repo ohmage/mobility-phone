@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+    
+     <RelativeLayout 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:layout_weight="0.2"
+		android:background="#C8646464"
+		xmlns:android="http://schemas.android.com/apk/res/android">
+		
+		<Button 
+			android:text="Add this location"
+			android:id="@+id/balloon_add_loc"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentRight="true"
+			android:layout_width="100dip"
+			android:layout_marginTop="5px"
+			android:layout_height="fill_parent">
+		</Button>
+		
+		<TextView android:text="Loading approximate address..." 
+			android:layout_alignParentTop="true"
+			android:layout_alignParentLeft="true"
+			
+			android:layout_toLeftOf="@+id/balloon_add_loc"
+			android:layout_marginLeft="6dip"
+			android:layout_marginRight="20dip"
+			android:id="@+id/balloon_address" 
+			android:layout_width="wrap_content"
+			android:ellipsize="end"
+			android:textAppearance="?android:attr/textAppearanceMedium" 
+			android:layout_height="wrap_content">
+		</TextView>
+		
+		<ProgressBar android:id="@+id/balloon_progress" 
+			android:layout_below="@+id/balloon_address" 
+			android:layout_alignParentLeft="true"
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content">
+		</ProgressBar>
+
+	</RelativeLayout>
+	
+	<view class="edu.ucla.cens.mobility.blackout.types.location.LocTrigAddLocBalloon$BalloonTipLayout"
+	    xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:layout_weight="0.9"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	/>
+
+</LinearLayout>

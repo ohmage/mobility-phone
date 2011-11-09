@@ -16,12 +16,14 @@
 
 <resources>
 	<string-array name="pref_mobility_rate_options">
+		<item>5 minutes</item>
 		<item>1 minute</item>
 		<item>30 seconds</item>
 		<item>15 seconds</item>
 		
 	</string-array>
 	<string-array name="pref_mobility_rate_options_values">
+		<item>300</item>
 		<item>60</item>
 		<item>30</item>
 		<item>15</item>

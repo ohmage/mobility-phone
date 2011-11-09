@@ -20,6 +20,9 @@ public class GarbageCollectReceiver extends BroadcastReceiver
 	{
 		Log.d(TAG, "Collect garbage");
 		// Start service
+		// For NW, fix this!
+//		if (true)
+//			return;
 		WakefulIntentService.sendWakefulWork(context, GarbageCollectService.class);
 	}
 

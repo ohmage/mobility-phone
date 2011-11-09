@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    
+    <ListView android:id="@+id/android:list"
+   		android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/LinearLayout01"
+        android:layout_marginBottom="10px"
+	/>
+	
+	
+	<LinearLayout 
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" 
+		android:id="@+id/LinearLayout01" 
+		android:orientation="horizontal"
+		android:weightSum="1"
+		android:layout_alignParentBottom="true">
+		
+		<Button android:id="@+id/trig_edit_done" 
+			android:layout_height="wrap_content"  
+			android:layout_width="fill_parent" 
+			android:layout_marginLeft="20px"
+			android:layout_marginRight="20px"
+			android:layout_marginBottom="5px"
+			android:layout_weight="0.5"
+			android:text="Done">
+		</Button>
+		
+		<Button android:id="@+id/trig_edit_cancel" 
+			android:layout_height="wrap_content"  
+			android:layout_width="fill_parent" 
+			android:layout_weight="0.5"
+			android:layout_marginRight="20px"
+			android:layout_marginLeft="20px"
+			android:layout_marginBottom="5px"
+			android:text="Cancel">
+		</Button>
+		
+	</LinearLayout>
+
+</RelativeLayout>
+	

@@ -1,7 +1,14 @@
 package edu.ucla.cens.mobility;
 
+import java.util.HashMap;
+
 import edu.ucla.cens.accelservice.IAccelService;
 import edu.ucla.cens.mobility.R;
+import edu.ucla.cens.mobility.blackout.Blackout;
+import edu.ucla.cens.mobility.blackout.BlackoutDesc;
+import edu.ucla.cens.mobility.blackout.base.TriggerBase;
+import edu.ucla.cens.mobility.blackout.base.TriggerDB;
+import edu.ucla.cens.mobility.blackout.utils.SimpleTime;
 import edu.ucla.cens.systemlog.ISystemLog;
 import edu.ucla.cens.systemlog.Log;
 import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
@@ -17,11 +24,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import edu.ucla.cens.mobility.blackout.base.TriggerInit;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 //import android.util.Log;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 public class Mobility
@@ -32,16 +43,22 @@ public class Mobility
 	private static PendingIntent startPI = null;
 	static boolean initialized = false;
 //	private static PendingIntent stopPI = null;
-	static NotificationManager nm;
-	static Notification notification;
+//	static NotificationManager nm;
+//	static Notification notification;
 	public static final String TAG = "Mobility";
 	public static final String SERVICE_TAG = "Mobility";
 	public static final String MOBILITY = "mobility";
 	public static final String SAMPLE_RATE = "sample rate";
 	public static final String ACC_START = "edu.ucla.cens.mobility.record";
+	public static final String STATUS_PENDING = "pending";
+	public static final String STATUS_OK = "mobility";
+	public static final String STATUS_ERROR = "error";
+	public static final String STATUS_BLACKOUT = "blackout";
 	
+//	public static Context appContext = null;
 	static AlarmManager mgr;
-	static long sampleRate;
+	
+	static long sampleRate = 60000;
 	static boolean intervalSet = false;
 	static boolean accelConnected = false;
 	static boolean gpsConnected = false;
@@ -96,15 +113,125 @@ public class Mobility
 	
 	public static void start(Context context)
 	{
-		nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		notification = new Notification(R.drawable.mobility, null, System.currentTimeMillis());
-		notification.flags |= Notification.FLAG_NO_CLEAR;
-		
-		
+		TriggerDB db = new TriggerDB(context);
+		db.open();
+		boolean canRunNow = true;
+		Cursor c = db.getAllTriggers();
+		if (c.moveToFirst())
+		{
+			do
+			{
+				int trigId = c.getInt(c.getColumnIndexOrThrow(TriggerDB.KEY_ID));
+				
+				String trigDesc = db.getTriggerDescription(trigId);
+				BlackoutDesc conf = new BlackoutDesc();
 
-		PendingIntent pi = PendingIntent.getActivity(context.getApplicationContext(), 1, new Intent(), 1);
-		notification.setLatestEventInfo(context.getApplicationContext(), "Mobility", "Service Running", pi);
+				if (!conf.loadString(trigDesc))
+				{
+					continue;
+				}
+				SimpleTime start = conf.getRangeStart();
+				SimpleTime end = conf.getRangeEnd();
+				SimpleTime now = new SimpleTime();
+				Log.d(TAG, start.getHour() + ":" + start.getMinute() + " until " + end.getHour() + ":" + end.getMinute() + " is blackout and now is " + now.getHour() + now.getMinute());
+				if (!start.isAfter(now) && end.isAfter(now))
+				{
+					canRunNow = false;
+				}
+
+
+			} while (c.moveToNext());
+		}
+		c.close();
+		db.close();
+		TriggerInit.initTriggers(context);
+		if (canRunNow)
+		{
+			Log.d(TAG, "Starting mobility!");
+			startMobility(context);
+			
+		}
+	}
+	
+	public static void stop(Context context)
+	{
+		
+		TriggerDB db = new TriggerDB(context);
+		db.open();
+		boolean runningNow = true;
+		Cursor c = db.getAllTriggers();
+		if (c.moveToFirst())
+		{
+			do
+			{
+				int trigId = c.getInt(c.getColumnIndexOrThrow(TriggerDB.KEY_ID));
+				
+				String trigDesc = db.getTriggerDescription(trigId);
+				BlackoutDesc conf = new BlackoutDesc();
+
+				if (!conf.loadString(trigDesc))
+				{
+					continue;
+				}
+				SimpleTime start = conf.getRangeStart();
+				SimpleTime end = conf.getRangeEnd();
+				SimpleTime now = new SimpleTime();
+				if (!start.isAfter(now) && !end.isBefore(now))
+				{
+					runningNow = false;
+				}
+				new Blackout().stopTrigger(context, trigId, db.getTriggerDescription(trigId));
+
+			} while (c.moveToNext());
+		}
+		c.close();
+		db.close();
+//		TriggerInit.initTriggers(context);
+		if (runningNow)
+		{
+			Log.d(TAG, "Stopping mobility!");
+			stopMobility(context, false);
+		}
+		else
+			Log.d(TAG, "Not running, so ignoring stop command");
+	}
+	
+	static int failCount = 0;
+	public static void setNotification(Context context, String status, String message)
+	{
+		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.pending;
+		if (status.equals(STATUS_OK))
+			icon = R.drawable.mobility;
+		else if (status.equals(STATUS_ERROR))
+			icon = R.drawable.error;
+		else if (status.equals(STATUS_BLACKOUT))
+			icon = R.drawable.blackout;
+		Notification notification = new Notification(icon, null, System.currentTimeMillis());
+		notification.flags |= Notification.FLAG_NO_CLEAR;
+		Intent i = new Intent("edu.ucla.cens.mobility.control");
+//		i.
+		
+//		appContext = context;
+		PendingIntent pi = PendingIntent.getActivity(context.getApplicationContext(), 1, i, 1);
+		notification.setLatestEventInfo(context.getApplicationContext(), "Mobility", message, pi);
 		nm.notify(123, notification);
+	}
+	
+	
+	public static void startMobility(Context context)
+	{
+		Log.d(TAG, "Starting mobility service, no blackout!");
+		setNotification(context, STATUS_PENDING, "Waiting for the first sensor sample");
+//		nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+//		notification = new Notification(R.drawable.pending, null, System.currentTimeMillis());
+//		notification.flags |= Notification.FLAG_NO_CLEAR;
+//		
+//		
+////		appContext = context;
+//		PendingIntent pi = PendingIntent.getActivity(context.getApplicationContext(), 1, new Intent(context, MobilityControl.class), 1);
+//		notification.setLatestEventInfo(context.getApplicationContext(), "Mobility", "Service Running", pi);
+//		nm.notify(123, notification);
 
 		SharedPreferences settings = context.getSharedPreferences(MOBILITY, Context.MODE_PRIVATE);
 		sampleRate = (long) settings.getInt(SAMPLE_RATE, 60) * 1000;
@@ -114,6 +241,7 @@ public class Mobility
 //		context.registerReceiver(accReceiver, new IntentFilter(ACC_START));
 //		if (!initialized)
 		initialize(context);
+		Log.d(TAG, "Sample rate is: " + sampleRate);
 		startGPS(context, sampleRate);
 		startAcc(context, sampleRate);
 		Toast.makeText(context, R.string.mobilityservicestarted, Toast.LENGTH_SHORT).show();
@@ -124,9 +252,9 @@ public class Mobility
 	
 	
 
-	public static void stop(Context context)
+	public static void stopMobility(Context context, boolean blackout)
 	{
-		Log.i(TAG, "Stopping mobility");
+		Log.d(TAG, "Stopping mobility service!");
 		if (mgr != null)
 		{
 			Intent i = new Intent(ACC_START);
@@ -169,8 +297,21 @@ public class Mobility
 //			e.printStackTrace();
 //		}
 		exterminate(context.getApplicationContext());
-		if (nm != null)
-			nm.cancel(123);
+//		if (nm != null)
+		{
+			if (blackout)
+			{
+				setNotification(context, STATUS_BLACKOUT, "Mobility paused during blackout time");
+			}
+			else
+			{
+				Log.d(TAG, "Canceling notification!");
+				NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+				nm.cancel(123);
+			}
+		}
+//		else
+//			Log.d(TAG, "nm is null!");
 	}
 	
 	private static void startAcc(Context context, long milliseconds)

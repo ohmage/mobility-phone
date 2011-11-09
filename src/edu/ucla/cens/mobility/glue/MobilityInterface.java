@@ -2,11 +2,18 @@ package edu.ucla.cens.mobility.glue;
 
 import java.net.URI;
 
+import edu.ucla.cens.mobility.Mobility;
+import edu.ucla.cens.mobility.MobilityControl;
 
+
+import android.R;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.widget.Toast;
@@ -58,5 +65,7 @@ public class MobilityInterface
 			Toast.makeText(context, "There was an error. Please verify that Mobility has been installed.", Toast.LENGTH_SHORT).show();
 		}
 	}
+	
+	
 	
 }

@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="edu.ucla.cens.mobility"
       
-      android:versionCode="2"
-      android:versionName="1.1">
+      android:versionCode="10"
+      android:versionName="1.2.0">
       <uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -12,6 +12,7 @@
 	<uses-permission android:name="android.permission.CONTROL_LOCATION_UPDATES"/>
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" /> 
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.READ_CALENDAR" />
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -25,8 +26,38 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter android:priority="-1"> 
+               <action android:name="edu.ucla.cens.mobility.control"/>
+               <category android:name="android.intent.category.DEFAULT" />
+    		</intent-filter>
         </activity>
+        <activity android:name="edu.ucla.cens.mobility.blackout.ui.TriggerListActivity" />
+        <activity android:name="edu.ucla.cens.mobility.blackout.BlackoutEditActivity" />
+        <activity android:name="edu.ucla.cens.mobility.DataSaverActivity" />
 	<service android:name=".ClassifierService"/>
+	<service android:name="edu.ucla.cens.mobility.blackout.BlackoutService"/>
+	<service android:name="edu.ucla.cens.mobility.glue.MobilityInterfaceService">
+		<intent-filter>
+			<action android:name="edu.ucla.cens.mobility.glue.IMobility"/>
+		</intent-filter>
+	</service>
+	<receiver android:name="edu.ucla.cens.mobility.blackout.BlackoutService$AlarmReceiver">
+	    	<intent-filter>
+	    		<action android:name="edu.ucla.cens.mobility.blackout.BlackoutAlarm" />
+	    		<data android:scheme="blackout"/>
+	    	</intent-filter>
+		</receiver>
+	
+	
+	<receiver android:name="edu.ucla.cens.mobility.blackout.base.TriggerTimeReceiver">
+	    	<intent-filter>
+	    		<action android:name="android.intent.action.TIME_SET" />
+	    	</intent-filter>
+	    	<intent-filter>
+	    		<action android:name="android.intent.action.TIMEZONE_CHANGED" />
+	    	</intent-filter>
+		</receiver>
+	
 	<service android:name=".BootService"/>
 	<!--service
 			android:label="edu.ucla.cens.wifigpslocation.WiFiGPSLocationService"
@@ -64,13 +95,29 @@
 	    	
 		</receiver>
 		<service android:name="edu.ucla.cens.mobility.GarbageCollectService"/>
-		<receiver android:name="edu.ucla.cens.mobility.UpdateReceiver">
+	<receiver android:name="edu.ucla.cens.mobility.UpdateReceiver">
 		<intent-filter>
-		<action android:name="edu.ucla.cens.Updater.Installer.AppInstalled"/>
-		<action android:name="edu.ucla.cens.Updater.Installer.AppReinstalled"/>
-		<data android:scheme="package" android:host="edu.cens.ucla.edu.mobility"/>
-	</intent-filter>
+			<action android:name="edu.ucla.cens.Updater.Installer.AppInstalled"/>
+			<action android:name="edu.ucla.cens.Updater.Installer.AppReinstalled"/>
+			<data android:scheme="package" android:host="edu.ucla.cens.mobility"/>
+		</intent-filter>
+	</receiver>
+	
+	<receiver android:name="edu.ucla.cens.mobility.StartReceiver">
+	    	<intent-filter>
+	    		<action android:name="edu.ucla.cens.mobility.start" />
+	    	</intent-filter>
+	    	
 		</receiver>
+	
+	<receiver android:name="edu.ucla.cens.mobility.StopReceiver">
+	    	<intent-filter>
+	    		<action android:name="edu.ucla.cens.mobility.stop" />
+	    	</intent-filter>
+	    	
+		</receiver>
+	
+	
     </application>
 
 

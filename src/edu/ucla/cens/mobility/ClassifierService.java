@@ -3,7 +3,7 @@ package edu.ucla.cens.mobility;
 import java.util.ArrayList;
 import java.util.TimeZone;
 import java.util.Vector;
-
+import edu.ucla.cens.systemlog.ISystemLog;
 import edu.ucla.cens.accelservice.IAccelService;
 import edu.ucla.cens.systemlog.Log;
 import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
@@ -40,6 +40,7 @@ public class ClassifierService extends WakefulIntentService
 		super.onCreate();
 //		if (!Mobility.initialized)
 //			Mobility.initialize(this.getApplicationContext());
+		bindService(new Intent(ISystemLog.class.getName()), Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -47,6 +48,7 @@ public class ClassifierService extends WakefulIntentService
 	{
 		// TODO Auto-generated method stub
 		super.onDestroy();
+		unbindService(Log.SystemLogConnection);
 //		unbindService(AccelServiceConnection);
 //		unbindService(mConnection);
 	}
@@ -108,18 +110,28 @@ public class ClassifierService extends WakefulIntentService
 			stopSelf();
 		}
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	private Vector<ArrayList<Double>> getAccSamples()
 	{
 		try
 		{
-			if (Mobility.getmAccel() == null)
+			if (Mobility.getmAccel() == null || System.currentTimeMillis() - Mobility.getmAccel().getLastTimeStamp() > 2000 +  Mobility.sampleRate)
 			{
-
 				Log.e(TAG, "mAccel fails to not be null.");
+				if (Mobility.failCount++ > 2)
+				{
+					if (Mobility.getmAccel() == null)
+						Mobility.setNotification(this, Mobility.STATUS_ERROR, "Please verify that AccelService is installed");
+					else
+						Mobility.setNotification(this, Mobility.STATUS_ERROR, "Mobility is waiting for new accelerometer data");
+				}
+				else
+					Mobility.setNotification(this, Mobility.STATUS_PENDING, "Waiting for the first sensor sample");
 				return null;
 			}
+			Mobility.failCount = 0;
+			
 			// ArrayList<Double[]> forceWithTimes =
 			// (ArrayList<Double[]>)mAccel.getLastForce();
 			ArrayList<Double> force = new ArrayList<Double>();
@@ -166,13 +178,21 @@ public class ClassifierService extends WakefulIntentService
 
 	/** Provider strings */
 	private static final String WIFIGPS_PROVIDER = "WiFiGPSLocation:GPS";
+	private static final String WIFIGPSCACHED_PROVIDER = "WiFiGPSLocation:GPSCACHED";
 	private static final String FAKE_PROVIDER = "WiFiGPSLocation:Fake";
 	private static final String APPROX_PROVIDER = "WiFiGPSLocation:Approx";
+	private static final String NET_PROVIDER = "WiFiGPSLocation:Net";
 	private static final String UNAVAILABLE = "unavailable";
 	private static final String VALID = "valid";
 	private static final String INACCURATE = "inaccurate";
 	private static final String STALE = "stale";
+	private static final String NETWORK = "network";
 	private static final int INACCURACY_THRESHOLD = 30;
+	private static final int STALENESS_THRESHOLD = 3 * 60 * 1000;
+	private static final String WALK = "walk";
+	private static final String RUN = "run";
+	private static final String STILL = "still";
+	private static final String DRIVE = "drive";
 
 	private void getTransportMode()
 	{
@@ -183,6 +203,8 @@ public class ClassifierService extends WakefulIntentService
 			return;
 		}
 		ArrayList<Double> accData = samples.get(3);
+		boolean gpsFail = false;
+			
 		Log.i(TAG, samples.size() + " is the sample size");
 		double lat = Double.NaN;
 		double lon = Double.NaN;
@@ -222,29 +244,58 @@ public class ClassifierService extends WakefulIntentService
 					if (provider.equals(FAKE_PROVIDER))
 					{
 						status = UNAVAILABLE;
+						speed = Float.NaN;
 					}
-					else if (provider.equals(WIFIGPS_PROVIDER))
+					else if (provider.equals(WIFIGPSCACHED_PROVIDER))
 					{
 						if (acc > INACCURACY_THRESHOLD)
 						{
 							status = INACCURATE;
+							speed = Float.NaN;
 						}
 						else
 							status = VALID;
 					}
+					else if (provider.equals(WIFIGPS_PROVIDER))
+					{
+						if (timestamp > System.currentTimeMillis() - STALENESS_THRESHOLD)
+						{
+							if (acc > INACCURACY_THRESHOLD)
+							{
+								status = INACCURATE;
+								speed = Float.NaN;
+							}
+							else
+								status = VALID;
+						}
+						else
+						{
+							status = STALE;
+							speed = Float.NaN;
+						}
+					}
 					else if (provider.equals(APPROX_PROVIDER))
 					{
 						status = STALE;
+						speed = 0;
+					}
+					else if (provider.equals(NET_PROVIDER))
+					{
+						status = NETWORK;
+						speed = 0;
 					}
 				}
 				else
 				{
 					Log.d(TAG, "mWiFiGPS.getLocation() is null, losing sample");
 				}
+//				Mobility.gpsFailCount = 0;
 			}
 			else
 			{
 				loc = null;
+//				Mobility.gpsFailCount++;
+				gpsFail = true;
 				Log.d(TAG, "mWiFiGPS is null, losing sample");
 			}
 		}
@@ -338,7 +389,12 @@ public class ClassifierService extends WakefulIntentService
 				speed, v, a, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0, 0., 0., 0.);
 		// Log.d(TAG, speed +
 		// " is the speed and the features are " + features);
-		activity = activity(var, accFft1, accFft2, accFft3, speed, v, a, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0);
+		activity = activity(speed, a, v, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0);
+		if (gpsFail)
+			Mobility.setNotification(this, Mobility.STATUS_OK, activity + " (Warning: No GPS)");
+		else
+			Mobility.setNotification(this, Mobility.STATUS_OK, activity);
+				//var, accFft1, accFft2, accFft3, speed, v, a, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0);
 		// double [] fft = {a1, a2, a3, a4, a5, a6, a7, a8, a9, a0}; // real
 		// features
 		double[] fft = { a1, a2, a3, a5, a8, accFft1, accFft2, accFft3, var, acc }; // wrong
@@ -352,110 +408,221 @@ public class ClassifierService extends WakefulIntentService
 		addTransportMode(activity, samples, speed, acc, provider, status, timestamp, wifiData, lat, lon);
 	}
 
-	private static String indoorActivity(double var, double avg, double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9, double a0)
-	{
-		Log.d(TAG, "Features: var=" + var + " avg=" + avg + " a=" + a1 + "," + a2 + "," + a3 + "," + a4 + "," + a5 + "," + a6 + "," + a7 + "," + a8 + "," + a9 + "," + a0);
-		if (var <= 0.0047)
-		{
-			if (var <= 0.0016)
-				return "still";
-			else
-			{
-				if (a5 <= 0.1532)
-				{
-					if (a1 <= 0.5045)
-						return "still";
-					else
-						return "walk";
-				}
-				else
-					return "still";
-			}
-		}
-		else
-		{
-			if (a3 <= 60.3539)
-			{
-				if (var <= 0.0085)
-				{
-					if (a8 <= 0.0506)
-						return "walk";
-					else
-					{
-						if (a2 <= 2.8607)
-							return "still";
-						else
-							return "walk";
-					}
-				}
-				else
-				{
-					if (a2 <= 2.7725)
-					{
-						if (a1 <= 13.0396)
-							return "walk";
-						else
-							return "still";
-					}
-					else
-						return "walk";
-				}
-			}
-			else
-				return "run";
-		}
+//	private static String indoorActivity(double var, double avg, double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9, double a0)
+//	{
+//		Log.d(TAG, "Features: var=" + var + " avg=" + avg + " a=" + a1 + "," + a2 + "," + a3 + "," + a4 + "," + a5 + "," + a6 + "," + a7 + "," + a8 + "," + a9 + "," + a0);
+//		if (var <= 0.0047)
+//		{
+//			if (var <= 0.0016)
+//				return "still";
+//			else
+//			{
+//				if (a5 <= 0.1532)
+//				{
+//					if (a1 <= 0.5045)
+//						return "still";
+//					else
+//						return "walk";
+//				}
+//				else
+//					return "still";
+//			}
+//		}
+//		else
+//		{
+//			if (a3 <= 60.3539)
+//			{
+//				if (var <= 0.0085)
+//				{
+//					if (a8 <= 0.0506)
+//						return "walk";
+//					else
+//					{
+//						if (a2 <= 2.8607)
+//							return "still";
+//						else
+//							return "walk";
+//					}
+//				}
+//				else
+//				{
+//					if (a2 <= 2.7725)
+//					{
+//						if (a1 <= 13.0396)
+//							return "walk";
+//						else
+//							return "still";
+//					}
+//					else
+//						return "walk";
+//				}
+//			}
+//			else
+//				return "run";
+//		}
+//
+//	}
 
-	}
+//	private static String activity(double acc_var, double accgz1, double accgz2, double accgz3, float gps_speed, double var, double avg, double a1, double a2, double a3, double a4, double a5,
+//			double a6, double a7, double a8, double a9, double a0)
+//	{
+//		String output = "still";
+//		Log.d(TAG, "Features: speed=" + gps_speed + " var=" + acc_var + " gz1=" + accgz1 + " gz2=" + accgz2 + " gz3=" + accgz3);
+//		if (gps_speed <= 0.29)
+//			output = indoorActivity(var, avg, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0);// "still";
+//		else if (accgz3 <= 2663606.69633)
+//			if (gps_speed <= 6.37)
+//				if (accgz2 <= 463400.011249)
+//					if (acc_var <= 205.972492)
+//						if (acc_var <= 13.084102)
+//							if (gps_speed <= 0.8)
+//								output = "still";
+//							else
+//								output = "drive";// "bike";
+//						else if (gps_speed <= 1.33)
+//							output = "still";// "bike";
+//						else
+//							output = "drive";
+//					else if (gps_speed <= 1.84)
+//						if (accgz1 <= 125502.942136)
+//							output = "walk";// "bike";
+//						else
+//							output = "walk";
+//					else
+//						output = "bike";// "bike";
+//
+//				else if (acc_var <= 41153.783729)
+//					if (gps_speed <= 2.12)
+//						output = "walk";
+//					else
+//						output = "bike";
+//				else
+//					output = "run";
+//			else
+//				output = "drive";
+//
+//		else if (accgz3 <= 5132319.94693)
+//			if (gps_speed <= 1.86)
+//				output = "walk";// bike
+//			else
+//				output = "run";
+//		else
+//			output = "run";
+//		Log.d(TAG, output);
+//		return output;
+//	}
 
-	private static String activity(double acc_var, double accgz1, double accgz2, double accgz3, float gps_speed, double var, double avg, double a1, double a2, double a3, double a4, double a5,
+	
+	
+	/**
+	 * This is the main classification method. Updated code after retraining
+	 * @param acc_var
+	 * @param accgz1
+	 * @param accgz2
+	 * @param accgz3
+	 * @param gps_speed
+	 * @param avg
+	 * @param var
+	 * @param a1
+	 * @param a2
+	 * @param a3
+	 * @param a4
+	 * @param a5
+	 * @param a6
+	 * @param a7
+	 * @param a8
+	 * @param a9
+	 * @param a0
+	 * @return Classification object with the mode
+	 */	
+	private String activity(double gps_speed, double avg, double var, double a1, double a2, double a3, double a4, double a5,
 			double a6, double a7, double a8, double a9, double a0)
 	{
-		String output = "still";
-		Log.d(TAG, "Features: speed=" + gps_speed + " var=" + acc_var + " gz1=" + accgz1 + " gz2=" + accgz2 + " gz3=" + accgz3);
-		if (gps_speed <= 0.29)
-			output = indoorActivity(var, avg, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0);// "still";
-		else if (accgz3 <= 2663606.69633)
-			if (gps_speed <= 6.37)
-				if (accgz2 <= 463400.011249)
-					if (acc_var <= 205.972492)
-						if (acc_var <= 13.084102)
-							if (gps_speed <= 0.8)
-								output = "still";
-							else
-								output = "drive";// "bike";
-						else if (gps_speed <= 1.33)
-							output = "still";// "bike";
-						else
-							output = "drive";
-					else if (gps_speed <= 1.84)
-						if (accgz1 <= 125502.942136)
-							output = "walk";// "bike";
-						else
-							output = "walk";
-					else
-						output = "bike";// "bike";
+		String output = STILL;
 
-				else if (acc_var <= 41153.783729)
-					if (gps_speed <= 2.12)
-						output = "walk";
+		if(var <= 0.016791)
+		{
+			if(a6 <= 0.002427)
+			{
+				if(a7 <= 0.001608)
+				{
+					if( gps_speed <= 0.791462 || gps_speed == Double.NaN)//|| gps_speed != Double.NaN)
+					{
+						
+//						if(avg <= 0.963016)
+//						{
+//							output = STILL;
+//						}
+//						else  if(avg <= 0.98282)
+//						{
+//							output = DRIVE;Log.d(TAG, "Drive 0 because gps speed is " + gps_speed + " and avg is " + avg);
+//						}
+//						else if(avg <= 1.042821)
+//						{
+//							if(avg <= 1.040987)
+//							{
+//								if(avg <= 1.037199)
+//								{
+//									if(avg <= 1.03592)
+//									{
+//										output = STILL;
+//									}
+//									else 
+//									{
+//										output = DRIVE;Log.d(TAG, "Drive 1");
+//									}
+//								}
+//								else
+//								{
+//									output = STILL;
+//								}
+//							}
+//							else
+//							{
+//								output = DRIVE;Log.d(TAG, "Drive 2");
+//							}
+//						}
+//						else
+						{
+						 	output = STILL;
+						}
+					}
 					else
-						output = "bike";
+					{
+						output = DRIVE;Log.d(TAG, "Drive 3");
+					}
+				}
 				else
-					output = "run";
+				{
+					output = DRIVE;Log.d(TAG, "Drive 4");
+				}
+			}
+			else if(gps_speed <= 0.791462 || gps_speed == Double.NaN)//&& gps_speed != Double.NaN)
+			{
+				output = STILL;
+			}
 			else
-				output = "drive";
-
-		else if (accgz3 <= 5132319.94693)
-			if (gps_speed <= 1.86)
-				output = "walk";// bike
-			else
-				output = "run";
+			{
+				output = DRIVE;Log.d(TAG, "Drive 5");
+			}
+		}
 		else
-			output = "run";
-		Log.d(TAG, output);
-		return output;
-	}
+		{
+			if(a3 <= 16.840921)
+			{
+				output = WALK;
+			}
+			else
+			{
+				output = RUN;	
+			}
+		}
 
+		return output;
+
+	}
+	
+	
 	private static double goertzel(ArrayList<Double> accData, double freq, double sr)
 	{
 		double s_prev = 0;
@@ -481,7 +648,7 @@ public class ClassifierService extends WakefulIntentService
 	// uploadMode(mode, speed, variance, average, fft, lat, lon);
 	// }
 
-	public static void addTransportMode(String mode, Vector<ArrayList<Double>> samples, double speed, double accuracy, String provider, String status, long timestamp, String wifiData, double lat,
+	public void addTransportMode(String mode, Vector<ArrayList<Double>> samples, double speed, double accuracy, String provider, String status, long timestamp, String wifiData, double lat,
 			double lon)
 	{
 		Log.d(TAG, "GPS is " + lat + " and " + lon + "");
@@ -489,7 +656,7 @@ public class ClassifierService extends WakefulIntentService
 
 		// Open the database, and store the response
 		tmdb.open();
-		tmdb.createRow(mode, time, status, String.valueOf(speed), timestamp, String.valueOf(accuracy), provider, wifiData, samples, String.valueOf(lat), String.valueOf(lon));
+		tmdb.createRow(this.getApplicationContext(), mode, time, status, String.valueOf(speed), timestamp, String.valueOf(accuracy), provider, wifiData, samples, String.valueOf(lat), String.valueOf(lon));
 		tmdb.close();
 	}
 

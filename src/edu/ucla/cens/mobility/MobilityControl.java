@@ -4,6 +4,8 @@ import java.util.Formatter;
 import java.util.Locale;
 
 import edu.ucla.cens.mobility.R;
+import edu.ucla.cens.mobility.blackout.BlackoutEditActivity;
+import edu.ucla.cens.mobility.blackout.ui.TriggerListActivity;
 import edu.ucla.cens.mobility.glue.MobilityInterface;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -25,6 +27,7 @@ import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
@@ -59,13 +62,13 @@ public class MobilityControl extends PreferenceActivity
 		return mInstance;
 	}
 
-	public boolean checkMobilityOff()
-	{
-
-		CheckBoxPreference moPref = (CheckBoxPreference) this.findPreference(KEY_MOBILITY_ONOFF_PREF);
-
-		return moPref.isChecked();
-	}
+//	public boolean checkMobilityOff()
+//	{
+//
+//		CheckBoxPreference moPref = (CheckBoxPreference) this.findPreference(KEY_MOBILITY_ONOFF_PREF);
+//
+//		return moPref.isChecked();
+//	}
 
 	@Override
 	public void onCreate(Bundle state)
@@ -149,6 +152,7 @@ public class MobilityControl extends PreferenceActivity
 	private static final int DIALOG_IDX_NEWUPDATE = 2;
 	private static final int DIALOG_IDX_NOUPDATE = 3;
 	private static final int DIALOG_IDX_TIMEOUT = 4;
+	private static final String KEY_MOBILITY_BLACKOUT_PREF = "pref_mobility_blackout";
 
 
 	public static View createSpacer(Context c, int height)
@@ -346,7 +350,15 @@ public class MobilityControl extends PreferenceActivity
 					Mobility.start(MobilityControl.this);
 				}
 				
-			} 
+			}
+			else if (pref_key.equals(KEY_MOBILITY_BLACKOUT_PREF))
+			{
+				Intent intent = new Intent(MobilityControl.this, TriggerListActivity.class);
+//				intent.setAction("android.intent.action.BLACKOUT");
+		        MobilityControl.this.startActivity(intent);
+			}
+			else
+				Log.d(TAG, "That wasn't recognized.");
 			/*else if (pref_key.equals(KEY_UPDATES_ONOFF_PREF))
 			{
 				Log.e(TAG, "Auto-Updates Change: " + value.booleanValue());
@@ -372,6 +384,24 @@ public class MobilityControl extends PreferenceActivity
 		}
 	};
 
+	private OnPreferenceClickListener mOnClickListener = new OnPreferenceClickListener()
+	{
+
+		@Override
+		public boolean onPreferenceClick(Preference preference)
+		{
+			String pref_key = preference.getKey();
+			if (pref_key.equals(KEY_MOBILITY_BLACKOUT_PREF))
+			{
+				Intent intent = new Intent(MobilityControl.this, /*DataSaverActivity.class);//*/TriggerListActivity.class);
+//				intent.setAction("android.intent.action.BLACKOUT");
+		        MobilityControl.this.startActivity(intent);
+			}
+			return false;
+		}
+	};
+	
+	
 	/****
 	 * Preference Tabs
 	 */
@@ -417,12 +447,17 @@ public class MobilityControl extends PreferenceActivity
 		moSampPref.setOnPreferenceChangeListener(mOnCheckBoxChangeListener);
 		mobilityPrefCat.addPreference(moSampPref);
 
+		// Blackout
+		Preference blackoutPref = new Preference(this);
+		blackoutPref.setKey(KEY_MOBILITY_BLACKOUT_PREF);
+		blackoutPref.setTitle("Blackout times");
+		blackoutPref.setTitle("Tap here to set blackout times");
+//		blackoutPref.setDependency(KEY_MOBILITY_ONOFF_PREF);
+		blackoutPref.setOnPreferenceClickListener(mOnClickListener);
+		mobilityPrefCat.addPreference(blackoutPref);
 	}
 
-	/****
-	 * CAT 2: triggers
-	 */
-
+	
 
 	/****
 	 * Extended Preferences : for displaying selected value

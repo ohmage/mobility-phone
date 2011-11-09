@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout 
+	android:id="@+id/layout1" 
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent" 
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	
+	<WebView 
+		android:id="@+id/web_view" 
+		android:layout_alignParentTop="true"
+		android:layout_above="@+id/check_do_not_show"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		/>
+	
+	<CheckBox 
+		android:id="@+id/check_do_not_show"
+		android:text="Do not show this message again" 
+		android:layout_above="@+id/button_close"
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" />
+		
+	<Button 
+		android:id="@+id/button_close"
+		android:layout_marginTop="10dip"
+		android:text="Close" 
+		android:layout_alignParentBottom="true" 
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" />
+	
+</RelativeLayout>
+

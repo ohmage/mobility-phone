@@ -12,8 +12,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.ucla.cens.mobility.R;
+import edu.ucla.cens.mobility.glue.MobilityInterface;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -58,9 +60,20 @@ public class MobilityDbAdapter
 	private static final int DATABASE_VERSION = 1;
 	SharedPreferences settings;
 	SharedPreferences.Editor editor;
-	private static final String DATABASE_CREATE = "create table %s (" + KEY_ROWID + " integer primary key autoincrement," + KEY_MODE + " text not null," + KEY_SPEED + " text not null," + KEY_STATUS
-			+ " text not null," + KEY_LOC_TIMESTAMP + " text not null," + KEY_ACCURACY + " text not null," + KEY_PROVIDER + " text not null," + KEY_WIFIDATA + " text not null," + KEY_ACCELDATA
-			+ " text not null," + KEY_TIME + " integer not null," + KEY_TIMEZONE + " text not null," + KEY_LATITUDE + " text," + KEY_LONGITUDE + " text" + ");";
+	private static final String DATABASE_CREATE = "create table %s (" 
+			+ KEY_ROWID + " integer primary key autoincrement," 
+			+ KEY_MODE + " text not null," 
+			+ KEY_SPEED + " text not null," 
+			+ KEY_STATUS + " text not null," 
+			+ KEY_LOC_TIMESTAMP + " text not null," 
+			+ KEY_ACCURACY + " text not null," 
+			+ KEY_PROVIDER + " text not null," 
+			+ KEY_WIFIDATA + " text not null," 
+			+ KEY_ACCELDATA + " text not null," 
+			+ KEY_TIME + " integer not null," 
+			+ KEY_TIMEZONE + " text not null," 
+			+ KEY_LATITUDE + " text," 
+			+ KEY_LONGITUDE + " text" + ");";
 
 	public class DBRow extends Object
 	{
@@ -145,7 +158,7 @@ public class MobilityDbAdapter
 		Cursor c;
 		try
 		{
-			Log.i(TAG, (dbHelper == null) + " is stupid");
+			Log.i(TAG, (dbHelper == null) + " that dbHelper is null");
 			SQLiteDatabase sdb = new DatabaseHelper(mCtx, database_table).getReadableDatabase();
 
 			c = sdb.query("mobility", columns, selection, selectionArgs, null, null, orderBy);
@@ -256,7 +269,7 @@ public class MobilityDbAdapter
 		}
 	}
 
-	public long createRow(String mode, long time, String status, String speed, long timestamp, String accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, String latitude,
+	public long createRow(Context context, String mode, long time, String status, String speed, long timestamp, String accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, String latitude,
 			String longitude)
 	{
 		ContentValues vals = new ContentValues();
@@ -265,12 +278,25 @@ public class MobilityDbAdapter
 			Log.e(TAG, "ERROR, database table: " + database_table + " was not initialized!");
 			return -1;
 		}
+	
 
 		else if (db.inTransaction())
 		{
 			Log.e(TAG, "ERROR, database in transaction, why is this happening?");
 			return -1;
 		}
+		
+		if (speed.equals(""))
+			speed = "NaN";
+		if (accuracy.equals(""))
+			accuracy = "NaN";
+		if (wifiData.equals(""))
+			wifiData = "{}";
+		if (latitude.equals(""))
+			latitude = "NaN";
+		if (longitude.equals(""))
+			longitude = "NaN";
+		
 		String timezone = TimeZone.getDefault().getID();
 		editor.putLong(database_table, 1);
 		editor.commit();
@@ -288,13 +314,24 @@ public class MobilityDbAdapter
 		vals.put(KEY_LONGITUDE, longitude);
 		Log.d(TAG, "createRow: adding to table: " + database_table + ": " + mode);
 		long rowid = db.insert(database_table, null, vals);
+
+		ContentResolver r = context.getContentResolver();
+		r.notifyChange(MobilityInterface.CONTENT_URI, null);
 		return rowid;
 	}
 	
 	private String formatAccelData(Vector<ArrayList<Double>> samples)
 	{
 		JSONArray ja = new JSONArray();
-		for (int i = 0; i < samples.get(0).size(); i++)
+		// Sometime there are more x values for some strange reason. We don't want to upload incomplete x,y,z sets.
+		int minSize = 100; // max allowed
+		if (samples.get(0).size() < minSize)
+			minSize = samples.get(0).size(); 
+		if (samples.get(1).size() < minSize)
+			minSize = samples.get(1).size();
+		if (samples.get(2).size() < minSize)
+			minSize = samples.get(2).size();
+		for (int i = 0; i < minSize; i++)
 		{
 			JSONObject jo = new JSONObject();
 			try
@@ -310,6 +347,7 @@ public class MobilityDbAdapter
 			catch(IndexOutOfBoundsException ie)
 			{
 				Log.e(TAG, "X has " + samples.get(0).size() + ", Y has " + samples.get(1).size() + ", Z has " + samples.get(2).size());
+				
 //				throw ie; // want crash to alert me
 			}
 			catch(NullPointerException e)
@@ -429,6 +467,56 @@ public class MobilityDbAdapter
 		return ret;
 	}
 
+	public ArrayList<DBRow> fetchSomeRows(Integer numLines, long last)
+	{
+		ArrayList<DBRow> ret = new ArrayList<DBRow>();
+
+		try
+		{
+			Log.d(TAG, "fetchSomeRows from table: " + database_table);
+			Cursor c = db.query(database_table, 
+					new String[] { KEY_ROWID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, 
+					KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, KEY_ROWID + " > " + last, null,
+					null, null, null, numLines.toString());
+			int numRows = c.getCount();
+			Log.d(TAG, numRows + " rows in the table\n");
+			c.moveToFirst();
+			for (int i = 0; i < numRows; ++i)
+			{
+				DBRow row = new DBRow();
+				row.rowValue = c.getLong(0);
+				row.modeValue = c.getString(1);
+				row.speedValue = c.getString(2);
+				row.statusValue = c.getString(3);
+				row.locTimeValue = c.getString(4);
+				row.accuracyValue = c.getString(5);
+				row.providerValue = c.getString(6);
+				row.wifiDataValue = c.getString(7);
+				row.accelDataValue = c.getString(8);
+//				row.varianceValue = c.getString(9);
+//				row.averageValue = c.getString(10);
+//				row.fftValue = c.getString(11);
+				row.timeValue = c.getLong(9);
+				row.timezoneValue = c.getString(10);
+				if (c.isNull(11))
+					row.latitudeValue = null;
+				else
+					row.latitudeValue = c.getString(11);
+				if (c.isNull(12))
+					row.longitudeValue = null;
+				else
+					row.longitudeValue = c.getString(12);
+				ret.add(row);
+				c.moveToNext();
+			}
+			c.close();
+		} catch (Exception e)
+		{
+			Log.e(TAG, e.getMessage());
+		}
+		return ret;
+	}
+	
 	public ArrayList<DBRow> fetchSomeRows(long timeLimit)
 	{
 		ArrayList<DBRow> ret = new ArrayList<DBRow>();
