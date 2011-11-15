@@ -193,6 +193,7 @@ public class ClassifierService extends WakefulIntentService
 	private static final String RUN = "run";
 	private static final String STILL = "still";
 	private static final String DRIVE = "drive";
+	private static final String BIKE = "bike";
 
 	private void getTransportMode()
 	{
@@ -622,6 +623,70 @@ public class ClassifierService extends WakefulIntentService
 
 	}
 	
+	public String activity1(double gps_speed, double avg, double var, double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9, double a0)
+	{
+		if (a3 <= 0.096835)
+		{
+			if (a6 <= 0.002421)
+			{
+				if (a5 <= 0.002208)
+				{
+					return STILL;// (15611.0/4731.0)
+				}
+				else
+				{
+					return DRIVE;// a5 > 0.002208: drive (2238.0/841.0)
+				}
+			}
+			else
+			// if (a6 > 0.002421)
+			{
+				if (avg <= 1.066716)
+				{
+					if (gps_speed <= 5)
+					{
+						return BIKE;// (2723.27/1784.81)
+					}
+					else
+					{
+						return DRIVE;// speed > 5: drive (5528.73/350.99)
+					}
+				}
+				else
+				{
+					return BIKE;// average > 1.066716: bike (2358.0/423.0)
+				}
+			}
+		}
+		else
+		{// a3 > 0.096835
+			if (a3 <= 21.993029)
+			{
+				if (a2 <= 6.32047)
+				{
+					return BIKE;// : bike (8924.0/3077.0)
+				}
+				else
+				// a2 > 6.32047
+				{
+					if (var <= 0.139588)
+					{
+						return WALK;// : walk (7759.0/323.0)
+					}
+					else
+					// (var > 0.139588)
+					{
+						return BIKE;// : bike (2251.0/1265.0)
+					}
+				}
+			}
+			else
+			{
+				return RUN;// a3 > 21.993029: run (9217.0/90.0)
+			}
+		}
+	}
+	
 	
 	private static double goertzel(ArrayList<Double> accData, double freq, double sr)
 	{
@@ -656,7 +721,7 @@ public class ClassifierService extends WakefulIntentService
 
 		// Open the database, and store the response
 		tmdb.open();
-		tmdb.createRow(this.getApplicationContext(), mode, time, status, String.valueOf(speed), timestamp, String.valueOf(accuracy), provider, wifiData, samples, String.valueOf(lat), String.valueOf(lon));
+		tmdb.createRow(mode, time, status, String.valueOf(speed), timestamp, String.valueOf(accuracy), provider, wifiData, samples, String.valueOf(lat), String.valueOf(lon));
 		tmdb.close();
 	}
 

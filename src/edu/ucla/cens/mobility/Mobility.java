@@ -33,7 +33,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 //import android.util.Log;
 import android.widget.SimpleCursorAdapter;
-import android.widget.Toast;
+//import android.widget.Toast;
 
 public class Mobility
 {
@@ -244,7 +244,7 @@ public class Mobility
 		Log.d(TAG, "Sample rate is: " + sampleRate);
 		startGPS(context, sampleRate);
 		startAcc(context, sampleRate);
-		Toast.makeText(context, R.string.mobilityservicestarted, Toast.LENGTH_SHORT).show();
+//		Toast.makeText(context, R.string.mobilityservicestarted, Toast.LENGTH_SHORT).show();
 		Log.d(TAG, "Starting transport mode service with sampleRate: " + sampleRate);
 		GarbageCollectReceiver.scheduleGC(context, mgr);
 		

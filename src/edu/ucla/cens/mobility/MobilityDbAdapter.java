@@ -167,9 +167,9 @@ public class MobilityDbAdapter
 			Log.i(TAG, e.toString());
 			c = null;
 		}
-
+		c.setNotificationUri(mCtx.getContentResolver(), MobilityInterface.CONTENT_URI);
 		lock.unlock();
-
+		
 		return c;
 	}
 
@@ -269,7 +269,7 @@ public class MobilityDbAdapter
 		}
 	}
 
-	public long createRow(Context context, String mode, long time, String status, String speed, long timestamp, String accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, String latitude,
+	public long createRow(String mode, long time, String status, String speed, long timestamp, String accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, String latitude,
 			String longitude)
 	{
 		ContentValues vals = new ContentValues();
@@ -315,7 +315,7 @@ public class MobilityDbAdapter
 		Log.d(TAG, "createRow: adding to table: " + database_table + ": " + mode);
 		long rowid = db.insert(database_table, null, vals);
 
-		ContentResolver r = context.getContentResolver();
+		ContentResolver r = mCtx.getContentResolver();
 		r.notifyChange(MobilityInterface.CONTENT_URI, null);
 		return rowid;
 	}
@@ -405,6 +405,8 @@ public class MobilityDbAdapter
 		// {
 		// Log.e(TAG, e.getMessage());
 		// }
+		ContentResolver r = mCtx.getContentResolver();
+		r.notifyChange(MobilityInterface.CONTENT_URI, null);
 		return dels;
 	}
 
@@ -414,7 +416,11 @@ public class MobilityDbAdapter
 		count = db.delete(database_table, KEY_ROWID + "=" + rowId, null);
 		Log.d(TAG, "deleteRow: deleting row: " + rowId + "from table: " + database_table);
 		if (count > 0)
+		{
+			ContentResolver r = mCtx.getContentResolver();
+			r.notifyChange(MobilityInterface.CONTENT_URI, null);
 			return true;
+		}
 		else
 			return false;
 	}
