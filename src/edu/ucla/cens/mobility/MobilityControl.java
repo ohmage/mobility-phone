@@ -76,12 +76,14 @@ public class MobilityControl extends PreferenceActivity
 		super.onCreate(state);
 		mInstance = this;
 		setTitle(getTitle() + " - Settings");
-		setPreferenceScreen(createPreferenceHierarchy());
+		
 		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 //		Cursor c = MobilityInterface.getMobilityCursor(MobilityControl.this, "0");
 //		Log.i(TAG, c.getColumnCount() + " is the column count");
 		
 	}
+	
+	
 
 	@Override
 	public void onRestoreInstanceState(Bundle savedInstanceState)
@@ -107,10 +109,17 @@ public class MobilityControl extends PreferenceActivity
 			Log.d(TAG, "onStart()");
 	}
 
+	int rate = 60;
+	boolean running = false;
+	
 	@Override
 	public void onResume()
 	{
 		super.onResume();
+		SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
+		rate = settings.getInt(Mobility.SAMPLE_RATE, 60);
+		running = settings.getBoolean(MOBILITY_ON, false);
+		setPreferenceScreen(createPreferenceHierarchy());
 	}
 
 	@Override
@@ -421,9 +430,9 @@ public class MobilityControl extends PreferenceActivity
 
 	private void createMobilityGroup(PreferenceScreen root)
 	{
-
+		Log.d(TAG, "Creating mobility group");
 		PreferenceCategory mobilityPrefCat = new PreferenceCategory(this);
-		mobilityPrefCat.setTitle("Mobility");
+		mobilityPrefCat.setTitle("Mobility is " + running);
 		root.addPreference(mobilityPrefCat);
 
 		// Turn on/off
@@ -433,20 +442,23 @@ public class MobilityControl extends PreferenceActivity
 		moOnOffPref.setSummary("Mobility is currently off.");
 		moOnOffPref.setSummaryOn("Mobility is currently on.");
 		moOnOffPref.setOnPreferenceChangeListener(mOnCheckBoxChangeListener);
+		moOnOffPref.setDefaultValue(running);
+		
 		mobilityPrefCat.addPreference(moOnOffPref);
-
+		moOnOffPref.setChecked(running);
 		// Sampling Rate
 		DisplayValueListPreference moSampPref = new DisplayValueListPreference(this);
 		moSampPref.setKey(KEY_MOBILITY_SAMPLERATE_PREF);
 		moSampPref.setTitle("Sampling rate");
 		moSampPref.setEntries(R.array.pref_mobility_rate_options);
 		moSampPref.setEntryValues(R.array.pref_mobility_rate_options_values);
-		moSampPref.setDefaultValue("60");
+		moSampPref.setDefaultValue("" + rate);
+		
 		moSampPref.setDialogTitle("Set sample rate");
 		moSampPref.setDependency(KEY_MOBILITY_ONOFF_PREF);
 		moSampPref.setOnPreferenceChangeListener(mOnCheckBoxChangeListener);
 		mobilityPrefCat.addPreference(moSampPref);
-
+		moSampPref.setValue(rate + "");
 		// Blackout
 		Preference blackoutPref = new Preference(this);
 		blackoutPref.setKey(KEY_MOBILITY_BLACKOUT_PREF);

@@ -218,6 +218,22 @@ public class Mobility
 		nm.notify(123, notification);
 	}
 	
+	public static void setDebugNotification(Context context, String message)
+	{
+		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.error;
+		
+		Notification notification = new Notification(icon, null, System.currentTimeMillis());
+		notification.flags |= Notification.FLAG_NO_CLEAR;
+		//Intent i = new Intent("edu.ucla.cens.mobility.control");
+//		i.
+		
+//		appContext = context;
+		PendingIntent pi = PendingIntent.getActivity(context.getApplicationContext(), 1, null, 1);
+		notification.setLatestEventInfo(context.getApplicationContext(), "WiFiGPSError", message, pi);
+		nm.notify(124, notification);
+	}
+	
 	
 	public static void startMobility(Context context)
 	{

@@ -177,11 +177,11 @@ public class ClassifierService extends WakefulIntentService
 	}
 
 	/** Provider strings */
-	private static final String WIFIGPS_PROVIDER = "WiFiGPSLocation:GPS";
-	private static final String WIFIGPSCACHED_PROVIDER = "WiFiGPSLocation:GPSCACHED";
-	private static final String FAKE_PROVIDER = "WiFiGPSLocation:Fake";
-	private static final String APPROX_PROVIDER = "WiFiGPSLocation:Approx";
-	private static final String NET_PROVIDER = "WiFiGPSLocation:Net";
+	private static final String WIFIGPS_PROVIDER =    "WiFiGPSLocation:GPS";
+	private static final String WIFIGPSCACHED_PROVIDER =    "WiFiGPSLocation:Cached";
+	private static final String FAKE_PROVIDER =    "WiFiGPSLocation:Fake";
+	private static final String APPROX_PROVIDER =    "WiFiGPSLocation:Approx";
+	private static final String NET_PROVIDER =    "WiFiGPSLocation:Network";
 	private static final String UNAVAILABLE = "unavailable";
 	private static final String VALID = "valid";
 	private static final String INACCURATE = "inaccurate";
@@ -210,6 +210,8 @@ public class ClassifierService extends WakefulIntentService
 		double lat = Double.NaN;
 		double lon = Double.NaN;
 		float speed = 0;
+		int cachedCount = 0;
+		boolean driveCheat = true;
 		double acc = Double.NaN;
 		long timestamp = 0;
 		String provider = "None";
@@ -244,46 +246,73 @@ public class ClassifierService extends WakefulIntentService
 					timestamp = loc.getTime();
 					if (provider.equals(FAKE_PROVIDER))
 					{
+						Log.d(TAG, "Fake provider");
 						status = UNAVAILABLE;
 						speed = Float.NaN;
+						cachedCount = 0;
 					}
 					else if (provider.equals(WIFIGPSCACHED_PROVIDER))
 					{
+						cachedCount++;
+						Log.d(TAG, "Cached provider");
 						if (acc > INACCURACY_THRESHOLD)
 						{
+							Log.d(TAG, "Inaccurate");
 							status = INACCURATE;
-							speed = Float.NaN;
+							if (!driveCheat)
+								speed = Float.NaN;
 						}
 						else
+						{
+							Log.d(TAG, "Valid");
 							status = VALID;
+						}
 					}
 					else if (provider.equals(WIFIGPS_PROVIDER))
 					{
+						Log.d(TAG, "GPS provider");
+						cachedCount = 0;
 						if (timestamp > System.currentTimeMillis() - STALENESS_THRESHOLD)
 						{
 							if (acc > INACCURACY_THRESHOLD)
 							{
+								Log.d(TAG, "Inaccurate");
 								status = INACCURATE;
-								speed = Float.NaN;
+								if (!driveCheat)
+									speed = Float.NaN;
 							}
 							else
+							{
+								Log.d(TAG, "Valid");
 								status = VALID;
+							}
 						}
 						else
 						{
+							Log.d(TAG, "Stale");
 							status = STALE;
 							speed = Float.NaN;
 						}
 					}
 					else if (provider.equals(APPROX_PROVIDER))
 					{
+						cachedCount = 0;
+						Log.d(TAG, "Stale");
 						status = STALE;
 						speed = 0;
 					}
 					else if (provider.equals(NET_PROVIDER))
 					{
+						cachedCount = 0;
+						Log.d(TAG, "Network");
 						status = NETWORK;
 						speed = 0;
+					}
+					else
+					{
+						cachedCount = 0;
+						Log.e(TAG, "Invalid provider code received: " + provider);
+						Mobility.setDebugNotification(this, "Invalid WiFiGPS code: " + provider);
 					}
 				}
 				else
@@ -304,7 +333,7 @@ public class ClassifierService extends WakefulIntentService
 		{
 			// TODO Auto-generated catch block
 			loc = null;
-			// e.printStackTrace();
+			 e.printStackTrace();
 		}
 
 		if (samples.get(0).size() < 10)
@@ -380,11 +409,11 @@ public class ClassifierService extends WakefulIntentService
 		accFft5 = goertzel(accData, 5., dataSize);
 		Log.d(TAG, String.format("Samples = %4.0f", dataSize));
 
-		if (loc != null)
-		{
-			speed = loc.getSpeed();
-			acc = loc.getAccuracy();
-		}
+//		if (loc != null)
+//		{
+//			speed = loc.getSpeed();
+//			//acc = loc.getAccuracy();
+//		}
 		Log.d(TAG, speed + " is the speed");
 		String features = String.format("%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f", var, accFft1, accFft2, accFft3,
 				speed, v, a, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0, 0., 0., 0.);
@@ -536,7 +565,7 @@ public class ClassifierService extends WakefulIntentService
 	 * @param a0
 	 * @return Classification object with the mode
 	 */	
-	private String activity(double gps_speed, double avg, double var, double a1, double a2, double a3, double a4, double a5,
+	private String activity(Float gps_speed, double avg, double var, double a1, double a2, double a3, double a4, double a5,
 			double a6, double a7, double a8, double a9, double a0)
 	{
 		String output = STILL;
@@ -545,9 +574,9 @@ public class ClassifierService extends WakefulIntentService
 		{
 			if(a6 <= 0.002427)
 			{
-				if(a7 <= 0.001608)
-				{
-					if( gps_speed <= 0.791462 || gps_speed == Double.NaN)//|| gps_speed != Double.NaN)
+				/*if(a7 <= 0.001608)
+				{*/
+					if( gps_speed <= 0.791462 || gps_speed.isNaN())//|| gps_speed != Double.NaN)
 					{
 						
 //						if(avg <= 0.963016)
@@ -592,13 +621,13 @@ public class ClassifierService extends WakefulIntentService
 					{
 						output = DRIVE;Log.d(TAG, "Drive 3");
 					}
-				}
+				/*}
 				else
 				{
 					output = DRIVE;Log.d(TAG, "Drive 4");
-				}
+				}*/
 			}
-			else if(gps_speed <= 0.791462 || gps_speed == Double.NaN)//&& gps_speed != Double.NaN)
+			else if(gps_speed <= 0.791462 || gps_speed.isNaN())//&& gps_speed != Double.NaN)
 			{
 				output = STILL;
 			}
