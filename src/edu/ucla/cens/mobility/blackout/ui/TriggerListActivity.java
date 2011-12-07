@@ -235,7 +235,6 @@ public class TriggerListActivity extends ListActivity
 		//The viewbinder class to define each list item
         class CategListViewBinder 
 			  implements SimpleCursorAdapter.ViewBinder {
-			@Override
 			public boolean setViewValue(View view, Cursor c, int colIndex) {
 			
 //				String trigType = c.getString(
@@ -391,7 +390,6 @@ public class TriggerListActivity extends ListActivity
 		}
 		
 		ti.setOnTextChangedListener(new TrigTextInput.onTextChangedListener() {
-			@Override
 			public boolean onTextChanged(TrigTextInput textInput, String text) {
 				mDialogText = text;
 				return true;
@@ -400,7 +398,6 @@ public class TriggerListActivity extends ListActivity
 		
 		ti.setOnClickListener(new TrigTextInput.onClickListener() {
 			
-			@Override
 			public void onClick(TrigTextInput ti, int which) {
 				if(which == TrigTextInput.BUTTON_POSITIVE) {
 					
@@ -430,7 +427,6 @@ public class TriggerListActivity extends ListActivity
 					.setPositiveButton("Yes", 
 								new DialogInterface.OnClickListener() {
 						
-						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							deleteTrigger(mDialogTrigId);
 				    		mCursor.requery();
@@ -718,7 +714,6 @@ public class TriggerListActivity extends ListActivity
 //		
 //	}
 
-	@Override
 	public void onClick(View v) {
 		
 		if(v.getId() == R.id.button_add_new) {

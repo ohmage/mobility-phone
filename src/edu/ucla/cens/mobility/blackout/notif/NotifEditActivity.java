@@ -308,7 +308,6 @@ public class NotifEditActivity extends ListActivity
 		ti.setNegativeButtonText("Cancel");
 		ti.setOnClickListener(new TrigTextInput.onClickListener() {
 			
-			@Override
 			public void onClick(TrigTextInput textInput, int which) {
 
 				if(which == TrigTextInput.BUTTON_POSITIVE) {
@@ -343,7 +342,6 @@ public class NotifEditActivity extends ListActivity
 		}
 	}
 	
-	@Override
 	public void onClick(View v) {
 		//Ignore all clicks on the list once a dialog has been 
 		//created. This is needed to guard against quikly pressing

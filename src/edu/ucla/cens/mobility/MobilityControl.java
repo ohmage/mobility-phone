@@ -396,7 +396,6 @@ public class MobilityControl extends PreferenceActivity
 	private OnPreferenceClickListener mOnClickListener = new OnPreferenceClickListener()
 	{
 
-		@Override
 		public boolean onPreferenceClick(Preference preference)
 		{
 			String pref_key = preference.getKey();

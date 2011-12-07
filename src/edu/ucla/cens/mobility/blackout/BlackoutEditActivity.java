@@ -235,7 +235,6 @@ public class BlackoutEditActivity extends PreferenceActivity
 //		}
 //	}
 	
-	@Override
 	public void onClick(View v) {
 		switch(v.getId()) {
 		
@@ -331,7 +330,6 @@ public class BlackoutEditActivity extends PreferenceActivity
 		return null;
 	}
 	
-	@Override
 	public boolean onPreferenceClick(Preference pref) {
 		
 		/*if(pref.getKey().equals(PREF_KEY_RANDOMIZE) ||
@@ -346,13 +344,11 @@ public class BlackoutEditActivity extends PreferenceActivity
 		return false;
 	}
 
-	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
 	
 		return true;
 	}
 
-	@Override
 	public void onClick(DialogInterface dialog, int which, boolean isChecked) {
 		
 		mRepeatStatus[which] = isChecked;
@@ -372,7 +368,6 @@ public class BlackoutEditActivity extends PreferenceActivity
 		}
 	}
 
-	@Override
 	public void onClick(DialogInterface dialog, int which) {
 		
 		if(which == DialogInterface.BUTTON_POSITIVE) {

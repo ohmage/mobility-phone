@@ -125,7 +125,6 @@ public class NotifDesc {
 		
 		Collections.sort(ret, new Comparator<Integer>() {
 
-			@Override
 			public int compare(Integer a, Integer b) {
 				
 				return (a - b);

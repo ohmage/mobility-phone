@@ -89,7 +89,6 @@ public class Blackout extends TriggerBase
 		BlackoutEditActivity.setOnExitListener(new BlackoutEditActivity.ExitListener()
 		{
 
-			@Override
 			public void onDone(Context context, int trigId, String trigDesc)
 			{
 
@@ -101,14 +100,12 @@ public class Blackout extends TriggerBase
 		context.startActivity(new Intent(context, BlackoutEditActivity.class));
 	}
 
-	@Override
 	public void launchTriggerEditActivity(Context context, int trigId, String trigDesc, boolean adminMode)
 	{
 		Log.i(TAG, "Editing the blackout time!");
 		BlackoutEditActivity.setOnExitListener(new BlackoutEditActivity.ExitListener()
 		{
 
-			@Override
 			public void onDone(Context context, int trigId, String trigDesc)
 			{
 
