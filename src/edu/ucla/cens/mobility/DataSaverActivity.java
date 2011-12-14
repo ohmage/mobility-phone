@@ -147,7 +147,7 @@ public class DataSaverActivity extends Activity
     					JSONObject mobilityPointJson = new JSONObject();
     					try {
     						last = row.rowValue;
-    						long time = row.timeValue;
+    						String time = row.timeValue;
     						mobilityPointJson.put("date", dateFormat.format(new Date(time)));
     						mobilityPointJson.put("time", time);
     						mobilityPointJson.put("timezone", row.timezoneValue);// c.getString(c.getColumnIndex(MobilityInterface.KEY_TIMEZONE)));

@@ -21,6 +21,7 @@ import android.widget.Toast;
 public class MobilityInterface
 {
 	public static final String KEY_MODE = "mode";
+	public static final String KEY_ID = "id";
 	public static final String KEY_SPEED = "speed";
 	public static final String KEY_STATUS = "status";
 	public static final String KEY_LOC_TIMESTAMP = "location_timestamp";
@@ -33,7 +34,7 @@ public class MobilityInterface
 	public static final String KEY_TIME = "time";
 	public static final String KEY_LATITUDE = "latitude";
 	public static final String KEY_LONGITUDE = "longitude";
-	private static String [] columns = {KEY_ROWID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE};
+	private static String [] columns = {KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE};
 	// Content provider strings
 	public static final String AUTHORITY = "edu.ucla.cens.mobility.MobilityContentProvider";
 	public static final String PATH_MOBILITY = "mobility";

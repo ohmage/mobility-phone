@@ -194,19 +194,15 @@ public class ClassifierService extends WakefulIntentService
 	private static final String STILL = "still";
 	private static final String DRIVE = "drive";
 	private static final String BIKE = "bike";
+	private static final String ERROR = "error";
 
 	private void getTransportMode()
 	{
 		Vector<ArrayList<Double>> samples = getAccSamples();
-
-		if (samples == null)
-		{
-			return;
-		}
-		ArrayList<Double> accData = samples.get(3);
+		
 		boolean gpsFail = false;
 			
-		Log.i(TAG, samples.size() + " is the sample size");
+//		Log.i(TAG, samples.size() + " is the sample size"); // Always 4 now
 		double lat = Double.NaN;
 		double lon = Double.NaN;
 		float speed = 0;
@@ -326,20 +322,35 @@ public class ClassifierService extends WakefulIntentService
 				loc = null;
 //				Mobility.gpsFailCount++;
 				gpsFail = true;
-				Log.d(TAG, "mWiFiGPS is null, losing sample");
+				Log.d(TAG, "mWiFiGPS is null, no GPS data");
+				status = UNAVAILABLE;
+				speed = Float.NaN;
 			}
 		}
 		catch (RemoteException e)
 		{
 			// TODO Auto-generated catch block
 			loc = null;
+			status = UNAVAILABLE;
+			speed = Float.NaN;
+			Log.e(TAG, "Exception happened with connection to WiFiGPS service");
 			 e.printStackTrace();
 		}
-
+		String activity = "unknown";
+		if (samples == null)
+		{
+			Log.i(TAG, "Null object from AccelService");
+			activity = ERROR;
+			addTransportMode(activity, samples, speed, acc, provider, status, timestamp, wifiData, lat, lon);
+			return;
+		}
+		ArrayList<Double> accData = samples.get(3);
+		
 		if (samples.get(0).size() < 10)
 		{
-
-			addTransportMode("still", samples, speed, acc, provider, status, timestamp, wifiData, lat, lon);
+			Log.i(TAG, "Too few samples to do accelerometer feature analysis");
+			addTransportMode(STILL, samples, speed, acc, provider, status, timestamp, wifiData, lat, lon);
+			return;
 		}
 		// sample *= 310;
 
@@ -348,7 +359,7 @@ public class ClassifierService extends WakefulIntentService
 		// thread.start();
 		// int newVal = 0;
 		double dataSize = accData.size();
-		String activity = "unknown";
+		
 		double sum = 0.0, s = 0.0;
 		double avg = 0.0, a = 0.0;
 		double var = 0.0, v = 0.0;

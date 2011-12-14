@@ -3,6 +3,7 @@ package edu.ucla.cens.mobility;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,6 +31,7 @@ import android.util.Log;
 
 public class MobilityDbAdapter
 {
+	public static final String KEY_ID = "id";
 	public static final String KEY_MODE = "mode";
 	public static final String KEY_SPEED = "speed";
 	public static final String KEY_STATUS = "status";
@@ -60,8 +62,9 @@ public class MobilityDbAdapter
 	private static final int DATABASE_VERSION = 1;
 	SharedPreferences settings;
 	SharedPreferences.Editor editor;
-	private static final String DATABASE_CREATE = "create table %s (" 
+	private static final String DATABASE_CREATE = "create table %s ("
 			+ KEY_ROWID + " integer primary key autoincrement," 
+			+ KEY_ID + " text not null,"
 			+ KEY_MODE + " text not null," 
 			+ KEY_SPEED + " text not null," 
 			+ KEY_STATUS + " text not null," 
@@ -70,7 +73,7 @@ public class MobilityDbAdapter
 			+ KEY_PROVIDER + " text not null," 
 			+ KEY_WIFIDATA + " text not null," 
 			+ KEY_ACCELDATA + " text not null," 
-			+ KEY_TIME + " integer not null," 
+			+ KEY_TIME + " text not null," 
 			+ KEY_TIMEZONE + " text not null," 
 			+ KEY_LATITUDE + " text," 
 			+ KEY_LONGITUDE + " text" + ");";
@@ -78,6 +81,7 @@ public class MobilityDbAdapter
 	public class DBRow extends Object
 	{
 		public long rowValue;
+		public String idValue;
 		public String statusValue;
 		public String locTimeValue;
 		public String accuracyValue;
@@ -89,7 +93,7 @@ public class MobilityDbAdapter
 //		public String varianceValue;
 //		public String averageValue;
 //		public String fftValue;
-		public long timeValue;
+		public String timeValue;
 		public String timezoneValue;
 		public String latitudeValue;
 		public String longitudeValue;
@@ -297,9 +301,13 @@ public class MobilityDbAdapter
 		if (longitude.equals(""))
 			longitude = "NaN";
 		
+		UUID id = UUID.randomUUID();
+		
 		String timezone = TimeZone.getDefault().getID();
 		editor.putLong(database_table, 1);
 		editor.commit();
+		vals.put(KEY_ID, id.toString());
+		Log.d(TAG, id.toString());
 		vals.put(KEY_MODE, mode);
 		vals.put(KEY_SPEED, speed);
 		vals.put(KEY_STATUS, status);
@@ -308,7 +316,7 @@ public class MobilityDbAdapter
 		vals.put(KEY_PROVIDER, provider);
 		vals.put(KEY_WIFIDATA, wifiData);
 		vals.put(KEY_ACCELDATA, formatAccelData(samples));
-		vals.put(KEY_TIME, time);
+		vals.put(KEY_TIME, time + "");
 		vals.put(KEY_TIMEZONE, timezone);
 		vals.put(KEY_LATITUDE, latitude);
 		vals.put(KEY_LONGITUDE, longitude);
@@ -322,6 +330,8 @@ public class MobilityDbAdapter
 	
 	private String formatAccelData(Vector<ArrayList<Double>> samples)
 	{
+		if (samples == null)
+			return "[]";
 		JSONArray ja = new JSONArray();
 		// Sometime there are more x values for some strange reason. We don't want to upload incomplete x,y,z sets.
 		int minSize = 100; // max allowed
@@ -432,7 +442,7 @@ public class MobilityDbAdapter
 		try
 		{
 			Log.d(TAG, "fetchSomeRows from table: " + database_table);
-			Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, null, null,
+			Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, null, null,
 					null, null, null, numLines.toString());
 			int numRows = c.getCount();
 			Log.d(TAG, numRows + " rows in the table\n");
@@ -441,27 +451,25 @@ public class MobilityDbAdapter
 			{
 				DBRow row = new DBRow();
 				row.rowValue = c.getLong(0);
-				row.modeValue = c.getString(1);
-				row.speedValue = c.getString(2);
-				row.statusValue = c.getString(3);
-				row.locTimeValue = c.getString(4);
-				row.accuracyValue = c.getString(5);
-				row.providerValue = c.getString(6);
-				row.wifiDataValue = c.getString(7);
-				row.accelDataValue = c.getString(8);
-//				row.varianceValue = c.getString(9);
-//				row.averageValue = c.getString(10);
-//				row.fftValue = c.getString(11);
-				row.timeValue = c.getLong(9);
-				row.timezoneValue = c.getString(10);
-				if (c.isNull(11))
+				row.idValue = c.getString(1);
+				row.modeValue = c.getString(2);
+				row.speedValue = c.getString(3);
+				row.statusValue = c.getString(4);
+				row.locTimeValue = c.getString(5);
+				row.accuracyValue = c.getString(6);
+				row.providerValue = c.getString(7);
+				row.wifiDataValue = c.getString(8);
+				row.accelDataValue = c.getString(9);
+				row.timeValue = c.getString(10);
+				row.timezoneValue = c.getString(11);
+				if (c.isNull(12))
 					row.latitudeValue = null;
 				else
-					row.latitudeValue = c.getString(11);
-				if (c.isNull(12))
+					row.latitudeValue = c.getString(12);
+				if (c.isNull(13))
 					row.longitudeValue = null;
 				else
-					row.longitudeValue = c.getString(12);
+					row.longitudeValue = c.getString(13);
 				ret.add(row);
 				c.moveToNext();
 			}
@@ -481,7 +489,7 @@ public class MobilityDbAdapter
 		{
 			Log.d(TAG, "fetchSomeRows from table: " + database_table);
 			Cursor c = db.query(database_table, 
-					new String[] { KEY_ROWID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, 
+					new String[] { KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, 
 					KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, KEY_ROWID + " > " + last, null,
 					null, null, null, numLines.toString());
 			int numRows = c.getCount();
@@ -491,27 +499,25 @@ public class MobilityDbAdapter
 			{
 				DBRow row = new DBRow();
 				row.rowValue = c.getLong(0);
-				row.modeValue = c.getString(1);
-				row.speedValue = c.getString(2);
-				row.statusValue = c.getString(3);
-				row.locTimeValue = c.getString(4);
-				row.accuracyValue = c.getString(5);
-				row.providerValue = c.getString(6);
-				row.wifiDataValue = c.getString(7);
-				row.accelDataValue = c.getString(8);
-//				row.varianceValue = c.getString(9);
-//				row.averageValue = c.getString(10);
-//				row.fftValue = c.getString(11);
-				row.timeValue = c.getLong(9);
-				row.timezoneValue = c.getString(10);
-				if (c.isNull(11))
+				row.idValue = c.getString(1);
+				row.modeValue = c.getString(2);
+				row.speedValue = c.getString(3);
+				row.statusValue = c.getString(4);
+				row.locTimeValue = c.getString(5);
+				row.accuracyValue = c.getString(6);
+				row.providerValue = c.getString(7);
+				row.wifiDataValue = c.getString(8);
+				row.accelDataValue = c.getString(9);
+				row.timeValue = c.getString(10);
+				row.timezoneValue = c.getString(11);
+				if (c.isNull(12))
 					row.latitudeValue = null;
 				else
-					row.latitudeValue = c.getString(11);
-				if (c.isNull(12))
+					row.latitudeValue = c.getString(12);
+				if (c.isNull(13))
 					row.longitudeValue = null;
 				else
-					row.longitudeValue = c.getString(12);
+					row.longitudeValue = c.getString(13);
 				ret.add(row);
 				c.moveToNext();
 			}
@@ -530,7 +536,7 @@ public class MobilityDbAdapter
 		try
 		{
 			Log.d(TAG, "fetchSomeRows from table: " + database_table);
-			Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, KEY_TIME
+			Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, KEY_TIME
 					+ " < " + timeLimit, null, null, null, null, null);
 			int numRows = c.getCount();
 			Log.d(TAG, numRows + " rows in the table\n");
@@ -539,27 +545,25 @@ public class MobilityDbAdapter
 			{
 				DBRow row = new DBRow();
 				row.rowValue = c.getLong(0);
-				row.modeValue = c.getString(1);
-				row.speedValue = c.getString(2);
-				row.statusValue = c.getString(3);
-				row.locTimeValue = c.getString(4);
-				row.accuracyValue = c.getString(5);
-				row.providerValue = c.getString(6);
-				row.wifiDataValue = c.getString(7);
-				row.accelDataValue = c.getString(8);
-//				row.varianceValue = c.getString(9);
-//				row.averageValue = c.getString(10);
-//				row.fftValue = c.getString(11);
-				row.timeValue = c.getLong(9);
-				row.timezoneValue = c.getString(10);
-				if (c.isNull(11))
+				row.idValue = c.getString(1);
+				row.modeValue = c.getString(2);
+				row.speedValue = c.getString(3);
+				row.statusValue = c.getString(4);
+				row.locTimeValue = c.getString(5);
+				row.accuracyValue = c.getString(6);
+				row.providerValue = c.getString(7);
+				row.wifiDataValue = c.getString(8);
+				row.accelDataValue = c.getString(9);
+				row.timeValue = c.getString(10);
+				row.timezoneValue = c.getString(11);
+				if (c.isNull(12))
 					row.latitudeValue = null;
 				else
-					row.latitudeValue = c.getString(11);
-				if (c.isNull(12))
+					row.latitudeValue = c.getString(12);
+				if (c.isNull(13))
 					row.longitudeValue = null;
 				else
-					row.longitudeValue = c.getString(12);
+					row.longitudeValue = c.getString(13);
 				ret.add(row);
 				c.moveToNext();
 			}
@@ -578,7 +582,7 @@ public class MobilityDbAdapter
 		try
 		{
 			Log.d(TAG, "fetchSomeRows from table: " + database_table);
-			Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, null, null, null, null,
+			Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, null, null, null, null,
 					null, null);
 			int numRows = c.getCount();
 			Log.d(TAG, numRows + " rows in the table\n");
@@ -588,27 +592,25 @@ public class MobilityDbAdapter
 				DBRow row = new DBRow();
 
 				row.rowValue = c.getLong(0);
-				row.modeValue = c.getString(1);
-				row.speedValue = c.getString(2);
-				row.statusValue = c.getString(3);
-				row.locTimeValue = c.getString(4);
-				row.accuracyValue = c.getString(5);
-				row.providerValue = c.getString(6);
-				row.wifiDataValue = c.getString(7);
-				row.accelDataValue = c.getString(8);
-//				row.varianceValue = c.getString(9);
-//				row.averageValue = c.getString(10);
-//				row.fftValue = c.getString(11);
-				row.timeValue = c.getLong(9);
-				row.timezoneValue = c.getString(10);
-				if (c.isNull(11))
+				row.idValue = c.getString(1);
+				row.modeValue = c.getString(2);
+				row.speedValue = c.getString(3);
+				row.statusValue = c.getString(4);
+				row.locTimeValue = c.getString(5);
+				row.accuracyValue = c.getString(6);
+				row.providerValue = c.getString(7);
+				row.wifiDataValue = c.getString(8);
+				row.accelDataValue = c.getString(9);
+				row.timeValue = c.getString(10);
+				row.timezoneValue = c.getString(11);
+				if (c.isNull(12))
 					row.latitudeValue = null;
 				else
-					row.latitudeValue = c.getString(11);
-				if (c.isNull(12))
+					row.latitudeValue = c.getString(12);
+				if (c.isNull(13))
 					row.longitudeValue = null;
 				else
-					row.longitudeValue = c.getString(12);
+					row.longitudeValue = c.getString(13);
 				ret.add(row);
 				c.moveToNext();
 			}
@@ -622,7 +624,7 @@ public class MobilityDbAdapter
 
 	public DBRow fetchRow(long rowId) throws SQLException
 	{
-		Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, KEY_ROWID + "=" + rowId,
+		Cursor c = db.query(database_table, new String[] { KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, KEY_ROWID + "=" + rowId,
 				null, null, null, null);
 		DBRow ret = new DBRow();
 
@@ -631,30 +633,29 @@ public class MobilityDbAdapter
 			c.moveToFirst();
 
 			ret.rowValue = c.getLong(0);
-			ret.modeValue = c.getString(1);
-			ret.speedValue = c.getString(2);
-			ret.statusValue = c.getString(3);
-			ret.locTimeValue = c.getString(4);
-			ret.accuracyValue = c.getString(5);
-			ret.providerValue = c.getString(6);
-			ret.wifiDataValue = c.getString(7);
-			ret.accelDataValue = c.getString(8);
-//			ret.varianceValue = c.getString(9);
-//			ret.averageValue = c.getString(10);
-//			ret.fftValue = c.getString(11);
-			ret.timeValue = c.getLong(9);
-			ret.timezoneValue = c.getString(10);
-			if (c.isNull(11))
+			ret.idValue = c.getString(1);
+			ret.modeValue = c.getString(2);
+			ret.speedValue = c.getString(3);
+			ret.statusValue = c.getString(4);
+			ret.locTimeValue = c.getString(5);
+			ret.accuracyValue = c.getString(6);
+			ret.providerValue = c.getString(7);
+			ret.wifiDataValue = c.getString(8);
+			ret.accelDataValue = c.getString(9);
+			ret.timeValue = c.getString(10);
+			ret.timezoneValue = c.getString(11);
+			if (c.isNull(12))
 				ret.latitudeValue = null;
 			else
-				ret.latitudeValue = c.getString(11);
-			if (c.isNull(12))
+				ret.latitudeValue = c.getString(12);
+			if (c.isNull(13))
 				ret.longitudeValue = null;
 			else
-				ret.longitudeValue = c.getString(12);
+				ret.longitudeValue = c.getString(13);
 		} else
 		{
 			ret.rowValue = -1;
+			ret.idValue = null;
 			ret.modeValue = null;
 			ret.statusValue = null;
 			ret.locTimeValue = null;
@@ -662,7 +663,7 @@ public class MobilityDbAdapter
 			ret.providerValue = null;
 			ret.wifiDataValue = null;
 			ret.accelDataValue = null;
-			ret.timeValue = -1;
+			ret.timeValue = null;
 			ret.timezoneValue = null;
 			ret.latitudeValue = null;
 			ret.longitudeValue = null;
