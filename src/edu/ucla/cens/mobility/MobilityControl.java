@@ -431,7 +431,7 @@ public class MobilityControl extends PreferenceActivity
 	{
 		Log.d(TAG, "Creating mobility group");
 		PreferenceCategory mobilityPrefCat = new PreferenceCategory(this);
-		mobilityPrefCat.setTitle("Mobility is " + running);
+		mobilityPrefCat.setTitle("Mobility");// is " + running);
 		root.addPreference(mobilityPrefCat);
 
 		// Turn on/off

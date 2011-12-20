@@ -88,9 +88,15 @@ public class BlackoutService extends Service
 
 				// repeat the alarm
 				if (startEnd == 0)
+				{
+					Log.d(TAG, "Blackout!");
 					Mobility.stopMobility(this, true);
+				}
 				else
+				{
+					Log.d(TAG, "All clear!");
 					Mobility.startMobility(this);
+				}
 			}
 			else
 			{
