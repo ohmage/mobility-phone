@@ -38,7 +38,7 @@ import android.widget.SimpleCursorAdapter;
 
 public class Mobility
 {
-
+	private static final boolean debugMode = true;
 	static Location globalLoc;
 	static boolean setInterval = false;
 	private static PendingIntent startPI = null;
@@ -92,17 +92,17 @@ public class Mobility
 		public void onServiceDisconnected(ComponentName className)
 		{
 			Log.d(TAG, "onServiceDisconnected was called!");
-			// try
-			// {
-			// getmAccel().stop(SERVICE_TAG);
-			// Log.i(TAG, "Successfully stopped service!");
-			//
-			// } catch (RemoteException e)
-			// {
-			// Log.e(TAG, "Failed to stop service!");
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
+//			 try
+//			 {
+//			 getmAccel().stop(SERVICE_TAG);
+//			 Log.i(TAG, "Successfully stopped service!");
+//			
+//			 } catch (RemoteException e)
+//			 {
+//			 Log.e(TAG, "Failed to stop service!");
+//			 // TODO Auto-generated catch block
+//			 e.printStackTrace();
+//			 }
 			accelConnected = false;
 			setmAccel(null);
 			// mConnected = false;
@@ -223,11 +223,15 @@ public class Mobility
 	{
 		NotificationManager nm = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
-		int icon = R.drawable.pending;
+		//int icon = R.drawable.pending; // for debug
+		int icon = R.drawable.mobility;
 		if (status.equals(STATUS_OK))
 			icon = R.drawable.mobility;
 		else if (status.equals(STATUS_ERROR))
-			icon = R.drawable.error;
+		{
+			//icon = R.drawable.error;
+			setDebugNotification(context, message);
+		}
 		else if (status.equals(STATUS_BLACKOUT))
 			icon = R.drawable.blackout;
 		Notification notification = new Notification(icon, null,
@@ -239,6 +243,8 @@ public class Mobility
 		// appContext = context;
 		PendingIntent pi = PendingIntent.getActivity(
 				context.getApplicationContext(), 1, i, 1);
+		if (!debugMode && !status.equals(STATUS_BLACKOUT))
+			message = "Click for Mobility options";
 		notification.setLatestEventInfo(context.getApplicationContext(),
 				"Mobility", message, pi);
 		nm.notify(123, notification);
@@ -246,13 +252,15 @@ public class Mobility
 
 	public static void setDebugNotification(Context context, String message)
 	{
+		if (!debugMode)
+			return;
 		NotificationManager nm = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon = R.drawable.error;
 
 		Notification notification = new Notification(icon, null,
 				System.currentTimeMillis());
-		notification.flags |= Notification.FLAG_NO_CLEAR;
+		//notification.flags |= Notification.FLAG_NO_CLEAR;
 		// Intent i = new Intent("edu.ucla.cens.mobility.control");
 		// i.
 
@@ -260,7 +268,7 @@ public class Mobility
 		PendingIntent pi = PendingIntent.getActivity(
 				context.getApplicationContext(), 1, null, 1);
 		notification.setLatestEventInfo(context.getApplicationContext(),
-				"WiFiGPSError", message, pi);
+				"MobilityError", message, pi);
 		nm.notify(124, notification);
 	}
 
@@ -318,7 +326,7 @@ public class Mobility
 		{
 			Log.e(TAG, "AlarmManager was null so it wasn't cancelled!");
 		}
-		stopAcc(context, sampleRate);
+		stopAcc(context);
 		stopGPS(context);
 		// try
 		// {
@@ -407,7 +415,7 @@ public class Mobility
 
 	}
 
-	private static void stopAcc(Context context, long milliseconds)
+	private static void stopAcc(Context context)
 	{
 		if (startPI != null)
 			mgr.cancel(startPI);
@@ -573,6 +581,30 @@ public class Mobility
 			// e.printStackTrace();
 		}
 	}
+
+	public static void getWithTheProgram(Context context)
+	{
+		Log.d(TAG, "There is an accel object that didn't start when I told it to. Accel connected: " + accelConnected);
+		try
+		{
+			if (mgr == null)
+				mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE); // so start doesn't crash, move to start()
+			stopAcc(context);
+			startAcc(context, sampleRate);
+			getmAccel().start(SERVICE_TAG);
+			getmAccel().suggestRate(SERVICE_TAG,
+					SensorManager.SENSOR_DELAY_GAME);
+			getmAccel().suggestInterval(SERVICE_TAG, (int) sampleRate);
+
+		}
+		catch (RemoteException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
 
 	// public static void unbindServices(Context context)
 	// {

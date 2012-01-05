@@ -27,6 +27,7 @@ public class BootReceiver extends BroadcastReceiver
 //			context.startService(MobilityServiceIntent);
 //			context.startService(new Intent(context, Mobility.class));
 			Mobility.start(context.getApplicationContext());
+			Log.d(TAG, "Boot receiver called start!");
 			
 		}
 		

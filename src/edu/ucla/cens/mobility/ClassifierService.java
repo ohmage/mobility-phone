@@ -52,8 +52,7 @@ public class ClassifierService extends WakefulIntentService
 		super.onCreate();
 		// if (!Mobility.initialized)
 		// Mobility.initialize(this.getApplicationContext());
-		bindService(new Intent(ISystemLog.class.getName()),
-				Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
+		bindService(new Intent(ISystemLog.class.getName()),	Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -133,22 +132,23 @@ public class ClassifierService extends WakefulIntentService
 		{
 			if (Mobility.getmAccel() == null
 					|| System.currentTimeMillis()
-							- Mobility.getmAccel().getLastTimeStamp() > 2000 + Mobility.sampleRate)
+							- Mobility.getmAccel().getLastTimeStamp() > 10000 + Mobility.sampleRate)
 			{
-				Log.e(TAG, "mAccel fails to not be null.");
+				Log.e(TAG, "mAccel fails to not be null or old.");
 				if (Mobility.failCount++ > 2)
 				{
 					if (Mobility.getmAccel() == null)
-						Mobility.setNotification(this, Mobility.STATUS_ERROR,
-								"Please verify that AccelService is installed");
+						Mobility.setNotification(this, Mobility.STATUS_ERROR, "Please verify that AccelService is installed");
 					else
-						Mobility.setNotification(this, Mobility.STATUS_ERROR,
-								"Mobility is waiting for new accelerometer data");
+					{
+						Log.e(TAG, "Last accelerometer sample is " + (System.currentTimeMillis() - Mobility.getmAccel().getLastTimeStamp())/1000 + " seconds old");
+						Mobility.setNotification(this, Mobility.STATUS_ERROR, "Mobility is waiting for new accelerometer data");
+						Mobility.getWithTheProgram(this.getApplicationContext()); // workaround for when fast restart on MyTouch 4G breaks AccelService
+					}
 				}
 				else
-					Mobility.setNotification(this, Mobility.STATUS_PENDING,
-							"Waiting for the first sensor sample");
-				return null;
+					Mobility.setNotification(this, Mobility.STATUS_PENDING,	"Waiting for the first sensor sample");
+				return null; 
 			}
 			Mobility.failCount = 0;
 
@@ -384,6 +384,7 @@ public class ClassifierService extends WakefulIntentService
 		if (samples == null)
 		{
 			Log.i(TAG, "Null object from AccelService");
+			
 			activity = ERROR;
 			addTransportMode(activity, samples, speed, acc, provider, status,
 					timestamp, wifiData, lat, lon);
@@ -625,21 +626,27 @@ public class ClassifierService extends WakefulIntentService
 	{
 		// load previous
 		SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
-		String SSIDsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare with previous sample
+		String APsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare with previous sample
 		long time = jsonObject.getLong("time");
-		if (SSIDsFromLastTimeStr != null)
+		if (APsFromLastTimeStr != null)
 		{
-			String [] lines = SSIDsFromLastTimeStr.split("\n");
+			String [] lines = APsFromLastTimeStr.split("\n");
 			long lastTime = Long.parseLong(lines[0]);
 			String lastMode = lines[1];
-			Vector<String> SSIDsFromLastTime = new Vector<String>();
-			String [] SSIDStrs = lines[2].split(",");
-			for (String str : SSIDStrs)
-				SSIDsFromLastTime.add(str);
-			Log.d(TAG, "SSID from last time exists and is well-formed:\n" + SSIDsFromLastTimeStr);
-			Vector<String> SSIDs = JSONToList(jsonObject);
+			Vector<String> APsFromLastTime = new Vector<String>();
+			Log.d(TAG, APsFromLastTimeStr);
+			Log.d(TAG, APsFromLastTime.size() + "");
+			if (lines.length > 2) // APs seen last time
+			{
+				String [] APStrs = lines[2].split(",");
+				for (String str : APStrs)
+					APsFromLastTime.add(str);
+			}
 			
-			// compare to SSIDsFromLastTime
+			Log.d(TAG, "AP from last time exists and is well-formed:\n" + APsFromLastTimeStr);
+			Vector<String> APs = JSONToList(jsonObject);
+			
+			// compare to APsFromLastTime
 			double same = 0;
 			double total = 0;
 			if (lastTime == time) // no new wifi data
@@ -648,67 +655,75 @@ public class ClassifierService extends WakefulIntentService
 				return lastMode;
 			}
 			Log.d(TAG, "Current wifi is "+ (System.currentTimeMillis() - time)/60000 +" minutes old.");
-			if (lastTime < System.currentTimeMillis() - 1000 * 60 * 5) // if no recent wifi for comparison
+			if (lastTime < System.currentTimeMillis() - 1000 * 60 * 8) // if no recent wifi for comparison
 			{
 				Log.d(TAG, "Last stored wifi was ages ("+ (System.currentTimeMillis() - lastTime)/60000 +" minutes) ago .");
-				writeWifi(settings, time, UNKNOWN, SSIDs);
+				writeWifi(settings, time, UNKNOWN, APs);
 				return UNKNOWN;
 			}
 			else
 				Log.d(TAG, "Last stored wifi is "+ (System.currentTimeMillis() - lastTime)/60000 +" minutes old.");
 			// Now we can do the comparison
-			for (String SSID : SSIDs)
+			for (String AP : APs)
 			{
-				if (SSIDsFromLastTime.contains(SSID))
+				if (APsFromLastTime.contains(AP))
 					same++;
 				total++;
 			}
-			for (String SSID : SSIDsFromLastTime)
+			for (String AP : APsFromLastTime)
 			{
-				if (!SSIDs.contains(SSID)) // only count others that don't match. We don't count the same ones again.
+				if (!APs.contains(AP)) // only count others that don't match. We don't count the same ones again.
 					total++;
 			}
-			Log.d(TAG, "There were " + same + " SSIDs in both samples, while " + total + " SSIDs were seen across both.");
+			Log.d(TAG, "There were " + same + " APs in both samples, while " + total + " APs were seen across both.");
 			if (total > 0 && same / total < 1. / 3.)
 			{
 				Log.d(TAG, "Wifi chooses drive!");
-				writeWifi(settings, time, DRIVE, SSIDs);
+				writeWifi(settings, time, DRIVE, APs);
 				return DRIVE;// + " " + same / total;
 			}
 			else if (total > 0)
 			{
 				Log.d(TAG, "Wifi chooses still!");
-				writeWifi(settings, time, STILL, SSIDs);
+				writeWifi(settings, time, STILL, APs);
 				return STILL;// + " " + same / total;
 			}
 			else
 			{
 				Log.d(TAG, "No wifi detected in either sample; it's up to the GPS.");
-				writeWifi(settings, time, UNKNOWN, SSIDs);
+				writeWifi(settings, time, UNKNOWN, APs);
 				return UNKNOWN;
 			}
 		}
 		else
 		{
-			Log.d(TAG, "No previous SSID!");
+			Log.d(TAG, "No previous AP!");
 			// no history
-			Vector<String> SSIDs = JSONToList(jsonObject);
-			writeWifi(settings, time, UNKNOWN, SSIDs);
+			Vector<String> APs = JSONToList(jsonObject);
+			writeWifi(settings, time, UNKNOWN, APs);
 			return UNKNOWN;
 		}
 		
 
 	}
 
-	private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> SSIDs)
+	private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs)
 	{
+//		APs = new Vector<String>(); // remove!
 		String store = time + "\n" + mode + "\n";
-		for (String s : SSIDs)
+		for (String s : APs)
 			store += s + ",";
-		if (SSIDs.size() > 0)
+		if (APs.size() > 0)
+		{	
+			if (!store.endsWith(","))
+				Log.e(TAG, "This is wrong: " + store + " " + APs.size());
 			store = store.substring(0, store.length() - 1); // cut off last comma
+		}
+//		else if (store.endsWith("\n"))
+//			Log.d(TAG, "Ends with newline, so that's fine. Splits into " + store.split("\n").length + " lines.");
 		Log.d(TAG, store);
 		Editor editor = settings.edit();
+		Log.d(TAG, "Storing " + store);
 		editor.putString(WIFI_HISTORY, store);
 		editor.commit();
 	}
@@ -728,9 +743,10 @@ public class ClassifierService extends WakefulIntentService
 			if (ap.getInt("strength") < -50)
 			{
 				list.add(ap.getString("ssid"));
+				Log.d(TAG, "Adding \"" + ap.getString("ssid") + "\" to APs");
 			}
 		}
-		if (list.size() == 0)
+		if (list.size() == 0 && strcount > 0)
 		{
 			double avg = strsum / strcount;
 			for (int i = 0; i < array.length(); i++)
