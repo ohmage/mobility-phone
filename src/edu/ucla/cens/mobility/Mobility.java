@@ -243,7 +243,7 @@ public class Mobility
 		// appContext = context;
 		PendingIntent pi = PendingIntent.getActivity(
 				context.getApplicationContext(), 1, i, 1);
-		if (!debugMode && !status.equals(STATUS_BLACKOUT))
+		if (!debugMode && !(status.equals(STATUS_BLACKOUT) || status.equals(STATUS_OK)))
 			message = "Click for Mobility options";
 		notification.setLatestEventInfo(context.getApplicationContext(),
 				"Mobility", message, pi);
