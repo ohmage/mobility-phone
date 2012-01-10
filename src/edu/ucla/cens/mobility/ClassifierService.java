@@ -143,7 +143,8 @@ public class ClassifierService extends WakefulIntentService
 					{
 						Log.e(TAG, "Last accelerometer sample is " + (System.currentTimeMillis() - Mobility.getmAccel().getLastTimeStamp())/1000 + " seconds old");
 						Mobility.setNotification(this, Mobility.STATUS_ERROR, "Mobility is waiting for new accelerometer data");
-						Mobility.getWithTheProgram(this.getApplicationContext()); // workaround for when fast restart on MyTouch 4G breaks AccelService
+						// A workaround for when AccelService failed to start all the way. The bug was fixed so the workaround is gone.
+//						Mobility.getWithTheProgram(this.getApplicationContext()); // workaround for when fast restart on MyTouch 4G breaks AccelService
 					}
 				}
 				else
@@ -486,7 +487,7 @@ public class ClassifierService extends WakefulIntentService
 			if (activity.equals(DRIVE) || activity.equals(STILL))
 				activity = wifiActivity; // The other classifier is rubbish for still/drive, just use WiFi result
 		}
-		if (gpsFail)
+		if (gpsFail && Mobility.debugMode)
 			Mobility.setNotification(this, Mobility.STATUS_OK, activity
 					+ " (Warning: No GPS)");
 		else

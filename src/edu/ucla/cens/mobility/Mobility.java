@@ -38,7 +38,7 @@ import android.widget.SimpleCursorAdapter;
 
 public class Mobility
 {
-	private static final boolean debugMode = true;
+	static final boolean debugMode = true;
 	static Location globalLoc;
 	static boolean setInterval = false;
 	private static PendingIntent startPI = null;
