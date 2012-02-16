@@ -38,7 +38,7 @@ import android.widget.SimpleCursorAdapter;
 
 public class Mobility
 {
-	static final boolean debugMode = true;
+	static final boolean debugMode = false;
 	static Location globalLoc;
 	static boolean setInterval = false;
 	private static PendingIntent startPI = null;
@@ -252,11 +252,11 @@ public class Mobility
 
 	public static void setDebugNotification(Context context, String message)
 	{
-		if (!debugMode)
-			return;
+//		if (!debugMode)
+//			return;
 		NotificationManager nm = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
-		int icon = R.drawable.error;
+		int icon = android.R.drawable.stat_notify_error;
 
 		Notification notification = new Notification(icon, null,
 				System.currentTimeMillis());

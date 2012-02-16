@@ -621,7 +621,7 @@ public class ClassifierService extends WakefulIntentService
 	// return output;
 	// }
 
-	
+	private double historySize = 5.;
 
 	private String checkWifi(JSONObject jsonObject) throws JSONException
 	{
@@ -629,27 +629,36 @@ public class ClassifierService extends WakefulIntentService
 		SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
 		String APsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare with previous sample
 		long time = jsonObject.getLong("time");
+		
 		if (APsFromLastTimeStr != null)
 		{
+			Vector<Vector<String>> lastAPs = new Vector<Vector<String>>();
 			String [] lines = APsFromLastTimeStr.split("\n");
 			long lastTime = Long.parseLong(lines[0]);
 			String lastMode = lines[1];
 			Vector<String> APsFromLastTime = new Vector<String>();
 			Log.d(TAG, APsFromLastTimeStr);
 			Log.d(TAG, APsFromLastTime.size() + "");
-			if (lines.length > 2) // APs seen last time
+			int count = 0;
+			for (int l = 2; l < lines.length; l++)
 			{
-				String [] APStrs = lines[2].split(",");
+				Vector<String> prev = new Vector<String>();
+				String [] APStrs = lines[l].split(",");
 				for (String str : APStrs)
+				{
 					APsFromLastTime.add(str);
+					prev.add(str);
+				}
+				lastAPs.add(prev);
+				Log.d(TAG, count++ + " history lines!");
 			}
 			
 			Log.d(TAG, "AP from last time exists and is well-formed:\n" + APsFromLastTimeStr);
 			Vector<String> APs = JSONToList(jsonObject);
 			
 			// compare to APsFromLastTime
-			double same = 0;
-			double total = 0;
+			int same = 0;
+			int total = 0;
 			if (lastTime == time) // no new wifi data
 			{
 				Log.d(TAG, "Returning previous value since there has been no new WiFi data");
@@ -659,7 +668,7 @@ public class ClassifierService extends WakefulIntentService
 			if (lastTime < System.currentTimeMillis() - 1000 * 60 * 8) // if no recent wifi for comparison
 			{
 				Log.d(TAG, "Last stored wifi was ages ("+ (System.currentTimeMillis() - lastTime)/60000 +" minutes) ago .");
-				writeWifi(settings, time, UNKNOWN, APs);
+				writeWifi(settings, time, UNKNOWN, APs, null);
 				return UNKNOWN;
 			}
 			else
@@ -671,28 +680,38 @@ public class ClassifierService extends WakefulIntentService
 					same++;
 				total++;
 			}
-			for (String AP : APsFromLastTime)
-			{
-				if (!APs.contains(AP)) // only count others that don't match. We don't count the same ones again.
-					total++;
-			}
+//			for (String AP : APsFromLastTime)
+//			{
+//				if (APs.contains(AP)) // only count others that don't match. We don't count the same ones again.
+//					same++;
+//				total++;
+//			}
 			Log.d(TAG, "There were " + same + " APs in both samples, while " + total + " APs were seen across both.");
-			if (total > 0 && same / total < 1. / 3.)
+			if (total > 0)
 			{
-				Log.d(TAG, "Wifi chooses drive!");
-				writeWifi(settings, time, DRIVE, APs);
-				return DRIVE;// + " " + same / total;
-			}
-			else if (total > 0)
-			{
-				Log.d(TAG, "Wifi chooses still!");
-				writeWifi(settings, time, STILL, APs);
-				return STILL;// + " " + same / total;
+				int threshold = 2;
+				if (total <= 3)
+					threshold = 1;
+				if (total == 1)
+					threshold = 0;
+				if (same <= threshold)
+				{
+					Log.d(TAG, "Wifi chooses drive!");
+					writeWifi(settings, time, DRIVE, APs, lastAPs);
+					return DRIVE;// + " " + same / total;
+				}
+				else
+				{
+					Log.d(TAG, "Wifi chooses still!");
+					writeWifi(settings, time, STILL, APs, lastAPs);
+					return STILL;// + " " + same / total;
+				}
+				
 			}
 			else
 			{
-				Log.d(TAG, "No wifi detected in either sample; it's up to the GPS.");
-				writeWifi(settings, time, UNKNOWN, APs);
+				Log.d(TAG, "No wifi detected in new sample; it's up to the GPS.");
+				writeWifi(settings, time, UNKNOWN, APs, lastAPs);
 				return UNKNOWN;
 			}
 		}
@@ -701,14 +720,14 @@ public class ClassifierService extends WakefulIntentService
 			Log.d(TAG, "No previous AP!");
 			// no history
 			Vector<String> APs = JSONToList(jsonObject);
-			writeWifi(settings, time, UNKNOWN, APs);
+			writeWifi(settings, time, UNKNOWN, APs, null);
 			return UNKNOWN;
 		}
 		
 
 	}
 
-	private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs)
+	private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs, Vector<Vector<String>> lastAPs)
 	{
 //		APs = new Vector<String>(); // remove!
 		String store = time + "\n" + mode + "\n";
@@ -719,6 +738,20 @@ public class ClassifierService extends WakefulIntentService
 			if (!store.endsWith(","))
 				Log.e(TAG, "This is wrong: " + store + " " + APs.size());
 			store = store.substring(0, store.length() - 1); // cut off last comma
+		}
+		
+		if (lastAPs != null)
+		{
+			for (int i = 0; i < historySize - 1 && i < lastAPs.size(); i++)
+			{
+				store += "\n";
+				for (String s : lastAPs.get(i))
+					store += s + ",";
+				if (!store.endsWith(","))
+					Log.e(TAG, "This is wrong: " + store + " " + APs.size());
+				store = store.substring(0, store.length() - 1); // cut off last comma
+			}
+			
 		}
 //		else if (store.endsWith("\n"))
 //			Log.d(TAG, "Ends with newline, so that's fine. Splits into " + store.split("\n").length + " lines.");
