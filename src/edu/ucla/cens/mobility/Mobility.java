@@ -582,7 +582,7 @@ public class Mobility
 		}
 	}
 
-	public static void getWithTheProgram(Context context)
+	public static void restartAccelService(Context context)
 	{
 		Log.d(TAG, "There is an accel object that didn't start when I told it to. Accel connected: " + accelConnected);
 		try

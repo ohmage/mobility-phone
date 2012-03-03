@@ -3,6 +3,7 @@ package edu.ucla.cens.mobility;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.Vector;
 
@@ -621,7 +622,8 @@ public class ClassifierService extends WakefulIntentService
 	// return output;
 	// }
 
-	private double historySize = 5.;
+//	private double historySize = 5.;
+	private double checkLength = 10 * 60 * 60 * 1000; // 10 minutes
 
 	private String checkWifi(JSONObject jsonObject) throws JSONException
 	{
@@ -632,25 +634,36 @@ public class ClassifierService extends WakefulIntentService
 		
 		if (APsFromLastTimeStr != null)
 		{
-			Vector<Vector<String>> lastAPs = new Vector<Vector<String>>();
+			HashMap<Long, Vector<String>> lastAPs = new HashMap<Long, Vector<String>>();
 			String [] lines = APsFromLastTimeStr.split("\n");
 			long lastTime = Long.parseLong(lines[0]);
 			String lastMode = lines[1];
-			Vector<String> APsFromLastTime = new Vector<String>();
+			Vector<String> APsFromLastTimes = new Vector<String>();
 			Log.d(TAG, APsFromLastTimeStr);
-			Log.d(TAG, APsFromLastTime.size() + "");
+			Log.d(TAG, APsFromLastTimes.size() + "");
 			int count = 0;
 			for (int l = 2; l < lines.length; l++)
 			{
-				Vector<String> prev = new Vector<String>();
-				String [] APStrs = lines[l].split(",");
-				for (String str : APStrs)
+				try
 				{
-					APsFromLastTime.add(str);
-					prev.add(str);
+					Vector<String> prev = new Vector<String>();
+					String [] APStrs = lines[l].split(",");
+					long prevTimestamp = Long.parseLong(APStrs[0]);
+					for (int m = 1; m < APStrs.length; m++)
+					{
+						String str = APStrs[m];
+						APsFromLastTimes.add(str);
+						prev.add(str);
+					}
+					lastAPs.put(prevTimestamp, prev);
+					Log.d(TAG, count++ + " history lines!");
 				}
-				lastAPs.add(prev);
-				Log.d(TAG, count++ + " history lines!");
+				catch (NumberFormatException e)
+				{
+					Log.e(TAG, "Malformed timestamp in line " + l + " of previous strings: \"" + lines[1] + "\"");
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 			Log.d(TAG, "AP from last time exists and is well-formed:\n" + APsFromLastTimeStr);
@@ -676,7 +689,7 @@ public class ClassifierService extends WakefulIntentService
 			// Now we can do the comparison
 			for (String AP : APs)
 			{
-				if (APsFromLastTime.contains(AP))
+				if (APsFromLastTimes.contains(AP))
 					same++;
 				total++;
 			}
@@ -727,10 +740,10 @@ public class ClassifierService extends WakefulIntentService
 
 	}
 
-	private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs, Vector<Vector<String>> lastAPs)
+	private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs, HashMap<Long, Vector<String>> lastAPs)
 	{
 //		APs = new Vector<String>(); // remove!
-		String store = time + "\n" + mode + "\n";
+		String store = time + "\n" + mode + "\n" + time + ",";
 		for (String s : APs)
 			store += s + ",";
 		if (APs.size() > 0)
@@ -739,14 +752,15 @@ public class ClassifierService extends WakefulIntentService
 				Log.e(TAG, "This is wrong: " + store + " " + APs.size());
 			store = store.substring(0, store.length() - 1); // cut off last comma
 		}
-		
+		long now = System.currentTimeMillis();
 		if (lastAPs != null)
 		{
-			for (int i = 0; i < historySize - 1 && i < lastAPs.size(); i++)
+			for (int i = 0; i < lastAPs.size(); i++)
 			{
 				store += "\n";
-				for (String s : lastAPs.get(i))
-					store += s + ",";
+				for (Long ts : lastAPs.keySet())
+					if (ts > now - checkLength)
+					store += ts + "," + lastAPs.get(ts) + ",";
 				if (!store.endsWith(","))
 					Log.e(TAG, "This is wrong: " + store + " " + APs.size());
 				store = store.substring(0, store.length() - 1); // cut off last comma
