@@ -1,22 +1,11 @@
 package edu.ucla.cens.mobility;
+import edu.ucla.cens.mobility.glue.MobilityInterface;
+
 import org.joda.time.DateTimeZone;
-
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.TimeZone;
-import java.util.UUID;
-import java.util.Vector;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.mobility.R;
-import edu.ucla.cens.mobility.glue.MobilityInterface;
-
-import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -24,14 +13,24 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteException;
-import android.location.Location;
-import android.net.Uri;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.UUID;
+import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MobilityDbAdapter
 {
+
+	public static final String DEFAULT_TABLE = "mobility";
+	public static final String DEFAULT_SERVER_DB = "mobility";
+	public static final String DEFAULT_TYPE = "mobility";
+
 	public static final String KEY_ID = "id";
 	public static final String KEY_MODE = "mode";
 	public static final String KEY_SPEED = "speed";
@@ -59,11 +58,11 @@ public class MobilityDbAdapter
 	// in this class, then this could cause DatabaseHelper to be out of sync,
 	// because it
 	// will not necessarily get that updated name.
-	private String database_table = "";
+	private final String database_table;
 	private static final int DATABASE_VERSION = 1;
 	SharedPreferences settings;
 	SharedPreferences.Editor editor;
-	private static final String DATABASE_CREATE = "create table %s ("
+	private static final String DATABASE_CREATE = "create table if not exists %s ("
 			+ KEY_ROWID + " integer primary key autoincrement," 
 			+ KEY_ID + " text not null,"
 			+ KEY_MODE + " text not null," 
@@ -124,7 +123,7 @@ public class MobilityDbAdapter
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
 		{
 
-			db.execSQL("DROP TABLE EXISTS " + table);
+			db.execSQL("DROP TABLE IF EXISTS " + table);
 			onCreate(db);
 		}
 	}
@@ -178,6 +177,10 @@ public class MobilityDbAdapter
 		return c;
 	}
 
+	public MobilityDbAdapter(Context ctx) {
+		this(ctx, DEFAULT_TABLE, DEFAULT_SERVER_DB, DEFAULT_TYPE);
+	}
+
 	public MobilityDbAdapter(Context ctx, String table)
 	{
 		settings = ctx.getSharedPreferences(ctx.getString(R.string.prefs), 0);
@@ -187,9 +190,7 @@ public class MobilityDbAdapter
 
 	public MobilityDbAdapter(Context ctx, String table, String serverDB, String type)
 	{
-		settings = ctx.getSharedPreferences(ctx.getString(R.string.prefs), 0);
-		mCtx = ctx;
-		database_table = table;
+		this(ctx, table);
 		try
 		{
 			registerTable(table, serverDB, type);

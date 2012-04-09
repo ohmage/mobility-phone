@@ -1,12 +1,9 @@
 package edu.ucla.cens.mobility;
 
-import java.util.HashMap;
-
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -203,7 +200,7 @@ public class MobilityContentProvider extends ContentProvider
 		if(mUriMatcher.match(uri) == URI_CODE_MOBILITY)
 		{
 			Log.i(TAG, "Querying mobility.");
-			MobilityDbAdapter mda = new MobilityDbAdapter(getContext(), "mobility", "mobility", "mobility");
+			MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
 			
 			return mda.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
 		}

@@ -35,7 +35,7 @@ public class GarbageCollectService extends WakefulIntentService
 	@Override
 	protected void doWakefulWork(Intent intent)
 	{
-		MobilityDbAdapter mda = new MobilityDbAdapter(this, "mobility", "mobility", "mobility");
+		MobilityDbAdapter mda = new MobilityDbAdapter(this);
 		mda.open();
 		try
 		{

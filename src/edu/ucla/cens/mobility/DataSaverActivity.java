@@ -1,21 +1,15 @@
 package edu.ucla.cens.mobility;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import edu.ucla.cens.mobility.MobilityDbAdapter.DBRow;
+import edu.ucla.cens.mobility.glue.MobilityInterface;
+import edu.ucla.cens.systemlog.ISystemLog;
+import edu.ucla.cens.systemlog.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.mobility.MobilityDbAdapter.DBRow;
-import edu.ucla.cens.mobility.R;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -23,12 +17,17 @@ import android.database.CursorIndexOutOfBoundsException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import edu.ucla.cens.systemlog.ISystemLog;
-import edu.ucla.cens.systemlog.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import edu.ucla.cens.mobility.glue.MobilityInterface;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
 public class DataSaverActivity extends Activity
 {
@@ -99,7 +98,7 @@ public class DataSaverActivity extends Activity
         {
     		Log.d(TAG, "Starting rescueData");
 //        	Cursor c = MobilityInterface.getMobilityCursor(DataSaverActivity.this, 0L);
-    		MobilityDbAdapter mdb = new MobilityDbAdapter(DataSaverActivity.this, "mobility", "mobility", "mobility");
+		MobilityDbAdapter mdb = new MobilityDbAdapter(DataSaverActivity.this);
         	Log.d(TAG, "Got cursor");
         	int skipped = 0;
         	HashMap<String, Integer> indexMap = new HashMap<String, Integer>();
