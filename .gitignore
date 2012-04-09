@@ -5,3 +5,5 @@ default.properties
 bin/
 gen/
 assets/
+Thumbs.db
+.DS_Store
