@@ -15,6 +15,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.format.DateUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class MobilityDbAdapter
 {
 
 	public static final String DEFAULT_TABLE = "mobility";
+	public static final String DEFAULT_AGGREGATE_TABLE = "aggregate";
 	public static final String DEFAULT_SERVER_DB = "mobility";
 	public static final String DEFAULT_TYPE = "mobility";
 
@@ -45,6 +47,8 @@ public class MobilityDbAdapter
 	public static final String KEY_TIME = "time";
 	public static final String KEY_LATITUDE = "latitude";
 	public static final String KEY_LONGITUDE = "longitude";
+	private static final String KEY_DURATION = "duration";
+
 	private static boolean databaseOpen = false;
 	private static Object dbLock = new Object();
 	public static final String TAG = "awDB";
@@ -59,7 +63,8 @@ public class MobilityDbAdapter
 	// because it
 	// will not necessarily get that updated name.
 	private final String database_table;
-	private static final int DATABASE_VERSION = 1;
+	private final String aggregate_table;
+	private static final int DATABASE_VERSION = 2;
 	SharedPreferences settings;
 	SharedPreferences.Editor editor;
 	private static final String DATABASE_CREATE = "create table if not exists %s ("
@@ -77,6 +82,15 @@ public class MobilityDbAdapter
 			+ KEY_TIMEZONE + " text not null," 
 			+ KEY_LATITUDE + " text," 
 			+ KEY_LONGITUDE + " text" + ");";
+
+	private static final String KEY_DAY = "day";
+	private static final String SQL_TODAY_LOCAL = "date('now', 'localtime')";
+
+	private static final String AGGREGATE_TABLE_CREATE = "create table if not exists %s ("
+			+ KEY_DAY + " text default (" + SQL_TODAY_LOCAL + "),"
+			+ KEY_MODE + " text not null,"
+			+ KEY_DURATION + " integer default 0," +
+			" primary key ( " + KEY_DAY + " , " +KEY_MODE + " ));";
 
 	public class DBRow extends Object
 	{
@@ -103,12 +117,14 @@ public class MobilityDbAdapter
 	{
 		// Stores the name of the database table that is used in the parent
 		// class
-		private String table = "";
+		private final String table;
+		private final String aggregateTable;
 
-		DatabaseHelper(Context ctx, String table)
+		DatabaseHelper(Context ctx, String table, String aggregateTable)
 		{
 			super(ctx, table, null, DATABASE_VERSION);
 			this.table = table;
+			this.aggregateTable = aggregateTable;
 			Log.d(TAG, "Calling constructor: Creating database name: " + table);
 		}
 
@@ -117,13 +133,15 @@ public class MobilityDbAdapter
 		{
 			Log.d(TAG, "onCreate: Creating database table: " + table);
 			db.execSQL(String.format(DATABASE_CREATE, table));
+
+			Log.d(TAG, "onCreate: Creating database table: " + aggregateTable);
+			db.execSQL(String.format(AGGREGATE_TABLE_CREATE, aggregateTable));
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
 		{
-
-			db.execSQL("DROP TABLE IF EXISTS " + table);
+			// the correct tables will be created in onCreate
 			onCreate(db);
 		}
 	}
@@ -163,7 +181,7 @@ public class MobilityDbAdapter
 		try
 		{
 			Log.i(TAG, (dbHelper == null) + " that dbHelper is null");
-			SQLiteDatabase sdb = new DatabaseHelper(mCtx, database_table).getReadableDatabase();
+			SQLiteDatabase sdb = new DatabaseHelper(mCtx, database_table, aggregate_table).getReadableDatabase();
 
 			c = sdb.query("mobility", columns, selection, selectionArgs, null, null, orderBy);
 		} catch (SQLiteException e)
@@ -178,19 +196,20 @@ public class MobilityDbAdapter
 	}
 
 	public MobilityDbAdapter(Context ctx) {
-		this(ctx, DEFAULT_TABLE, DEFAULT_SERVER_DB, DEFAULT_TYPE);
+		this(ctx, DEFAULT_TABLE, DEFAULT_AGGREGATE_TABLE, DEFAULT_SERVER_DB, DEFAULT_TYPE);
 	}
 
-	public MobilityDbAdapter(Context ctx, String table)
+	public MobilityDbAdapter(Context ctx, String table, String aggregateTable)
 	{
 		settings = ctx.getSharedPreferences(ctx.getString(R.string.prefs), 0);
 		mCtx = ctx;
 		database_table = table;
+		aggregate_table = aggregateTable;
 	}
 
-	public MobilityDbAdapter(Context ctx, String table, String serverDB, String type)
+	public MobilityDbAdapter(Context ctx, String table, String aggregateTable, String serverDB, String type)
 	{
-		this(ctx, table);
+		this(ctx, table, aggregateTable);
 		try
 		{
 			registerTable(table, serverDB, type);
@@ -226,7 +245,7 @@ public class MobilityDbAdapter
 			Log.d(TAG, "registerTable: registered " + tableName + "_type = " + type);
 			Log.d(TAG, "registerTable: registered Table" + numTables + " = " + tableName);
 			editor.commit();
-			dbHelper = new DatabaseHelper(mCtx, database_table);
+			dbHelper = new DatabaseHelper(mCtx, database_table, aggregate_table);
 		} else if (!settings.getString(tableName + "_serverDB", "").equals(serverDB)) // update
 																						// database
 		{
@@ -250,7 +269,7 @@ public class MobilityDbAdapter
 
 			}
 			databaseOpen = true;
-			dbHelper = new DatabaseHelper(mCtx, database_table);
+			dbHelper = new DatabaseHelper(mCtx, database_table, aggregate_table);
 			try
 			{
 				db = dbHelper.getWritableDatabase();
@@ -325,6 +344,27 @@ public class MobilityDbAdapter
 		vals.put(KEY_LONGITUDE, longitude);
 		Log.d(TAG, "createRow: adding to table: " + database_table + ": " + mode);
 		long rowid = db.insert(database_table, null, vals);
+
+		// Update the time so far for today for that mode
+		db.beginTransaction();
+		try {
+			// First create the mode if it doesn't exist
+			ContentValues countValues = new ContentValues();
+			countValues.put(KEY_MODE, mode);
+			db.insertWithOnConflict(aggregate_table, KEY_MODE, countValues, SQLiteDatabase.CONFLICT_IGNORE);
+
+			// Amount of time that has passed since the last insert (or 5 minutes max)
+			long lastRowInsert = Math.min(time - settings.getLong(Mobility.LAST_INSERT, time), DateUtils.MINUTE_IN_MILLIS * 5);
+			db.execSQL("UPDATE " + aggregate_table + " SET " + KEY_DURATION + "=" + KEY_DURATION + "+"
+					+ lastRowInsert + " WHERE " + KEY_MODE + "=? AND "
+					+ KEY_DAY + "=" + SQL_TODAY_LOCAL, new String[] { mode });
+
+			// Save the time of this insert
+			settings.edit().putLong(Mobility.LAST_INSERT, time).commit();
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+		}
 
 		ContentResolver r = mCtx.getContentResolver();
 		r.notifyChange(MobilityInterface.CONTENT_URI, null);
