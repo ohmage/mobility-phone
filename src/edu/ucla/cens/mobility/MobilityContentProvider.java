@@ -67,8 +67,22 @@ public class MobilityContentProvider extends ContentProvider
 	
 	private static final int URI_CODE_MOBILITY = 1;
 	
+	/**
+	 * A path value that will give information about the applications that
+	 * have been running.
+	 * 
+	 * <p>Value: <code>{@value PATH_AGGREGATES}</code></p>
+	 * 
+	 * @see #query(Uri, String[], String, String[], String)
+	 */
+	public static final String PATH_AGGREGATES = PATH_MOBILITY + "/" + "aggregates";
+
+	private static final int URI_CODE_AGGREGATES = 2;
+
+
 	private static final UriMatcher mUriMatcher;
 	public static final Uri CONTENT_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_MOBILITY);
+
 	/**
 	 * It doesn't make any sense for a user to be adding data to this
 	 * ContentProvider. Therefore, nothing happens when this is called.
@@ -197,12 +211,18 @@ public class MobilityContentProvider extends ContentProvider
 	{
 		Log.i(TAG, (new StringBuilder()).append("Query: ").append(uri.toString()).toString());
 		
-		if(mUriMatcher.match(uri) == URI_CODE_MOBILITY)
-		{
-			Log.i(TAG, "Querying mobility.");
-			MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
+		switch(mUriMatcher.match(uri)) {
 			
-			return mda.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
+			case URI_CODE_AGGREGATES: {
+				MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
+
+				return mda.getMobilityAggregatesCursor(columns, selection, selectionArgs, sortOrder);
+			} case URI_CODE_MOBILITY: {
+				Log.i(TAG, "Querying mobility.");
+				MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
+
+				return mda.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
+			}
 		}
 		
 		return null;
@@ -305,6 +325,7 @@ public class MobilityContentProvider extends ContentProvider
 	{
 		mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		mUriMatcher.addURI(AUTHORITY, PATH_MOBILITY, URI_CODE_MOBILITY);
+		mUriMatcher.addURI(AUTHORITY, PATH_AGGREGATES, URI_CODE_AGGREGATES);
 	}
 
 	@Override

@@ -740,4 +740,35 @@ public class MobilityDbAdapter
 		Log.d(TAG, "updateRow: Updating location " + latitudeValue + ", " + longitudeValue + "at rowId = " + rowId);
 		return db.update(database_table, vals, KEY_ROWID + "=" + rowId, null) > 0;
 	}
+
+	/**
+	 * Returns the aggregates for today
+	 * @param sortOrder 
+	 * @param selectionArgs 
+	 * @param selection 
+	 * @param columns 
+	 * @return
+	 */
+	public Cursor getMobilityAggregatesCursor(String[] columns, String selection, String[] selectionArgs, String sortOrder) {
+		lock.lock();
+
+		Cursor c;
+		try
+		{
+			Log.i(TAG, (dbHelper == null) + " that dbHelper is null");
+			SQLiteDatabase sdb = new DatabaseHelper(mCtx, database_table, aggregate_table).getReadableDatabase();
+
+			if(selection == null)
+				selection = KEY_DAY + "=" + SQL_TODAY_LOCAL;
+
+			c = sdb.query(aggregate_table, columns, selection, selectionArgs, null, null, sortOrder);
+			c.setNotificationUri(mCtx.getContentResolver(), MobilityInterface.CONTENT_URI);
+		} catch (SQLiteException e) {
+			Log.i(TAG, e.toString());
+			c = null;
+		}
+		lock.unlock();
+
+		return c;
+	}
 }
