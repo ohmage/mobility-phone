@@ -9,8 +9,9 @@ import edu.ucla.cens.mobility.blackout.BlackoutDesc;
 import edu.ucla.cens.mobility.blackout.base.TriggerBase;
 import edu.ucla.cens.mobility.blackout.base.TriggerDB;
 import edu.ucla.cens.mobility.blackout.utils.SimpleTime;
-//import edu.ucla.cens.systemlog.ISystemLog;
-//import edu.ucla.cens.systemlog.Log;
+
+import edu.ucla.cens.systemlog.ISystemLog;
+import edu.ucla.cens.systemlog.Log;
 import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -31,7 +32,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
+//import android.util.Log;
 import android.widget.SimpleCursorAdapter;
 
 //import android.widget.Toast;
@@ -119,9 +120,11 @@ public class Mobility
 
 	public static void start(Context context)
 	{
-		// context.bindService(new Intent(ISystemLog.class.getName()),
-		// Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
-		// Log.register(TAG);
+		Log.setAppName("Mobility");
+		context.bindService(new Intent(ISystemLog.class.getName()),
+		Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
+		Log.register(TAG);
+		
 		TriggerDB db = new TriggerDB(context);
 		db.open();
 		boolean canRunNow = true;
@@ -212,7 +215,7 @@ public class Mobility
 		}
 		else
 			Log.d(TAG, "Not running, so ignoring stop command");
-		//context.unbindService(Log.SystemLogConnection);
+		context.unbindService(Log.SystemLogConnection);
 		
 	}
 

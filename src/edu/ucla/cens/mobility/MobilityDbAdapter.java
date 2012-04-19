@@ -1,4 +1,5 @@
 package edu.ucla.cens.mobility;
+import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -303,7 +304,8 @@ public class MobilityDbAdapter
 		
 		UUID id = UUID.randomUUID();
 		
-		String timezone = TimeZone.getDefault().getID();
+		String timezone = DateTimeZone.getDefault().getID();
+//		Log.i(TAG, timezone + " is the timezone, per Jovem!");
 		editor.putLong(database_table, 1);
 		editor.commit();
 		vals.put(KEY_ID, id.toString());

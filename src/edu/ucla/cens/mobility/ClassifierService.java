@@ -53,7 +53,9 @@ public class ClassifierService extends WakefulIntentService
 		super.onCreate();
 		// if (!Mobility.initialized)
 		// Mobility.initialize(this.getApplicationContext());
-		bindService(new Intent(ISystemLog.class.getName()),	Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
+		bindService(new Intent(ISystemLog.class.getName()),
+				Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
+		Log.register(TAG);
 	}
 
 	@Override
@@ -139,18 +141,29 @@ public class ClassifierService extends WakefulIntentService
 				if (Mobility.failCount++ > 2)
 				{
 					if (Mobility.getmAccel() == null)
-						Mobility.setNotification(this, Mobility.STATUS_ERROR, "Please verify that AccelService is installed");
+						Mobility.setNotification(this, Mobility.STATUS_ERROR,
+								"Please verify that AccelService is installed");
 					else
 					{
-						Log.e(TAG, "Last accelerometer sample is " + (System.currentTimeMillis() - Mobility.getmAccel().getLastTimeStamp())/1000 + " seconds old");
-						Mobility.setNotification(this, Mobility.STATUS_ERROR, "Mobility is waiting for new accelerometer data");
-						// A workaround for when AccelService failed to start all the way. The bug was fixed so the workaround is gone.
-//						Mobility.getWithTheProgram(this.getApplicationContext()); // workaround for when fast restart on MyTouch 4G breaks AccelService
+						Log.e(TAG,
+								"Last accelerometer sample is "
+										+ (System.currentTimeMillis() - Mobility
+												.getmAccel().getLastTimeStamp())
+										/ 1000 + " seconds old");
+						Mobility.setNotification(this, Mobility.STATUS_ERROR,
+								"Mobility is waiting for new accelerometer data");
+						// A workaround for when AccelService failed to start
+						// all the way. The bug was fixed so the workaround is
+						// gone.
+						// Mobility.getWithTheProgram(this.getApplicationContext());
+						// // workaround for when fast restart on MyTouch 4G
+						// breaks AccelService
 					}
 				}
 				else
-					Mobility.setNotification(this, Mobility.STATUS_PENDING,	"Waiting for the first sensor sample");
-				return null; 
+					Mobility.setNotification(this, Mobility.STATUS_PENDING,
+							"Waiting for the first sensor sample");
+				return null;
 			}
 			Mobility.failCount = 0;
 
@@ -178,7 +191,7 @@ public class ClassifierService extends WakefulIntentService
 			curList.add((ArrayList<Double>) Mobility.getmAccel().getLastForce());
 			if (curList.get(0) != null)
 			{
-				Log.i(TAG, "Here is the force vector: \n" + curList.toString());
+//				Log.i(TAG, "Here is the force vector: \n" + curList.toString());
 				return curList;
 			}
 			else
@@ -256,7 +269,7 @@ public class ClassifierService extends WakefulIntentService
 			{
 				loc = Mobility.getmWiFiGPS().getLocation();
 				wifiData = Mobility.getmWiFiGPS().getWiFiScan();
-				Log.d(TAG, wifiData);
+//				Log.d(TAG, wifiData);
 
 				try
 				{
@@ -386,7 +399,7 @@ public class ClassifierService extends WakefulIntentService
 		if (samples == null)
 		{
 			Log.i(TAG, "Null object from AccelService");
-			
+
 			activity = ERROR;
 			addTransportMode(activity, samples, speed, acc, provider, status,
 					timestamp, wifiData, lat, lon);
@@ -432,7 +445,7 @@ public class ClassifierService extends WakefulIntentService
 			s += accData.get(i);
 		}
 		a = s / dataSize;
-		Log.d(TAG, "s is " + s);
+//		Log.d(TAG, "s is " + s);
 		s = 0.0;
 		for (int i = 0; i < dataSize; i++)
 		{
@@ -467,7 +480,7 @@ public class ClassifierService extends WakefulIntentService
 		accFft3 = goertzel(accData, 3., dataSize);
 		accFft4 = goertzel(accData, 4., dataSize);
 		accFft5 = goertzel(accData, 5., dataSize);
-		Log.d(TAG, String.format("Samples = %4.0f", dataSize));
+//		Log.d(TAG, String.format("Samples = %4.0f", dataSize));
 
 		// if (loc != null)
 		// {
@@ -486,7 +499,8 @@ public class ClassifierService extends WakefulIntentService
 		if (wifiChecking && !wifiActivity.equals(UNKNOWN))
 		{
 			if (activity.equals(DRIVE) || activity.equals(STILL))
-				activity = wifiActivity; // The other classifier is rubbish for still/drive, just use WiFi result
+				activity = wifiActivity; // The other classifier is rubbish for
+											// still/drive, just use WiFi result
 		}
 		if (gpsFail && Mobility.debugMode)
 			Mobility.setNotification(this, Mobility.STATUS_OK, activity
@@ -622,32 +636,36 @@ public class ClassifierService extends WakefulIntentService
 	// return output;
 	// }
 
-//	private double historySize = 5.;
-	private double checkLength = 10 * 60 * 60 * 1000; // 10 minutes
+	// private double historySize = 5.;
+	private double checkLength = 11 * 60 * 1000; // 11 minutes
 
 	private String checkWifi(JSONObject jsonObject) throws JSONException
 	{
 		// load previous
-		SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
-		String APsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare with previous sample
+		SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY,
+				Context.MODE_PRIVATE);
+		String APsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare
+																			// with
+																			// previous
+																			// sample
 		long time = jsonObject.getLong("time");
-		
+
 		if (APsFromLastTimeStr != null)
 		{
 			HashMap<Long, Vector<String>> lastAPs = new HashMap<Long, Vector<String>>();
-			String [] lines = APsFromLastTimeStr.split("\n");
+			String[] lines = APsFromLastTimeStr.split("\n");
 			long lastTime = Long.parseLong(lines[0]);
 			String lastMode = lines[1];
 			Vector<String> APsFromLastTimes = new Vector<String>();
-			Log.d(TAG, APsFromLastTimeStr);
-			Log.d(TAG, APsFromLastTimes.size() + "");
+//			Log.d(TAG, "aps from last time object: " + APsFromLastTimeStr);
+//			Log.d(TAG, APsFromLastTimes.size() + " previous scans");
 			int count = 0;
 			for (int l = 2; l < lines.length; l++)
 			{
 				try
 				{
 					Vector<String> prev = new Vector<String>();
-					String [] APStrs = lines[l].split(",");
+					String[] APStrs = lines[l].split(",");
 					long prevTimestamp = Long.parseLong(APStrs[0]);
 					for (int m = 1; m < APStrs.length; m++)
 					{
@@ -660,32 +678,45 @@ public class ClassifierService extends WakefulIntentService
 				}
 				catch (NumberFormatException e)
 				{
-					Log.e(TAG, "Malformed timestamp in line " + l + " of previous strings: \"" + lines[1] + "\"");
+					Log.e(TAG, "Malformed timestamp in line " + l
+							+ " of previous strings: \"" + lines[1] + "\"");
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
-			Log.d(TAG, "AP from last time exists and is well-formed:\n" + APsFromLastTimeStr);
+
+//			Log.d(TAG, "AP from last time exists and is well-formed:\n"
+//					+ APsFromLastTimeStr);
 			Vector<String> APs = JSONToList(jsonObject);
-			
+
 			// compare to APsFromLastTime
 			int same = 0;
 			int total = 0;
 			if (lastTime == time) // no new wifi data
 			{
-				Log.d(TAG, "Returning previous value since there has been no new WiFi data");
+				Log.d(TAG,
+						"Returning previous value since there has been no new WiFi data");
 				return lastMode;
 			}
-			Log.d(TAG, "Current wifi is "+ (System.currentTimeMillis() - time)/60000 +" minutes old.");
-			if (lastTime < System.currentTimeMillis() - 1000 * 60 * 8) // if no recent wifi for comparison
+			Log.d(TAG, "Current wifi is " + (System.currentTimeMillis() - time)
+					/ 60000 + " minutes old.");
+			if (lastTime < System.currentTimeMillis() - 1000 * 60 * 8) // if no
+																		// recent
+																		// wifi
+																		// for
+																		// comparison
 			{
-				Log.d(TAG, "Last stored wifi was ages ("+ (System.currentTimeMillis() - lastTime)/60000 +" minutes) ago .");
+				Log.d(TAG,
+						"Last stored wifi was ages ("
+								+ (System.currentTimeMillis() - lastTime)
+								/ 60000 + " minutes) ago .");
 				writeWifi(settings, time, UNKNOWN, APs, null);
 				return UNKNOWN;
 			}
 			else
-				Log.d(TAG, "Last stored wifi is "+ (System.currentTimeMillis() - lastTime)/60000 +" minutes old.");
+				Log.d(TAG, "Last stored wifi is "
+						+ (System.currentTimeMillis() - lastTime) / 60000
+						+ " minutes old.");
 			// Now we can do the comparison
 			for (String AP : APs)
 			{
@@ -693,13 +724,15 @@ public class ClassifierService extends WakefulIntentService
 					same++;
 				total++;
 			}
-//			for (String AP : APsFromLastTime)
-//			{
-//				if (APs.contains(AP)) // only count others that don't match. We don't count the same ones again.
-//					same++;
-//				total++;
-//			}
-			Log.d(TAG, "There were " + same + " APs in both samples, while " + total + " APs were seen across both.");
+			// for (String AP : APsFromLastTime)
+			// {
+			// if (APs.contains(AP)) // only count others that don't match. We
+			// don't count the same ones again.
+			// same++;
+			// total++;
+			// }
+			Log.d(TAG, "There were " + same + " matches out of "
+					+ total + " APs were in this sample. " + APsFromLastTimes);
 			if (total > 0)
 			{
 				int threshold = 2;
@@ -719,11 +752,12 @@ public class ClassifierService extends WakefulIntentService
 					writeWifi(settings, time, STILL, APs, lastAPs);
 					return STILL;// + " " + same / total;
 				}
-				
+
 			}
 			else
 			{
-				Log.d(TAG, "No wifi detected in new sample; it's up to the GPS.");
+				Log.d(TAG,
+						"No wifi detected in new sample; it's up to the GPS.");
 				writeWifi(settings, time, UNKNOWN, APs, lastAPs);
 				return UNKNOWN;
 			}
@@ -736,42 +770,48 @@ public class ClassifierService extends WakefulIntentService
 			writeWifi(settings, time, UNKNOWN, APs, null);
 			return UNKNOWN;
 		}
-		
 
 	}
 
-	private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs, HashMap<Long, Vector<String>> lastAPs)
+	private void writeWifi(SharedPreferences settings, long time, String mode,
+			Vector<String> APs, HashMap<Long, Vector<String>> lastAPs)
 	{
-//		APs = new Vector<String>(); // remove!
+		// APs = new Vector<String>(); // remove!
 		String store = time + "\n" + mode + "\n" + time + ",";
 		for (String s : APs)
 			store += s + ",";
 		if (APs.size() > 0)
-		{	
+		{
 			if (!store.endsWith(","))
 				Log.e(TAG, "This is wrong: " + store + " " + APs.size());
-			store = store.substring(0, store.length() - 1); // cut off last comma
+			store = store.substring(0, store.length() - 1); // cut off last
+															// comma
 		}
 		long now = System.currentTimeMillis();
 		if (lastAPs != null)
 		{
-			for (int i = 0; i < lastAPs.size(); i++)
+
+			for (Long ts : lastAPs.keySet())
 			{
-				store += "\n";
-				for (Long ts : lastAPs.keySet())
-					if (ts > now - checkLength)
-					store += ts + "," + lastAPs.get(ts) + ",";
+				if (ts > now - checkLength)
+				{
+					store += "\n" + ts + ",";
+					for (String ap : lastAPs.get(ts))
+						store += ap + ",";
+				}
 				if (!store.endsWith(","))
 					Log.e(TAG, "This is wrong: " + store + " " + APs.size());
-				store = store.substring(0, store.length() - 1); // cut off last comma
+				store = store.substring(0, store.length() - 1); // cut off last
+																// comma
 			}
-			
+
 		}
-//		else if (store.endsWith("\n"))
-//			Log.d(TAG, "Ends with newline, so that's fine. Splits into " + store.split("\n").length + " lines.");
-		Log.d(TAG, store);
+		// else if (store.endsWith("\n"))
+		// Log.d(TAG, "Ends with newline, so that's fine. Splits into " +
+		// store.split("\n").length + " lines.");
+//		Log.d(TAG, store);
 		Editor editor = settings.edit();
-		Log.d(TAG, "Storing " + store);
+//		Log.d(TAG, "Storing " + store);
 		editor.putString(WIFI_HISTORY, store);
 		editor.commit();
 	}
@@ -788,11 +828,11 @@ public class ClassifierService extends WakefulIntentService
 			ap = array.getJSONObject(i);
 			strsum += ap.getInt("strength");
 			strcount++;
-			if (ap.getInt("strength") < -50)
-			{
-				list.add(ap.getString("ssid"));
-				Log.d(TAG, "Adding \"" + ap.getString("ssid") + "\" to APs");
-			}
+//			if (ap.getInt("strength") > -50)
+//			{
+//				list.add(ap.getString("ssid"));
+////				Log.d(TAG, "Adding \"" + ap.getString("ssid") + "\" to APs");
+//			}
 		}
 		if (list.size() == 0 && strcount > 0)
 		{
@@ -800,9 +840,9 @@ public class ClassifierService extends WakefulIntentService
 			for (int i = 0; i < array.length(); i++)
 			{
 				ap = array.getJSONObject(i);
-				strsum += ap.getInt("strength");
-				strcount++;
-				if (ap.getInt("strength") < avg)
+				//strsum += ap.getInt("strength");
+				//strcount++;
+				if (ap.getInt("strength") >= avg)
 				{
 					list.add(ap.getString("ssid"));
 				}
