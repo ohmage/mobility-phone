@@ -118,13 +118,16 @@ public class Mobility
 	// start(context);
 	// }
 
-	public static void start(Context context)
-	{
+	public static void initSystemLog(Context context) {
 		Log.setAppName("Mobility");
 		context.bindService(new Intent(ISystemLog.class.getName()),
 		Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
 		Log.register(TAG);
-		
+	}
+
+	public static void start(Context context)
+	{
+		initSystemLog(context);
 		TriggerDB db = new TriggerDB(context);
 		db.open();
 		boolean canRunNow = true;

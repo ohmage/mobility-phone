@@ -18,6 +18,8 @@ public class MobilityInterfaceService extends Service
 	@Override
 	  public IBinder onBind(Intent intent) {
 
+		Mobility.initSystemLog(getApplicationContext());
+
 	    return new IMobility.Stub() {
 	    	public void stopMobility()
 	    	{
