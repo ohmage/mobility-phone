@@ -47,6 +47,7 @@ public class Mobility
 	public static final String STATUS_OK = "mobility";
 	public static final String STATUS_ERROR = "error";
 	public static final String STATUS_BLACKOUT = "blackout";
+	public static final String KEY_USERNAME = "key_username";
 
 	// public static Context appContext = null;
 	static AlarmManager mgr;
