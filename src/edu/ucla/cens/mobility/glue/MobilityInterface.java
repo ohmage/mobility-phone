@@ -10,6 +10,9 @@ import android.widget.Toast;
 
 public class MobilityInterface
 {
+	public static final String ACTION_SET_USERNAME = "edu.ucla.cens.mobility.glue.ACTION_SET_USERNAME";
+	public static final String EXTRA_USERNAME = "extra_username";
+
 	public static final String KEY_MODE = "mode";
 	public static final String KEY_ID = "id";
 	public static final String KEY_SPEED = "speed";
@@ -26,6 +29,7 @@ public class MobilityInterface
 	public static final String KEY_LONGITUDE = "longitude";
 	public static final String KEY_DURATION = "duration";
 	public static final String KEY_DAY = "day";
+	public static final String KEY_USERNAME = "username";
 
 	public static final String WALK = "walk";
 	public static final String RUN = "run";

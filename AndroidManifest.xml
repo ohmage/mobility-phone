@@ -39,6 +39,9 @@
 		<intent-filter>
 			<action android:name="edu.ucla.cens.mobility.glue.IMobility"/>
 		</intent-filter>
+		<intent-filter>
+			<action android:name="edu.ucla.cens.mobility.glue.ACTION_SET_USERNAME"/>
+		</intent-filter>
 	</service>
 	<receiver android:name="edu.ucla.cens.mobility.blackout.BlackoutService$AlarmReceiver">
 	    	<intent-filter>
