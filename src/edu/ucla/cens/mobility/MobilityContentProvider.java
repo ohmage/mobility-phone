@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
@@ -83,22 +84,42 @@ public class MobilityContentProvider extends ContentProvider
 	private static final UriMatcher mUriMatcher;
 	public static final Uri CONTENT_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_MOBILITY);
 
+	private SQLiteDatabase mDb;
+
+	private MobilityDbAdapter mDba;
+
 	/**
-	 * It doesn't make any sense for a user to be adding data to this
-	 * ContentProvider. Therefore, nothing happens when this is called.
+	 * We want to download aggregate data from the server. Since ohmage handles
+	 * interaction with the server we will have to trust it to insert the data
+	 * correctly
 	 * 
-	 * @param uri Unused
-	 * 
-	 * @param values Unused
-	 * 
-	 * @return Always returns null.
+	 * @param uri
+	 * @param values
+	 * @return returns aggregate uri if insert was successful, null otherwise
 	 */
 	@Override
-	public Uri insert(Uri uri, ContentValues values) 
-	{
-		return null;
+	public Uri insert(Uri uri, ContentValues values) {
+		boolean opened = false;
+		if (mDba == null) {
+			opened = true;
+			mDba = new MobilityDbAdapter(getContext());
+			mDba.open();
+		}
+
+		switch (mUriMatcher.match(uri)) {
+			case URI_CODE_AGGREGATES: {
+				mDba.insertMobilityAggregate(values);
+				if (!mDba.getDb().inTransaction())
+					getContext().getContentResolver().notifyChange(uri, null);
+			}
+		}
+
+		if(opened)
+			mDba.close();
+
+		return uri;
 	}
-	
+
 	/**
 	 * Does nothing
 	 */
@@ -334,6 +355,27 @@ public class MobilityContentProvider extends ContentProvider
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	
+
+	@Override
+	public int bulkInsert(Uri uri, ContentValues[] values) {
+		int numValues;
+
+		mDba = new MobilityDbAdapter(getContext());
+		mDba.open();
+		mDb = mDba.getDb();
+		mDb.beginTransaction();
+		try {
+			numValues = super.bulkInsert(uri, values);
+			mDb.setTransactionSuccessful();
+		} finally {
+			mDb.endTransaction();
+			mDba.close();
+			mDb = null;
+			mDba = null;
+		}
+
+		getContext().getContentResolver().notifyChange(uri, null);
+
+		return numValues;
+	}
 }

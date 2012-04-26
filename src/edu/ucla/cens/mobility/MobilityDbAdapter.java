@@ -113,7 +113,7 @@ public class MobilityDbAdapter
 		public String longitudeValue;
 	}
 
-	private class DatabaseHelper extends SQLiteOpenHelper
+	public class DatabaseHelper extends SQLiteOpenHelper
 	{
 		// Stores the name of the database table that is used in the parent
 		// class
@@ -184,12 +184,12 @@ public class MobilityDbAdapter
 			SQLiteDatabase sdb = new DatabaseHelper(mCtx, database_table, aggregate_table).getReadableDatabase();
 
 			c = sdb.query("mobility", columns, selection, selectionArgs, null, null, orderBy);
+			c.setNotificationUri(mCtx.getContentResolver(), MobilityInterface.CONTENT_URI);
 		} catch (SQLiteException e)
 		{
 			Log.i(TAG, e.toString());
 			c = null;
 		}
-		c.setNotificationUri(mCtx.getContentResolver(), MobilityInterface.CONTENT_URI);
 		lock.unlock();
 		
 		return c;
@@ -292,6 +292,10 @@ public class MobilityDbAdapter
 			databaseOpen = false;
 			dbLock.notify();
 		}
+	}
+
+	public SQLiteDatabase getDb() {
+		return db;
 	}
 
 	public long createRow(String mode, long time, String status, String speed, long timestamp, String accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, String latitude,
@@ -764,11 +768,16 @@ public class MobilityDbAdapter
 			c = sdb.query(aggregate_table, columns, selection, selectionArgs, null, null, sortOrder);
 			c.setNotificationUri(mCtx.getContentResolver(), MobilityInterface.CONTENT_URI);
 		} catch (SQLiteException e) {
-			Log.i(TAG, e.toString());
+			Log.e(TAG, e.toString());
 			c = null;
+		} finally {
+			lock.unlock();
 		}
-		lock.unlock();
 
 		return c;
+	}
+
+	public void insertMobilityAggregate(ContentValues values) {
+		db.insertWithOnConflict(aggregate_table, KEY_DAY, values, SQLiteDatabase.CONFLICT_REPLACE);
 	}
 }
