@@ -797,4 +797,15 @@ public class MobilityDbAdapter
 	public void insertMobilityAggregate(ContentValues values) {
 		db.insertWithOnConflict(aggregate_table, KEY_DAY, values, SQLiteDatabase.CONFLICT_REPLACE);
 	}
+
+	/**
+	 * Updates the username for mobility points after a certain time
+	 * @param username
+	 * @param backdate
+	 */
+	public void updateUsername(String username, long backdate) {
+		ContentValues vals = new ContentValues();
+		vals.put(KEY_USERNAME, username);
+		db.update(database_table, vals, KEY_USERNAME + "=? AND " + KEY_TIME + ">=" + backdate, new String[] { DEFAULT_USERNAME });
+	}
 }
