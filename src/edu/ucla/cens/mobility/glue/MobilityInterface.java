@@ -11,8 +11,9 @@ import android.widget.Toast;
 public class MobilityInterface
 {
 	public static final String ACTION_SET_USERNAME = "edu.ucla.cens.mobility.glue.ACTION_SET_USERNAME";
+	public static final String ACTION_RECALCULATE_AGGREGATES = "edu.ucla.cens.mobility.glue.ACTION_RECALCULATE_AGGREGATES";
 	public static final String EXTRA_USERNAME = "extra_username";
-	public static final String EXTRA_USERNAME_BACKDATE = "extra_username_backdate";
+	public static final String EXTRA_BACKDATE = "extra_backdate";
 
 	public static final String KEY_MODE = "mode";
 	public static final String KEY_ID = "id";

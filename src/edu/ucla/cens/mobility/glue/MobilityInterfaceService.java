@@ -21,7 +21,7 @@ public class MobilityInterfaceService extends Service
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if(MobilityInterface.ACTION_SET_USERNAME.equals(intent.getAction())) {
 			String username = intent.getStringExtra(MobilityInterface.EXTRA_USERNAME);
-			long backdate = intent.getLongExtra(MobilityInterface.EXTRA_USERNAME_BACKDATE, -1);
+			long backdate = intent.getLongExtra(MobilityInterface.EXTRA_BACKDATE, -1);
 			SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
 			settings.edit().putString(Mobility.KEY_USERNAME, username).commit();
 
@@ -31,6 +31,15 @@ public class MobilityInterfaceService extends Service
 				mdb.updateUsername(username, backdate);
 				mdb.close();
 			}
+			return START_NOT_STICKY;
+		} else if(MobilityInterface.ACTION_RECALCULATE_AGGREGATES.equals(intent.getAction())) {
+			long backdate = intent.getLongExtra(MobilityInterface.EXTRA_BACKDATE, 0);
+
+			MobilityDbAdapter mdb = new MobilityDbAdapter(this);
+			mdb.open();
+			mdb.recalculateAggregates(intent.getStringExtra(MobilityInterface.EXTRA_USERNAME), backdate);
+			mdb.close();
+
 			return START_NOT_STICKY;
 		}
 		return super.onStartCommand(intent, flags, startId);

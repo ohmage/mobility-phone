@@ -42,6 +42,9 @@
 		<intent-filter>
 			<action android:name="edu.ucla.cens.mobility.glue.ACTION_SET_USERNAME"/>
 		</intent-filter>
+		<intent-filter>
+			<action android:name="edu.ucla.cens.mobility.glue.ACTION_RECALCULATE_AGGREGATES"/>
+		</intent-filter>
 	</service>
 	<receiver android:name="edu.ucla.cens.mobility.blackout.BlackoutService$AlarmReceiver">
 	    	<intent-filter>

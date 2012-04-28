@@ -15,10 +15,12 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
 import java.util.Vector;
@@ -369,16 +371,8 @@ public class MobilityDbAdapter
 		db.beginTransaction();
 		try {
 			// First create the mode if it doesn't exist
-			ContentValues countValues = new ContentValues();
-			countValues.put(KEY_MODE, mode);
-			countValues.put(KEY_USERNAME, username);
-			db.insertWithOnConflict(aggregate_table, KEY_MODE, countValues, SQLiteDatabase.CONFLICT_IGNORE);
-
-			// Amount of time that has passed since the last insert (or 5 minutes max)
-			long lastRowInsert = Math.min(time - settings.getLong(Mobility.LAST_INSERT, time), DateUtils.MINUTE_IN_MILLIS * 5);
-			db.execSQL("UPDATE " + aggregate_table + " SET " + KEY_DURATION + "=" + KEY_DURATION + "+"
-					+ lastRowInsert + " WHERE " + KEY_MODE + "=? AND "
-					+ KEY_DAY + "=" + SQL_TODAY_LOCAL + " AND " + KEY_USERNAME + "=?", new String[] { mode, username });
+			long duration = Math.min(time - settings.getLong(Mobility.LAST_INSERT, time), DateUtils.MINUTE_IN_MILLIS * 5);
+			addAggregate(mode, username, duration, null);
 
 			// Save the time of this insert
 			settings.edit().putLong(Mobility.LAST_INSERT, time).commit();
@@ -391,7 +385,27 @@ public class MobilityDbAdapter
 		r.notifyChange(MobilityInterface.CONTENT_URI, null);
 		return rowid;
 	}
-	
+
+	/**
+	 * Adds the duration to aggregate specified by the mode, username, duration key
+	 * @param mode
+	 * @param username
+	 * @param duration
+	 * @param day optional
+	 */
+	private void addAggregate(String mode, String username, long duration, String day) {
+		ContentValues countValues = new ContentValues();
+		countValues.put(KEY_MODE, mode);
+		countValues.put(KEY_USERNAME, username);
+		if(!TextUtils.isEmpty(day)) {
+			countValues.put(KEY_DAY, day);
+		}
+		db.insertWithOnConflict(aggregate_table, KEY_MODE, countValues, SQLiteDatabase.CONFLICT_IGNORE);
+		db.execSQL("UPDATE " + aggregate_table + " SET " + KEY_DURATION + "=" + KEY_DURATION + "+"
+				+ duration + " WHERE " + KEY_MODE + "=? AND "
+				+ KEY_DAY + "=" + ((TextUtils.isEmpty(day)) ? SQL_TODAY_LOCAL : "'"+day+"'") + " AND " + KEY_USERNAME + "=?", new String[] { mode, username });
+	}
+
 	private String formatAccelData(Vector<ArrayList<Double>> samples)
 	{
 		if (samples == null)
@@ -807,5 +821,55 @@ public class MobilityDbAdapter
 		ContentValues vals = new ContentValues();
 		vals.put(KEY_USERNAME, username);
 		db.update(database_table, vals, KEY_USERNAME + "=? AND " + KEY_TIME + ">=" + backdate, new String[] { DEFAULT_USERNAME });
+	}
+
+	/**
+	 * Recalculate the aggregate values from the backdate until now. The
+	 * aggregate data corresponding to this time range should have already been
+	 * deleted
+	 * 
+	 * @param username
+	 * @param backdate
+	 */
+	public void recalculateAggregates(String username, long backdate) {
+		db.beginTransaction();
+		try {
+			Cursor c = db.query(database_table, new String[] { KEY_TIME, KEY_MODE, "date("+KEY_TIME+"/1000, 'unixepoch', 'localtime')" }, KEY_USERNAME + "=? AND " + KEY_TIME + ">=" + backdate, new String[] { username }, null, null, KEY_TIME + " DESC");
+
+			HashMap<String, HashMap<String, Long>> data = new HashMap<String, HashMap<String, Long>>();
+
+			long lastTime = -1;
+			if(c.moveToFirst()) {
+				lastTime = c.getLong(0);
+			}
+
+			while(c.moveToNext()) {
+				String day = c.getString(2);
+				String mode = c.getString(1);
+				HashMap<String, Long> dayMap = data.get(day);
+				if(dayMap == null) {
+					dayMap = new HashMap<String, Long>();
+					data.put(day, dayMap);
+				}
+
+				if(!dayMap.containsKey(mode))
+					dayMap.put(mode, new Long(0));
+
+				dayMap.put(mode, (dayMap.get(mode) + Math.min(lastTime - c.getLong(0), DateUtils.MINUTE_IN_MILLIS * 5)));
+				lastTime = c.getLong(0);
+			}
+
+			for(String day : data.keySet()) {
+				if(day != null) {
+					HashMap<String, Long> dayData = data.get(day);
+					for(String mode : dayData.keySet()) {
+						addAggregate(mode, username, dayData.get(mode), day);
+					}
+				}
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+		}
 	}
 }
