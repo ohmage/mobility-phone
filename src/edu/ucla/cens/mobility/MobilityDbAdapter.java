@@ -796,7 +796,15 @@ public class MobilityDbAdapter
 			if(selection == null)
 				selection = KEY_DAY + "=" + SQL_TODAY_LOCAL;
 
-			c = sdb.query(aggregate_table, columns, selection, selectionArgs, null, null, sortOrder);
+			// If we are querying for the average duration, we assume we want to group by mode
+			String groupby = null;
+			if(columns != null) {
+				for(String column : columns)
+					if(column.toLowerCase().equals("avg(" + MobilityInterface.KEY_DURATION.toLowerCase() + ")"))
+						groupby = KEY_MODE;
+			}
+
+			c = sdb.query(aggregate_table, columns, selection, selectionArgs, groupby, null, sortOrder);
 			c.setNotificationUri(mCtx.getContentResolver(), MobilityInterface.CONTENT_URI);
 		} catch (SQLiteException e) {
 			Log.e(TAG, e.toString());
