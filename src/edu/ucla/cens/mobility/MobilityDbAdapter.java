@@ -820,6 +820,10 @@ public class MobilityDbAdapter
 		db.insertWithOnConflict(aggregate_table, KEY_DAY, values, SQLiteDatabase.CONFLICT_REPLACE);
 	}
 
+	public int deleteMobilityAggregate(String where, String[] whereArgs) {
+		return db.delete(aggregate_table, where, whereArgs);
+	}
+
 	/**
 	 * Updates the username for mobility points after a certain time
 	 * @param username

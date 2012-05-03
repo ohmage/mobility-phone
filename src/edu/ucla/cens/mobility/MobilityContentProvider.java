@@ -1,10 +1,14 @@
 package edu.ucla.cens.mobility;
 
+import java.util.ArrayList;
+
 import android.content.ContentProvider;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentValues;
+import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
@@ -84,8 +88,6 @@ public class MobilityContentProvider extends ContentProvider
 	private static final UriMatcher mUriMatcher;
 	public static final Uri CONTENT_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_MOBILITY);
 
-	private SQLiteDatabase mDb;
-
 	private MobilityDbAdapter mDba;
 
 	/**
@@ -144,7 +146,26 @@ public class MobilityContentProvider extends ContentProvider
 	@Override
 	public int delete(Uri uri, String where, String[] whereArgs) 
 	{
-		return 0;
+		boolean opened = false;
+		if (mDba == null) {
+			opened = true;
+			mDba = new MobilityDbAdapter(getContext());
+			mDba.open();
+		}
+
+		int res = 0;
+		switch (mUriMatcher.match(uri)) {
+			case URI_CODE_AGGREGATES: {
+				res = mDba.deleteMobilityAggregate(where, whereArgs);
+				if (!mDba.getDb().inTransaction())
+					getContext().getContentResolver().notifyChange(uri, null);
+			}
+		}
+
+		if(opened)
+			mDba.close();
+
+		return res;
 	}
 	
 	/**
@@ -362,20 +383,36 @@ public class MobilityContentProvider extends ContentProvider
 
 		mDba = new MobilityDbAdapter(getContext());
 		mDba.open();
-		mDb = mDba.getDb();
-		mDb.beginTransaction();
+		mDba.getDb().beginTransaction();
 		try {
 			numValues = super.bulkInsert(uri, values);
-			mDb.setTransactionSuccessful();
+			mDba.getDb().setTransactionSuccessful();
 		} finally {
-			mDb.endTransaction();
+			mDba.getDb().endTransaction();
 			mDba.close();
-			mDb = null;
 			mDba = null;
 		}
 
 		getContext().getContentResolver().notifyChange(uri, null);
 
 		return numValues;
+	}
+
+	@Override
+	public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+			throws OperationApplicationException {
+		mDba = new MobilityDbAdapter(getContext());
+		mDba.open();
+		mDba.getDb().beginTransaction();
+		ContentProviderResult[] results = null;
+		try {
+			results  = super.applyBatch(operations);
+			mDba.getDb().setTransactionSuccessful();
+		} finally {
+			mDba.getDb().endTransaction();
+			mDba.close();
+			mDba = null;
+		}
+		return results;
 	}
 }
