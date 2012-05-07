@@ -1,39 +1,29 @@
 package edu.ucla.cens.mobility;
 
-import java.util.HashMap;
-
 import edu.ucla.cens.accelservice.IAccelService;
-import edu.ucla.cens.mobility.R;
 import edu.ucla.cens.mobility.blackout.Blackout;
 import edu.ucla.cens.mobility.blackout.BlackoutDesc;
-import edu.ucla.cens.mobility.blackout.base.TriggerBase;
 import edu.ucla.cens.mobility.blackout.base.TriggerDB;
+import edu.ucla.cens.mobility.blackout.base.TriggerInit;
 import edu.ucla.cens.mobility.blackout.utils.SimpleTime;
-
 import edu.ucla.cens.systemlog.ISystemLog;
 import edu.ucla.cens.systemlog.Log;
 import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
+
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import edu.ucla.cens.mobility.blackout.base.TriggerInit;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-//import android.util.Log;
-import android.widget.SimpleCursorAdapter;
 
 //import android.widget.Toast;
 
@@ -51,11 +41,13 @@ public class Mobility
 	public static final String SERVICE_TAG = "Mobility";
 	public static final String MOBILITY = "mobility";
 	public static final String SAMPLE_RATE = "sample rate";
+	public static final String LAST_INSERT = "last_insert";
 	public static final String ACC_START = "edu.ucla.cens.mobility.record";
 	public static final String STATUS_PENDING = "pending";
 	public static final String STATUS_OK = "mobility";
 	public static final String STATUS_ERROR = "error";
 	public static final String STATUS_BLACKOUT = "blackout";
+	public static final String KEY_USERNAME = "key_username";
 
 	// public static Context appContext = null;
 	static AlarmManager mgr;
@@ -118,13 +110,16 @@ public class Mobility
 	// start(context);
 	// }
 
-	public static void start(Context context)
-	{
+	public static void initSystemLog(Context context) {
 		Log.setAppName("Mobility");
 		context.bindService(new Intent(ISystemLog.class.getName()),
 		Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
 		Log.register(TAG);
-		
+	}
+
+	public static void start(Context context)
+	{
+		initSystemLog(context);
 		TriggerDB db = new TriggerDB(context);
 		db.open();
 		boolean canRunNow = true;

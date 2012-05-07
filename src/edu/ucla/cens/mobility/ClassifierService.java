@@ -1,35 +1,25 @@
 package edu.ucla.cens.mobility;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.TimeZone;
-import java.util.Vector;
+import edu.ucla.cens.accelservice.IAccelService;
+import edu.ucla.cens.systemlog.ISystemLog;
+import edu.ucla.cens.systemlog.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ucla.cens.systemlog.ISystemLog;
-import edu.ucla.cens.accelservice.IAccelService;
-import edu.ucla.cens.systemlog.Log;
-import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
-
-import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import java.text.DateFormat;
-import java.text.ParseException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
 
 //import android.util.Log;
 
@@ -113,10 +103,10 @@ public class ClassifierService extends WakefulIntentService
 	// }
 	// };
 	// private IAccelService mAccel;
-	private int accelCode = 0;
-	private int gpsCode = 1;
+	private final int accelCode = 0;
+	private final int gpsCode = 1;
 	boolean[] readySvc = { false, false };
-	private boolean wifiChecking = true;
+	private final boolean wifiChecking = true;
 
 	private synchronized void ready(int serviceCode)
 	{
@@ -1088,7 +1078,7 @@ public class ClassifierService extends WakefulIntentService
 	protected void doWakefulWork(Intent intent)
 	{
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		tmdb = new MobilityDbAdapter(this, "mobility", "mobility", "mobility");
+		tmdb = new MobilityDbAdapter(this);
 		if (!Mobility.gpsConnected)
 			this.getApplicationContext()
 					.bindService(

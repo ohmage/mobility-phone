@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="edu.ucla.cens.mobility"
-      android:versionCode="24"
-      android:versionName="1.3.4">
+      android:versionCode="25"
+      android:versionName="1.3.5">
       <uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -38,6 +38,12 @@
 	<service android:name="edu.ucla.cens.mobility.glue.MobilityInterfaceService">
 		<intent-filter>
 			<action android:name="edu.ucla.cens.mobility.glue.IMobility"/>
+		</intent-filter>
+		<intent-filter>
+			<action android:name="edu.ucla.cens.mobility.glue.ACTION_SET_USERNAME"/>
+		</intent-filter>
+		<intent-filter>
+			<action android:name="edu.ucla.cens.mobility.glue.ACTION_RECALCULATE_AGGREGATES"/>
 		</intent-filter>
 	</service>
 	<receiver android:name="edu.ucla.cens.mobility.blackout.BlackoutService$AlarmReceiver">
