@@ -1,12 +1,14 @@
 package edu.ucla.cens.mobility;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 
 import android.content.ContentProvider;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentValues;
+import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -70,24 +72,56 @@ public class MobilityContentProvider extends ContentProvider
 	
 	private static final int URI_CODE_MOBILITY = 1;
 	
+	/**
+	 * A path value that will give information about the applications that
+	 * have been running.
+	 * 
+	 * <p>Value: <code>{@value PATH_AGGREGATES}</code></p>
+	 * 
+	 * @see #query(Uri, String[], String, String[], String)
+	 */
+	public static final String PATH_AGGREGATES = PATH_MOBILITY + "/" + "aggregates";
+
+	private static final int URI_CODE_AGGREGATES = 2;
+
+
 	private static final UriMatcher mUriMatcher;
 	public static final Uri CONTENT_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_MOBILITY);
+
+	private MobilityDbAdapter mDba;
+
 	/**
-	 * It doesn't make any sense for a user to be adding data to this
-	 * ContentProvider. Therefore, nothing happens when this is called.
+	 * We want to download aggregate data from the server. Since ohmage handles
+	 * interaction with the server we will have to trust it to insert the data
+	 * correctly
 	 * 
-	 * @param uri Unused
-	 * 
-	 * @param values Unused
-	 * 
-	 * @return Always returns null.
+	 * @param uri
+	 * @param values
+	 * @return returns aggregate uri if insert was successful, null otherwise
 	 */
 	@Override
-	public Uri insert(Uri uri, ContentValues values) 
-	{
-		return null;
+	public Uri insert(Uri uri, ContentValues values) {
+		boolean opened = false;
+		if (mDba == null) {
+			opened = true;
+			mDba = new MobilityDbAdapter(getContext());
+			mDba.open();
+		}
+
+		switch (mUriMatcher.match(uri)) {
+			case URI_CODE_AGGREGATES: {
+				mDba.insertMobilityAggregate(values);
+				if (!mDba.getDb().inTransaction())
+					getContext().getContentResolver().notifyChange(uri, null);
+			}
+		}
+
+		if(opened)
+			mDba.close();
+
+		return uri;
 	}
-	
+
 	/**
 	 * Does nothing
 	 */
@@ -112,7 +146,26 @@ public class MobilityContentProvider extends ContentProvider
 	@Override
 	public int delete(Uri uri, String where, String[] whereArgs) 
 	{
-		return 0;
+		boolean opened = false;
+		if (mDba == null) {
+			opened = true;
+			mDba = new MobilityDbAdapter(getContext());
+			mDba.open();
+		}
+
+		int res = 0;
+		switch (mUriMatcher.match(uri)) {
+			case URI_CODE_AGGREGATES: {
+				res = mDba.deleteMobilityAggregate(where, whereArgs);
+				if (!mDba.getDb().inTransaction())
+					getContext().getContentResolver().notifyChange(uri, null);
+			}
+		}
+
+		if(opened)
+			mDba.close();
+
+		return res;
 	}
 	
 	/**
@@ -200,12 +253,18 @@ public class MobilityContentProvider extends ContentProvider
 	{
 		Log.i(TAG, (new StringBuilder()).append("Query: ").append(uri.toString()).toString());
 		
-		if(mUriMatcher.match(uri) == URI_CODE_MOBILITY)
-		{
-			Log.i(TAG, "Querying mobility.");
-			MobilityDbAdapter mda = new MobilityDbAdapter(getContext(), "mobility", "mobility", "mobility");
+		switch(mUriMatcher.match(uri)) {
 			
-			return mda.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
+			case URI_CODE_AGGREGATES: {
+				MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
+
+				return mda.getMobilityAggregatesCursor(columns, selection, selectionArgs, sortOrder);
+			} case URI_CODE_MOBILITY: {
+				Log.i(TAG, "Querying mobility.");
+				MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
+
+				return mda.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
+			}
 		}
 		
 		return null;
@@ -308,6 +367,7 @@ public class MobilityContentProvider extends ContentProvider
 	{
 		mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		mUriMatcher.addURI(AUTHORITY, PATH_MOBILITY, URI_CODE_MOBILITY);
+		mUriMatcher.addURI(AUTHORITY, PATH_AGGREGATES, URI_CODE_AGGREGATES);
 	}
 
 	@Override
@@ -316,6 +376,43 @@ public class MobilityContentProvider extends ContentProvider
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	
+
+	@Override
+	public int bulkInsert(Uri uri, ContentValues[] values) {
+		int numValues;
+
+		mDba = new MobilityDbAdapter(getContext());
+		mDba.open();
+		mDba.getDb().beginTransaction();
+		try {
+			numValues = super.bulkInsert(uri, values);
+			mDba.getDb().setTransactionSuccessful();
+		} finally {
+			mDba.getDb().endTransaction();
+			mDba.close();
+			mDba = null;
+		}
+
+		getContext().getContentResolver().notifyChange(uri, null);
+
+		return numValues;
+	}
+
+	@Override
+	public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+			throws OperationApplicationException {
+		mDba = new MobilityDbAdapter(getContext());
+		mDba.open();
+		mDba.getDb().beginTransaction();
+		ContentProviderResult[] results = null;
+		try {
+			results  = super.applyBatch(operations);
+			mDba.getDb().setTransactionSuccessful();
+		} finally {
+			mDba.getDb().endTransaction();
+			mDba.close();
+			mDba = null;
+		}
+		return results;
+	}
 }
