@@ -279,6 +279,7 @@ public class ClassifierService extends WakefulIntentService
 				{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+//					Log.d(TAG, "Error running checkWifi :" + wifiData);
 				}
 				// globalLoc = mWiFiGPS.getLocation();
 				// if (!setInterval)
