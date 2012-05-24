@@ -2,7 +2,6 @@
 <resources>
     <string name="hello">Hello World, Settings!</string>
     <string name="app_name">Mobility</string>
-    <string name="prefs">PreferenceFile</string>
     <string name="mobilityservicestarted">Mobility service is running.</string>
     <string name="mobilityservicestopped">Mobility service is not running.</string>
 </resources>
