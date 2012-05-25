@@ -44,11 +44,13 @@ public class MobilityInterface
 	private static String [] columns = {KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE};
 	// Content provider strings
 	public static final String AUTHORITY = "edu.ucla.cens.mobility.MobilityContentProvider";
+
 	public static final String PATH_MOBILITY = "mobility";
 	public static final Uri CONTENT_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_MOBILITY);
-
 	public static final String PATH_AGGREGATES = PATH_MOBILITY + "/" + "aggregates";
 	public static final Uri AGGREGATES_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_AGGREGATES);
+	public static final String PATH_AGGREGATES_ADD = PATH_AGGREGATES + "/" + "add";
+	public static final Uri AGGREGATES_ADD_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_AGGREGATES_ADD);
 
 	/**
 	 * Helper function to get cursor to data with only the last retrieved timestamp.

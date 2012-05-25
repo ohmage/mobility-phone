@@ -119,13 +119,11 @@ public class DataSaverActivity extends Activity
         	while (full)
         	{
     			//Log.i(TAG, "There are " + String.valueOf(c.getCount()) + " mobility points to save.");
-        		mdb.open();
 //    			c.moveToFirst();
         		Integer max = 300;
         		ArrayList<DBRow>  mpoints = mdb.fetchSomeRows(max, last);
 				full = mpoints.size() == 300; // must match limit number in transportmodedb.fetchSomeTransportModes's query
 				//			        Log.d(TAG, String.format("I done fetched all the transport modes in only %d milliseconds", System.currentTimeMillis() - start));
-				mdb.close();
 //    			int remainingCount = 28800;//c.getCount();//c.getcount fails
 //    			int limit = 300;
     			
