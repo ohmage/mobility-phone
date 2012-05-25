@@ -1,16 +1,20 @@
 package edu.ucla.cens.mobility;
 
-import java.util.ArrayList;
+import edu.ucla.cens.mobility.MobilityDbAdapter.DatabaseHelper;
+import edu.ucla.cens.mobility.glue.MobilityInterface;
 
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
+
+import java.util.ArrayList;
 
 /**
  * This is the ContentProvider for the System Sens Lite Service that provides
@@ -50,45 +54,20 @@ import android.util.Log;
 public class MobilityContentProvider extends ContentProvider
 {
 	private static final String TAG = "MobilityContentProvider";
-	
-	/**
-	 * The Authority that should be used whenever you are querying this
-	 * Content Provider. 
-	 * 
-	 * <p>Value: <code>{@value AUTHORITY}</code></p>
-	 * @
-	 */
-	public static final String AUTHORITY = "edu.ucla.cens.mobility.MobilityContentProvider";
-	
-	/**
-	 * A path value that will give information about the applications that
-	 * have been running.
-	 * 
-	 * <p>Value: <code>{@value PATH_MOBILITY}</code></p>
-	 * 
-	 * @see #query(Uri, String[], String, String[], String)
-	 */
-	public static final String PATH_MOBILITY = "mobility";
-	
+
 	private static final int URI_CODE_MOBILITY = 1;
-	
-	/**
-	 * A path value that will give information about the applications that
-	 * have been running.
-	 * 
-	 * <p>Value: <code>{@value PATH_AGGREGATES}</code></p>
-	 * 
-	 * @see #query(Uri, String[], String, String[], String)
-	 */
-	public static final String PATH_AGGREGATES = PATH_MOBILITY + "/" + "aggregates";
-
 	private static final int URI_CODE_AGGREGATES = 2;
-
+	private static final int URI_CODE_AGGREGATES_ADD = 3;
 
 	private static final UriMatcher mUriMatcher;
-	public static final Uri CONTENT_URI = Uri.parse("content://"+AUTHORITY + "/" + PATH_MOBILITY);
 
-	private MobilityDbAdapter mDba;
+	private DatabaseHelper dbHelper;
+
+	@Override
+	public boolean onCreate() {
+		dbHelper = new DatabaseHelper(getContext());
+		return true;
+	}
 
 	/**
 	 * We want to download aggregate data from the server. Since ohmage handles
@@ -101,69 +80,69 @@ public class MobilityContentProvider extends ContentProvider
 	 */
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
-		boolean opened = false;
-		if (mDba == null) {
-			opened = true;
-			mDba = new MobilityDbAdapter(getContext());
-			mDba.open();
-		}
-
+		long id = -1;
 		switch (mUriMatcher.match(uri)) {
 			case URI_CODE_AGGREGATES: {
-				mDba.insertMobilityAggregate(values);
-				if (!mDba.getDb().inTransaction())
-					getContext().getContentResolver().notifyChange(uri, null);
+				id = dbHelper.insertMobilityAggregate(values);
+				break;
+			}
+			case URI_CODE_MOBILITY: {
+				id = dbHelper.insertMobilityPoint(values);
+				break;
 			}
 		}
 
-		if(opened)
-			mDba.close();
+		if (!dbHelper.getWritableDatabase().inTransaction())
+			getContext().getContentResolver().notifyChange(uri, null);
 
-		return uri;
+		if(id == -1)
+			return null;
+	
+		return ContentUris.appendId(uri.buildUpon(), id).build();
 	}
 
 	/**
 	 * Does nothing
 	 */
 	@Override
-	public int update(Uri uri, ContentValues values, String where, String[] whereArgs)  throws NullPointerException
-	{
-		return 0;
+	public int update(Uri uri, ContentValues values, String where, String[] whereArgs) {
+		int ret = 0;
+		switch (mUriMatcher.match(uri)) {
+			case URI_CODE_MOBILITY: {
+				ret = dbHelper.updateMobilityPoint(values, where, whereArgs);
+				break;
+			}
+			case URI_CODE_AGGREGATES_ADD: {
+				ret = dbHelper.addToAggregate(values);
+				break;
+			}
+		}
+		return ret;
 	}
-	
+
 	/**
-	 * There is no reason an external class should be deleting information
-	 * from the database, so this is unused.
+	 * Delete data from the content provider
 	 * 
-	 * @param uri Unused.
-	 * 
-	 * @param where Unused.
-	 * 
-	 * @param whereArgs Unused.
-	 * 
-	 * @return Always returns 0.
+	 * @param uri
+	 * @param where
+	 * @param whereArgs
+	 * @return returns number of rows deleted
 	 */
 	@Override
-	public int delete(Uri uri, String where, String[] whereArgs) 
-	{
-		boolean opened = false;
-		if (mDba == null) {
-			opened = true;
-			mDba = new MobilityDbAdapter(getContext());
-			mDba.open();
-		}
-
+	public int delete(Uri uri, String where, String[] whereArgs) {
 		int res = 0;
 		switch (mUriMatcher.match(uri)) {
 			case URI_CODE_AGGREGATES: {
-				res = mDba.deleteMobilityAggregate(where, whereArgs);
-				if (!mDba.getDb().inTransaction())
-					getContext().getContentResolver().notifyChange(uri, null);
+				res = dbHelper.deleteMobilityAggregate(where, whereArgs);
+				break;
+			}
+			case URI_CODE_MOBILITY: {
+				res = dbHelper.deleteMobiltyPoint(where, whereArgs);
+				break;
 			}
 		}
-
-		if(opened)
-			mDba.close();
+		if (!dbHelper.getWritableDatabase().inTransaction())
+			getContext().getContentResolver().notifyChange(uri, null);
 
 		return res;
 	}
@@ -249,148 +228,50 @@ public class MobilityContentProvider extends ContentProvider
 	 * @see #AUTHORITY
 	 */
 	@Override
-	public Cursor query(Uri uri, String[] columns, String selection, String[] selectionArgs, String sortOrder) 
-	{
+	public Cursor query(Uri uri, String[] columns, String selection, String[] selectionArgs, String sortOrder) {
 		Log.i(TAG, (new StringBuilder()).append("Query: ").append(uri.toString()).toString());
 		
 		switch(mUriMatcher.match(uri)) {
 			
 			case URI_CODE_AGGREGATES: {
-				MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
-
-				return mda.getMobilityAggregatesCursor(columns, selection, selectionArgs, sortOrder);
+				return dbHelper.getMobilityAggregatesCursor(columns, selection, selectionArgs, sortOrder);
 			} case URI_CODE_MOBILITY: {
 				Log.i(TAG, "Querying mobility.");
-				MobilityDbAdapter mda = new MobilityDbAdapter(getContext());
-
-				return mda.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
+				return dbHelper.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
 			}
 		}
 		
 		return null;
 	}
-//	@Override
-//	protected void finalize() throws Throwable
-//	{
-//		mda.close();
-//		super.finalize();
-//		
-//	}
 
 	/**
 	 * I have no idea what this means yet, so I will ignore it for now.
 	 */
 	@Override
-	public String getType(Uri uri) 
-	{
+	public String getType(Uri uri) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-//	/**
-//	 * Creates a new Cursor object with the Application and Activities tied
-//	 * together and has the amount of time that that combination ran in 
-//	 * nanoseconds. There will be duplicates of these Application and Activity
-//	 * names because that Activity may start and stop multiple times.
-//	 * 
-//	 * The Cursor format is:
-//	 * 		"_id", "app_and_activity", "length_in_nanos"
-//	 * 
-//	 * @return A Cursor with the Application and Activity names tied together
-//	 * 		   and their running time in nanoseconds.
-//	 */
-//	private Cursor getEventTimes()
-//	{
-//		String[] columns = { LogDbAdapter.KEY_EVENTS_ID, LogDbAdapter.KEY_EVENTS_TIME, LogDbAdapter.KEY_EVENTS_APPLICATION, LogDbAdapter.KEY_EVENTS_ACTIVITY, LogDbAdapter.KEY_EVENTS_ACTION };
-//		Cursor c = LogDbAdapter.getEventEntries(columns, null, null, LogDbAdapter.KEY_EVENTS_TIME + " ASC");
-//		
-//		if(c == null)
-//			return null;
-//		c.moveToFirst();
-//		int cLen = c.getCount();
-//		
-//		String[] newColumns = { "_id", "app_and_activity", "length_in_nanos" };
-//		MatrixCursor result = new MatrixCursor(newColumns);
-//		
-//		int currId = 1;
-//		
-//		Long lastTime;
-//		String currAppAndActivity;
-//		int currAction;
-//		HashMap<String, Long> appRunning = new HashMap<String, Long>();
-//		Object[] newVals = new Object[3];
-//		
-//		for(int i = 0; i < cLen; i++)
-//		{
-//			currAppAndActivity = c.getString(2) + c.getString(3);
-//			currAction = c.getInt(4);
-//			
-//			if((currAction == LogDbAdapter.ACTION_TYPES.CREATE.ordinal()) || 
-//			   (currAction == LogDbAdapter.ACTION_TYPES.RESTART.ordinal()) ||
-//			   (currAction == LogDbAdapter.ACTION_TYPES.RESUME.ordinal()))
-//			{
-//				appRunning.put(currAppAndActivity, c.getLong(1));
-//			}
-//			else if(currAction == LogDbAdapter.ACTION_TYPES.PAUSE.ordinal())
-//			{
-//				if(appRunning.containsKey(currAppAndActivity))
-//				{
-//					lastTime = appRunning.get(currAppAndActivity);
-//					
-//					if(lastTime > 0)
-//					{
-//						appRunning.put(currAppAndActivity, -lastTime);
-//						
-//						newVals[0] = currId;
-//						newVals[1] = currAppAndActivity;
-//						newVals[2] = c.getLong(1) - lastTime;
-//						
-//						try
-//						{
-//							result.addRow(newVals);
-//							currId++;
-//						}
-//						catch(IllegalArgumentException e)
-//						{
-//							Log.e(TAG, "The number of arguments for the new row doesn't exactly match the number of rows that are available.");
-//						}
-//					}
-//				}
-//			}
-//		}
-//
-//		return result;
-//	}
-	
+
 	// This is called when the class is created.
 	static
 	{
 		mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-		mUriMatcher.addURI(AUTHORITY, PATH_MOBILITY, URI_CODE_MOBILITY);
-		mUriMatcher.addURI(AUTHORITY, PATH_AGGREGATES, URI_CODE_AGGREGATES);
-	}
-
-	@Override
-	public boolean onCreate()
-	{
-		// TODO Auto-generated method stub
-		return false;
+		mUriMatcher.addURI(MobilityInterface.AUTHORITY, MobilityInterface.PATH_MOBILITY, URI_CODE_MOBILITY);
+		mUriMatcher.addURI(MobilityInterface.AUTHORITY, MobilityInterface.PATH_AGGREGATES, URI_CODE_AGGREGATES);
+		mUriMatcher.addURI(MobilityInterface.AUTHORITY, MobilityInterface.PATH_AGGREGATES_ADD, URI_CODE_AGGREGATES_ADD);
 	}
 
 	@Override
 	public int bulkInsert(Uri uri, ContentValues[] values) {
 		int numValues;
 
-		mDba = new MobilityDbAdapter(getContext());
-		mDba.open();
-		mDba.getDb().beginTransaction();
+		dbHelper.getWritableDatabase().beginTransaction();
 		try {
 			numValues = super.bulkInsert(uri, values);
-			mDba.getDb().setTransactionSuccessful();
+			dbHelper.getWritableDatabase().setTransactionSuccessful();
 		} finally {
-			mDba.getDb().endTransaction();
-			mDba.close();
-			mDba = null;
+			dbHelper.getWritableDatabase().endTransaction();
 		}
 
 		getContext().getContentResolver().notifyChange(uri, null);
@@ -401,17 +282,13 @@ public class MobilityContentProvider extends ContentProvider
 	@Override
 	public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
 			throws OperationApplicationException {
-		mDba = new MobilityDbAdapter(getContext());
-		mDba.open();
-		mDba.getDb().beginTransaction();
+		dbHelper.getWritableDatabase().beginTransaction();
 		ContentProviderResult[] results = null;
 		try {
 			results  = super.applyBatch(operations);
-			mDba.getDb().setTransactionSuccessful();
+			dbHelper.getWritableDatabase().setTransactionSuccessful();
 		} finally {
-			mDba.getDb().endTransaction();
-			mDba.close();
-			mDba = null;
+			dbHelper.getWritableDatabase().endTransaction();
 		}
 		return results;
 	}

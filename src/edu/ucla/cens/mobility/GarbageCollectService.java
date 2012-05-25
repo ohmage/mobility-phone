@@ -1,7 +1,6 @@
 package edu.ucla.cens.mobility;
 
 import android.content.Intent;
-import android.database.SQLException;
 import android.os.IBinder;
 
 public class GarbageCollectService extends WakefulIntentService
@@ -36,20 +35,7 @@ public class GarbageCollectService extends WakefulIntentService
 	protected void doWakefulWork(Intent intent)
 	{
 		MobilityDbAdapter mda = new MobilityDbAdapter(this);
-		mda.open();
-		try
-		{
-			
-			mda.deleteSomeRows(System.currentTimeMillis() - gctime * 24 * 3600 * 1000);
-			
-
-		}
-		catch (SQLException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		mda.close();
+		mda.deleteSomeRows(System.currentTimeMillis() - gctime * 24 * 3600 * 1000);
 		stopSelf();		
 	}
 

@@ -1063,11 +1063,9 @@ public class ClassifierService extends WakefulIntentService
 		long time = System.currentTimeMillis();// resJson.setAndReturnTime();
 
 		// Open the database, and store the response
-		tmdb.open();
 		tmdb.createRow(mode, time, status, String.valueOf(speed), timestamp,
 				String.valueOf(accuracy), provider, wifiData, samples,
 				String.valueOf(lat), String.valueOf(lon));
-		tmdb.close();
 	}
 
 	@Override

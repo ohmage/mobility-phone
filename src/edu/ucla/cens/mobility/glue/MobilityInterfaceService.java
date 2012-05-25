@@ -27,18 +27,14 @@ public class MobilityInterfaceService extends Service
 
 			if(backdate != -1) {
 				MobilityDbAdapter mdb = new MobilityDbAdapter(this);
-				mdb.open();
 				mdb.updateUsername(username, backdate);
-				mdb.close();
 			}
 			return START_NOT_STICKY;
 		} else if(MobilityInterface.ACTION_RECALCULATE_AGGREGATES.equals(intent.getAction())) {
 			long backdate = intent.getLongExtra(MobilityInterface.EXTRA_BACKDATE, 0);
 
 			MobilityDbAdapter mdb = new MobilityDbAdapter(this);
-			mdb.open();
 			mdb.recalculateAggregates(intent.getStringExtra(MobilityInterface.EXTRA_USERNAME), backdate);
-			mdb.close();
 
 			return START_NOT_STICKY;
 		}
