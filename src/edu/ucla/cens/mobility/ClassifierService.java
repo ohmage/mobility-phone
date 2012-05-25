@@ -723,7 +723,7 @@ public class ClassifierService extends WakefulIntentService
 			// total++;
 			// }
 			Log.d(TAG, "There were " + same + " matches out of "
-					+ total + " APs were in this sample. " + APsFromLastTimes);
+					+ total + " APs were in this sample. current:" + APs + " previous:" + APsFromLastTimes);
 			if (total > 0)
 			{
 				int threshold = 2;
@@ -775,7 +775,8 @@ public class ClassifierService extends WakefulIntentService
 		{
 			if (!store.endsWith(","))
 				Log.e(TAG, "This is wrong: " + store + " " + APs.size());
-			store = store.substring(0, store.length() - 1); // cut off last
+			else
+				store = store.substring(0, store.length() - 1); // cut off last
 															// comma
 		}
 		long now = System.currentTimeMillis();
@@ -792,7 +793,8 @@ public class ClassifierService extends WakefulIntentService
 				}
 				if (!store.endsWith(","))
 					Log.e(TAG, "This is wrong: " + store + " " + APs.size());
-				store = store.substring(0, store.length() - 1); // cut off last
+				else
+					store = store.substring(0, store.length() - 1); // cut off last
 																// comma
 			}
 
