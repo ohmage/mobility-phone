@@ -269,7 +269,7 @@ public class ClassifierService extends WakefulIntentService
 				{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-//					Log.d(TAG, "Error running checkWifi :" + wifiData);
+					Log.d(TAG, "Error running checkWifi :" + wifiData);
 				}
 				// globalLoc = mWiFiGPS.getLocation();
 				// if (!setInterval)
@@ -493,6 +493,8 @@ public class ClassifierService extends WakefulIntentService
 				activity = wifiActivity; // The other classifier is rubbish for
 											// still/drive, just use WiFi result
 		}
+		else
+			Log.d(TAG, "wifi not used (turned off or unknown for this sample)");
 		if (gpsFail && Mobility.debugMode)
 			Mobility.setNotification(this, Mobility.STATUS_OK, activity
 					+ " (Warning: No GPS)");
