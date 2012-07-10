@@ -47,7 +47,6 @@ public class MobilityControl extends PreferenceActivity
 {
 	private static final boolean DEBUG = false;
 	private final static String TAG = "Mobility Preferences";
-	private static MobilityControl mInstance;
 
 	// KEYS FOR PREFERENCES
 	private static final String KEY_MOBILITY_ONOFF_PREF = "pref_mobility_onoff";
@@ -56,11 +55,6 @@ public class MobilityControl extends PreferenceActivity
 	public static final String MOBILITY_ON = "mobility_on";
 
 	NotificationManager mNM;
-
-	public static MobilityControl getInstance()
-	{
-		return mInstance;
-	}
 
 //	public boolean checkMobilityOff()
 //	{
@@ -74,7 +68,6 @@ public class MobilityControl extends PreferenceActivity
 	public void onCreate(Bundle state)
 	{
 		super.onCreate(state);
-		mInstance = this;
 		setTitle(getTitle() + " - Settings");
 		
 		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
