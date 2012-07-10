@@ -1,15 +1,5 @@
 package edu.ucla.cens.mobility;
 
-import edu.ucla.cens.accelservice.IAccelService;
-import edu.ucla.cens.mobility.blackout.Blackout;
-import edu.ucla.cens.mobility.blackout.BlackoutDesc;
-import edu.ucla.cens.mobility.blackout.base.TriggerDB;
-import edu.ucla.cens.mobility.blackout.base.TriggerInit;
-import edu.ucla.cens.mobility.blackout.utils.SimpleTime;
-import edu.ucla.cens.systemlog.ISystemLog;
-import edu.ucla.cens.systemlog.Log;
-import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
-
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -24,6 +14,18 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.IBinder;
 import android.os.RemoteException;
+
+import edu.ucla.cens.accelservice.IAccelService;
+import edu.ucla.cens.mobility.blackout.Blackout;
+import edu.ucla.cens.mobility.blackout.BlackoutDesc;
+import edu.ucla.cens.mobility.blackout.base.TriggerDB;
+import edu.ucla.cens.mobility.blackout.base.TriggerInit;
+import edu.ucla.cens.mobility.blackout.utils.SimpleTime;
+import edu.ucla.cens.systemlog.ISystemLog;
+import edu.ucla.cens.systemlog.Log;
+import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
+
+import org.ohmage.probemanager.MobilityProbeWriter;
 
 //import android.widget.Toast;
 
@@ -548,6 +550,8 @@ public class Mobility
 		}
 	};
 
+    public static MobilityProbeWriter probeWriter;
+
 	public static void initialize(Context context)
 	{
 
@@ -561,6 +565,10 @@ public class Mobility
 		context.bindService(new Intent(IAccelService.class.getName()),
 				accelServiceConnection, Context.BIND_AUTO_CREATE);
 
+		if(probeWriter == null)
+		    probeWriter = new MobilityProbeWriter(context);
+        probeWriter.connect();
+
 		initialized = true;
 	}
 
@@ -570,6 +578,7 @@ public class Mobility
 		{
 			context.unbindService(mConnection);
 			context.unbindService(accelServiceConnection);
+			probeWriter.close();
 
 			initialized = false;
 		}

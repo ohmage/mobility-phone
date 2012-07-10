@@ -1,11 +1,4 @@
 package edu.ucla.cens.mobility;
-import edu.ucla.cens.mobility.glue.MobilityInterface;
-
-import org.joda.time.DateTimeZone;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -23,9 +16,16 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
 
+import edu.ucla.cens.mobility.glue.MobilityInterface;
+
+import org.joda.time.DateTimeZone;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.ohmage.probemanager.ProbeWriter.ProbeBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -291,23 +291,15 @@ public class MobilityDbAdapter {
 		mCtx = ctx;
 	}
 
-	public long createRow(String mode, long time, String status, String speed, long timestamp, String accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, String latitude, String longitude) {
+	public long createRow(String mode, long time, String status, Float speed, long timestamp, Float accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, Double latitude, Double longitude) {
 		ContentValues vals = new ContentValues();
 
 		SharedPreferences settings = mCtx.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
 		String username = settings.getString(Mobility.KEY_USERNAME, DEFAULT_USERNAME);
 
-		if (speed.equals(""))
-			speed = "NaN";
-		if (accuracy.equals(""))
-			accuracy = "NaN";
 		if (wifiData.equals(""))
 			wifiData = "{}";
-		if (latitude.equals(""))
-			latitude = "NaN";
-		if (longitude.equals(""))
-			longitude = "NaN";
-		
+
 		UUID id = UUID.randomUUID();
 		
 		String timezone = DateTimeZone.getDefault().getID();
@@ -330,6 +322,11 @@ public class MobilityDbAdapter {
 
 		long rowid = -1;
 		Uri row = mCtx.getContentResolver().insert(MobilityInterface.CONTENT_URI, vals);
+
+        ProbeBuilder probe = new ProbeBuilder();
+        probe.withId(id.toString()).withTime(time, timezone)
+                .withLocation(time, timezone, latitude, longitude, accuracy, provider);
+        Mobility.probeWriter.write(probe, mode, speed, formatAccelData(samples), wifiData);
 
 		if(row != null) {
 			rowid = ContentUris.parseId(row);

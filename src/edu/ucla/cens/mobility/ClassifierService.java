@@ -1,13 +1,5 @@
 package edu.ucla.cens.mobility;
 
-import edu.ucla.cens.accelservice.IAccelService;
-import edu.ucla.cens.systemlog.ISystemLog;
-import edu.ucla.cens.systemlog.Log;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,6 +8,14 @@ import android.location.Location;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
+
+import edu.ucla.cens.accelservice.IAccelService;
+import edu.ucla.cens.systemlog.ISystemLog;
+import edu.ucla.cens.systemlog.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -241,7 +241,7 @@ public class ClassifierService extends WakefulIntentService
 		float speed = 0;
 		int cachedCount = 0;
 		boolean driveCheat = true;
-		double acc = Double.NaN;
+		float acc = Float.NaN;
 		long timestamp = 0;
 		String provider = "None";
 		// boolean setInterval = false;
@@ -630,7 +630,7 @@ public class ClassifierService extends WakefulIntentService
 	// }
 
 	// private double historySize = 5.;
-	private double checkLength = 11 * 60 * 1000; // 11 minutes
+	private final double checkLength = 11 * 60 * 1000; // 11 minutes
 
 	private String checkWifi(JSONObject jsonObject) throws JSONException
 	{
@@ -1057,7 +1057,7 @@ public class ClassifierService extends WakefulIntentService
 	// }
 
 	public void addTransportMode(String mode,
-			Vector<ArrayList<Double>> samples, double speed, double accuracy,
+			Vector<ArrayList<Double>> samples, float speed, float accuracy,
 			String provider, String status, long timestamp, String wifiData,
 			double lat, double lon)
 	{
@@ -1065,9 +1065,9 @@ public class ClassifierService extends WakefulIntentService
 		long time = System.currentTimeMillis();// resJson.setAndReturnTime();
 
 		// Open the database, and store the response
-		tmdb.createRow(mode, time, status, String.valueOf(speed), timestamp,
-				String.valueOf(accuracy), provider, wifiData, samples,
-				String.valueOf(lat), String.valueOf(lon));
+		tmdb.createRow(mode, time, status, speed, timestamp,
+				accuracy, provider, wifiData, samples,
+				lat, lon);
 	}
 
 	@Override
