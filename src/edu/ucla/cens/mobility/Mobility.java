@@ -26,6 +26,7 @@ import edu.ucla.cens.systemlog.Log;
 import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
 
 import org.ohmage.probemanager.MobilityProbeWriter;
+import org.ohmage.probemanager.ProbeWriter.ProbeBuilder;
 
 //import android.widget.Toast;
 
@@ -550,11 +551,10 @@ public class Mobility
 		}
 	};
 
-    public static MobilityProbeWriter probeWriter;
+    private static MobilityProbeWriter probeWriter;
 
 	public static void initialize(Context context)
 	{
-
 		Log.i(TAG, "Initializing");
 		// ServiceState.sampleRate = sampleRate;
 		context.bindService(
@@ -611,6 +611,14 @@ public class Mobility
 		}
 		
 	}
+
+    public static void writeProbe(Context context, ProbeBuilder probe, String mode, Float speed, String accel,
+            String wifi) {
+        if (probeWriter == null)
+            probeWriter = new MobilityProbeWriter(context);
+        probeWriter.connect();
+        Mobility.probeWriter.write(probe, mode, speed, accel, wifi);
+    }
 
 
 	// public static void unbindServices(Context context)

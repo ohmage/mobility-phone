@@ -326,7 +326,7 @@ public class MobilityDbAdapter {
         ProbeBuilder probe = new ProbeBuilder();
         probe.withId(id.toString()).withTime(time, timezone)
                 .withLocation(time, timezone, latitude, longitude, accuracy, provider);
-        Mobility.probeWriter.write(probe, mode, speed, formatAccelData(samples), wifiData);
+        Mobility.writeProbe(mCtx, probe, mode, speed, formatAccelData(samples), wifiData);
 
 		if(row != null) {
 			rowid = ContentUris.parseId(row);
