@@ -26,7 +26,7 @@ import edu.ucla.cens.systemlog.Log;
 import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
 
 import org.ohmage.probemanager.MobilityProbeWriter;
-import org.ohmage.probemanager.ProbeWriter.ProbeBuilder;
+import org.ohmage.probemanager.ProbeBuilder;
 
 //import android.widget.Toast;
 

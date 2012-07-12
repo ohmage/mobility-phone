@@ -22,7 +22,7 @@ import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.probemanager.ProbeWriter.ProbeBuilder;
+import org.ohmage.probemanager.ProbeBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
