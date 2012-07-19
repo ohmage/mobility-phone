@@ -533,7 +533,8 @@ public class MobilityDbAdapter {
 			dayMap.put(mode, (dayMap.get(mode) + Math.min(lastTime - c.getLong(0), DateUtils.MINUTE_IN_MILLIS * 5)));
 			lastTime = c.getLong(0);
 		}
-		
+		c.close();
+
 		ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
 
 		for(String day : data.keySet()) {
