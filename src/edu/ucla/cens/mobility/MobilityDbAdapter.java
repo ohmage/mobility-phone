@@ -306,17 +306,17 @@ public class MobilityDbAdapter {
 		vals.put(KEY_ID, id.toString());
 		Log.d(TAG, id.toString());
 		vals.put(KEY_MODE, mode);
-		vals.put(KEY_SPEED, speed);
+		vals.put(KEY_SPEED, speed.toString());
 		vals.put(KEY_STATUS, status);
 		vals.put(KEY_LOC_TIMESTAMP, timestamp);
-		vals.put(KEY_ACCURACY, accuracy);
+		vals.put(KEY_ACCURACY, accuracy.toString());
 		vals.put(KEY_PROVIDER, provider);
 		vals.put(KEY_WIFIDATA, wifiData);
 		vals.put(KEY_ACCELDATA, formatAccelData(samples));
 		vals.put(KEY_TIME, time + "");
 		vals.put(KEY_TIMEZONE, timezone);
-		vals.put(KEY_LATITUDE, latitude);
-		vals.put(KEY_LONGITUDE, longitude);
+		vals.put(KEY_LATITUDE, latitude.toString());
+		vals.put(KEY_LONGITUDE, longitude.toString());
 		vals.put(KEY_USERNAME, username);
 		Log.d(TAG, "createRow: adding to table: " + MOBILITY_TABLE + ": " + mode);
 
