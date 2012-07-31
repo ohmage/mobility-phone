@@ -324,8 +324,14 @@ public class MobilityDbAdapter {
 		Uri row = mCtx.getContentResolver().insert(MobilityInterface.CONTENT_URI, vals);
 
         ProbeBuilder probe = new ProbeBuilder();
-        probe.withId(id.toString()).withTime(time, timezone)
-                .withLocation(time, timezone, latitude, longitude, accuracy, provider);
+        probe.withId(id.toString()).withTime(time, timezone);
+        if(!"unavailable".equals(status))
+            probe.withLocation(time, timezone, latitude, longitude, accuracy, provider);
+
+        // We can't send NaN or Inf, so we set those values to null
+        if(Float.isInfinite(speed) || Float.isNaN(speed))
+            speed = null;
+
         Mobility.writeProbe(mCtx, probe, mode, speed, formatAccelData(samples), wifiData);
 
 		if(row != null) {
