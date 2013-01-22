@@ -337,7 +337,7 @@ public class MobilityDbAdapter {
 		if(row != null) {
 			rowid = ContentUris.parseId(row);
 			ContentResolver r = mCtx.getContentResolver();
-			r.notifyChange(MobilityInterface.CONTENT_URI, null);
+			r.notifyChange(MobilityInterface.CONTENT_URI, null, false);
 		}
 		return rowid;
 	}
@@ -394,7 +394,7 @@ public class MobilityDbAdapter {
 		Log.d(TAG, "fetchSomeRows from table: " + MOBILITY_TABLE);
 		ContentResolver cr = mCtx.getContentResolver();
 		dels = cr.delete(MobilityInterface.CONTENT_URI, KEY_TIME + "<= ?", new String[] { String.valueOf(timestamp) });
-		cr.notifyChange(MobilityInterface.CONTENT_URI, null);
+		cr.notifyChange(MobilityInterface.CONTENT_URI, null, false);
 		return dels;
 	}
 
@@ -404,7 +404,7 @@ public class MobilityDbAdapter {
 		Log.d(TAG, "deleteRow: deleting row: " + rowId + "from table: " + MOBILITY_TABLE);
 		count = cr.delete(MobilityInterface.CONTENT_URI, KEY_ROWID + "=" + rowId, null);
 		if (count > 0) {
-			cr.notifyChange(MobilityInterface.CONTENT_URI, null);
+			cr.notifyChange(MobilityInterface.CONTENT_URI, null, false);
 			return true;
 		}
 

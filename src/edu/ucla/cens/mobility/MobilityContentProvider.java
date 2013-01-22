@@ -93,7 +93,7 @@ public class MobilityContentProvider extends ContentProvider
 		}
 
 		if (!dbHelper.getWritableDatabase().inTransaction())
-			getContext().getContentResolver().notifyChange(uri, null);
+			getContext().getContentResolver().notifyChange(uri, null, false);
 
 		if(id == -1)
 			return null;
@@ -142,7 +142,7 @@ public class MobilityContentProvider extends ContentProvider
 			}
 		}
 		if (!dbHelper.getWritableDatabase().inTransaction())
-			getContext().getContentResolver().notifyChange(uri, null);
+			getContext().getContentResolver().notifyChange(uri, null, false);
 
 		return res;
 	}
@@ -274,7 +274,7 @@ public class MobilityContentProvider extends ContentProvider
 			dbHelper.getWritableDatabase().endTransaction();
 		}
 
-		getContext().getContentResolver().notifyChange(uri, null);
+		getContext().getContentResolver().notifyChange(uri, null, false);
 
 		return numValues;
 	}
