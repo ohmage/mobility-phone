@@ -101,7 +101,6 @@ public class Mobility {
         }
     };
     private static IAccelService mAccel;
-    private static LogProbe logger;
 
     // private static Service bootService = null;
     // public static void start(Context context, Service boot)
@@ -111,10 +110,8 @@ public class Mobility {
     // }
 
     public static void initSystemLog(Context context) {
-        if (logger == null) {
-            logger = new LogProbe(true, Loglevel.VERBOSE);
-            logger.connect(context);
-        }
+        LogProbe.setLevel(true, Loglevel.VERBOSE);
+        LogProbe.get(context);
     }
 
     public static void start(Context context) {
@@ -193,10 +190,7 @@ public class Mobility {
             stopMobility(context, false);
         } else
             Log.d(TAG, "Not running, so ignoring stop command");
-        if (logger != null) {
-            logger.close();
-            logger = null;
-        }
+        LogProbe.close(context);
     }
 
     static int failCount = 0;
