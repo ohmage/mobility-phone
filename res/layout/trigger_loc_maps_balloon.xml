@@ -44,7 +44,7 @@
 
 	</RelativeLayout>
 	
-	<view class="edu.ucla.cens.mobility.blackout.types.location.LocTrigAddLocBalloon$BalloonTipLayout"
+	<view class="org.ohmage.mobility.blackout.types.location.LocTrigAddLocBalloon$BalloonTipLayout"
 	    xmlns:android="http://schemas.android.com/apk/res/android"
 	    android:layout_weight="0.9"
 	    android:layout_width="fill_parent"

@@ -4,11 +4,11 @@ package org.ohmage.probemanager;
 import android.content.Context;
 import android.os.RemoteException;
 
-import edu.ucla.cens.mobility.glue.MobilityInterface;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.mobility.glue.MobilityInterface;
 
 public class MobilityProbeWriter extends ProbeWriter {
 
