@@ -64,29 +64,12 @@
 		</receiver>
 	
 	<service android:name=".BootService"/>
-	<!--service
-			android:label="edu.ucla.cens.wifigpslocation.WiFiGPSLocationService"
-			android:name="edu.ucla.cens.wifigpslocation.WiFiGPSLocationService"
-			android:process=":remote"
-			android:exported="true">
-			<intent-filter>
-				<action android:name = "edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService" />
-			</intent-filter>
-		</service-->
 		<receiver android:name=".BootReceiver">
         	<intent-filter>
         		<action android:name="android.intent.action.BOOT_COMPLETED"/>
         	</intent-filter>
         </receiver>
-        <!--service
-			android:label="edu.ucla.cens.accelservice.AccelService"
-			android:name="edu.ucla.cens.accelservice.AccelService"
-			android:process=":remote"
-			android:exported="true">
-			<intent-filter>
-				<action android:name = "edu.ucla.cens.accelservice.IAccelService" />
-			</intent-filter>
-		</service-->
+
 		<receiver android:name="org.ohmage.mobility.SampleReceiver">
 	    	<intent-filter>
 	    		<action android:name="org.ohmage.mobility.record" />
