@@ -16,8 +16,6 @@ import android.location.Location;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
-
 import org.ohmage.accelservice.IAccelService;
 import org.ohmage.logprobe.Log;
 import org.ohmage.logprobe.LogProbe;
@@ -29,6 +27,7 @@ import org.ohmage.mobility.blackout.base.TriggerInit;
 import org.ohmage.mobility.blackout.utils.SimpleTime;
 import org.ohmage.probemanager.MobilityProbeWriter;
 import org.ohmage.probemanager.ProbeBuilder;
+import org.ohmage.wifigpslocation.IWiFiGPSLocationService;
 
 //import android.widget.Toast;
 
@@ -480,7 +479,7 @@ public class Mobility {
         Log.i(TAG, "Initializing");
         // ServiceState.sampleRate = sampleRate;
         context.bindService(
-                new Intent(edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService.class.getName()),
+                new Intent(IWiFiGPSLocationService.class.getName()),
                 mConnection, Context.BIND_AUTO_CREATE);
         context.bindService(new Intent(IAccelService.class.getName()), accelServiceConnection,
                 Context.BIND_AUTO_CREATE);

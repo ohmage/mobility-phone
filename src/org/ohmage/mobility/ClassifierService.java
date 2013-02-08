@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import org.ohmage.accelservice.IAccelService;
 import org.ohmage.logprobe.Log;
 import org.ohmage.logprobe.LogProbe;
+import org.ohmage.wifigpslocation.IWiFiGPSLocationService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -936,8 +937,7 @@ public class ClassifierService extends WakefulIntentService {
         tmdb = new MobilityDbAdapter(this);
         if (!Mobility.gpsConnected)
             this.getApplicationContext().bindService(
-                    new Intent(
-                            edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService.class.getName()),
+                    new Intent(IWiFiGPSLocationService.class.getName()),
                     Mobility.mConnection, Context.BIND_AUTO_CREATE);
         if (!Mobility.accelConnected)
             this.getApplicationContext().bindService(new Intent(IAccelService.class.getName()),
