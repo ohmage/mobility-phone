@@ -10,11 +10,10 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
 
-import edu.ucla.cens.accelservice.IAccelService;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.accelservice.IAccelService;
 import org.ohmage.logprobe.Log;
 import org.ohmage.logprobe.LogProbe;
 

@@ -16,10 +16,9 @@ import android.location.Location;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import edu.ucla.cens.accelservice.IAccelService;
-import org.ohmage.mobility.R;
 import edu.ucla.cens.wifigpslocation.IWiFiGPSLocationService;
 
+import org.ohmage.accelservice.IAccelService;
 import org.ohmage.logprobe.Log;
 import org.ohmage.logprobe.LogProbe;
 import org.ohmage.logprobe.LogProbe.Loglevel;
