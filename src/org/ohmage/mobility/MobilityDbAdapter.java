@@ -1,21 +1,19 @@
 package org.ohmage.mobility;
-import android.content.ContentProviderOperation;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.os.RemoteException;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
-
 
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
@@ -25,7 +23,6 @@ import org.ohmage.mobility.glue.MobilityInterface;
 import org.ohmage.probemanager.ProbeBuilder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -294,8 +291,13 @@ public class MobilityDbAdapter {
 	public long createRow(String mode, long time, String status, Float speed, long timestamp, Float accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, Double latitude, Double longitude) {
 		ContentValues vals = new ContentValues();
 
-		SharedPreferences settings = mCtx.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
-		String username = settings.getString(Mobility.KEY_USERNAME, DEFAULT_USERNAME);
+		String username = DEFAULT_USERNAME;
+
+		AccountManager am = AccountManager.get(mCtx);
+		Account[] accounts = am.getAccountsByType("org.ohmage");
+		if(accounts.length > 0) {
+		    username = accounts[0].name;
+		}
 
 		if (wifiData.equals(""))
 			wifiData = "{}";
@@ -490,81 +492,6 @@ public class MobilityDbAdapter {
 			ret.latitudeValue = null;
 			ret.longitudeValue = null;
 			return ret;
-		}
-	}
-
-	/**
-	 * Updates the username for mobility points after a certain time
-	 * @param username
-	 * @param backdate
-	 */
-	public void updateUsername(String username, long backdate) {
-		ContentValues vals = new ContentValues();
-		vals.put(KEY_USERNAME, username);
-		mCtx.getContentResolver().update(MobilityInterface.CONTENT_URI, vals, KEY_USERNAME + "=? AND " + KEY_TIME + ">=" + backdate, new String[] { DEFAULT_USERNAME });
-	}
-
-	/**
-	 * Recalculate the aggregate values from the backdate until now. The
-	 * aggregate data corresponding to this time range should have already been
-	 * deleted
-	 * 
-	 * @param username
-	 * @param backdate
-	 */
-	public void recalculateAggregates(String username, long backdate) {
-		ContentResolver cr = mCtx.getContentResolver();
-		
-		Cursor c = cr.query(MobilityInterface.CONTENT_URI, new String[] { KEY_TIME, KEY_MODE, "date("+KEY_TIME+"/1000, 'unixepoch', 'localtime')" }, KEY_USERNAME + "=? AND " + KEY_TIME + ">=" + backdate, new String[] { username }, KEY_TIME + " DESC");
-
-		HashMap<String, HashMap<String, Long>> data = new HashMap<String, HashMap<String, Long>>();
-
-		long lastTime = -1;
-		if(c.moveToFirst()) {
-			lastTime = c.getLong(0);
-		}
-
-		while(c.moveToNext()) {
-			String day = c.getString(2);
-			String mode = c.getString(1);
-			HashMap<String, Long> dayMap = data.get(day);
-			if(dayMap == null) {
-				dayMap = new HashMap<String, Long>();
-				data.put(day, dayMap);
-			}
-
-			if(!dayMap.containsKey(mode))
-				dayMap.put(mode, new Long(0));
-
-			dayMap.put(mode, (dayMap.get(mode) + Math.min(lastTime - c.getLong(0), DateUtils.MINUTE_IN_MILLIS * 5)));
-			lastTime = c.getLong(0);
-		}
-		c.close();
-
-		ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
-
-		for(String day : data.keySet()) {
-			if(day != null) {
-				HashMap<String, Long> dayData = data.get(day);
-				for(String mode : dayData.keySet()) {
-					ContentValues values = new ContentValues();
-					values.put(KEY_MODE, mode);
-					values.put(KEY_USERNAME, username);
-					values.put(KEY_DURATION, dayData.get(mode));
-					values.put(KEY_DAY, day);
-					operations.add(ContentProviderOperation.newUpdate(MobilityInterface.AGGREGATES_ADD_URI).withValues(values).build());
-				}
-			}
-		}
-
-		try {
-			cr.applyBatch(MobilityInterface.AUTHORITY, operations);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (OperationApplicationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 }
