@@ -1,53 +1,34 @@
 package org.ohmage.mobility;
 
-import java.util.Formatter;
-import java.util.Locale;
-
-import org.ohmage.mobility.blackout.BlackoutEditActivity;
-import org.ohmage.mobility.blackout.ui.TriggerListActivity;
-import org.ohmage.mobility.glue.MobilityInterface;
-
-import org.ohmage.mobility.R;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.SharedPreferences.Editor;
-import android.database.Cursor;
 import android.graphics.Color;
-import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
-import android.preference.RingtonePreference;
-import android.preference.Preference.OnPreferenceChangeListener;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.TimePicker;
+
+import org.ohmage.logprobe.Log;
+import org.ohmage.mobility.blackout.ui.TriggerListActivity;
 
 public class MobilityControl extends PreferenceActivity
 {
-	private static final boolean DEBUG = false;
-	private final static String TAG = "Mobility Preferences";
+	private final static String TAG = "MobilityControl";
 
 	// KEYS FOR PREFERENCES
 	private static final String KEY_MOBILITY_ONOFF_PREF = "pref_mobility_onoff";
@@ -77,32 +58,6 @@ public class MobilityControl extends PreferenceActivity
 		
 	}
 	
-	
-
-	@Override
-	public void onRestoreInstanceState(Bundle savedInstanceState)
-	{
-		super.onRestoreInstanceState(savedInstanceState);
-		if (DEBUG)
-			Log.d(TAG, "onRestoreInstanceState()");
-	}
-
-	@Override
-	public void onRestart()
-	{
-		super.onRestart();
-		if (DEBUG)
-			Log.d(TAG, "onRestart():");
-	}
-
-	@Override
-	public void onStart()
-	{
-		super.onStart();
-		if (DEBUG)
-			Log.d(TAG, "onStart()");
-	}
-
 	int rate = 60;
 	boolean running = false;
 	
@@ -114,41 +69,6 @@ public class MobilityControl extends PreferenceActivity
 		rate = settings.getInt(Mobility.SAMPLE_RATE, 60);
 		running = settings.getBoolean(MOBILITY_ON, false);
 		setPreferenceScreen(createPreferenceHierarchy());
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle savedInstanceState)
-	{
-		super.onSaveInstanceState(savedInstanceState);
-		if (DEBUG)
-			Log.d(TAG, "onSaveInstanceState");
-	}
-
-	@Override
-	public void onPause()
-	{
-		if (DEBUG)
-			Log.d(TAG, "onPause()");
-
-		super.onPause();
-	}
-
-	@Override
-	public void onStop()
-	{
-		if (DEBUG)
-			Log.d(TAG, "onStop()");
-		super.onStop();
-	}
-
-	@Override
-	public void onDestroy()
-	{
-		if (DEBUG)
-			Log.d(TAG, "onDestroy()");
-		super.onDestroy();
-//		Mobility.unbindServices(this.getApplicationContext());
-		
 	}
 
 	private static final int DIALOG_IDX_TRIGGERINFO = 1;
@@ -279,10 +199,11 @@ public class MobilityControl extends PreferenceActivity
 	/***
 	 * Handle Start/Stop button events
 	 */
-	private OnPreferenceChangeListener mOnCheckBoxChangeListener = new OnPreferenceChangeListener()
+	private final OnPreferenceChangeListener mOnCheckBoxChangeListener = new OnPreferenceChangeListener()
 	{
 
-		public boolean onPreferenceChange(Preference pref, Object val)
+		@Override
+        public boolean onPreferenceChange(Preference pref, Object val)
 		{
 			Boolean value = new Boolean(val.toString());
 			Integer intValue = 0;
@@ -302,7 +223,7 @@ public class MobilityControl extends PreferenceActivity
 			 */
 			if (pref_key.compareTo(KEY_MOBILITY_ONOFF_PREF) == 0)
 			{
-				Log.e(TAG, "Mobility Change: " + value.booleanValue());
+				Log.v(TAG, "Mobility Change: " + value.booleanValue());
 				if (value.booleanValue())
 				{
 					SharedPreferences settings = MobilityControl.this.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
@@ -361,7 +282,7 @@ public class MobilityControl extends PreferenceActivity
 		        MobilityControl.this.startActivity(intent);
 			}
 			else
-				Log.d(TAG, "That wasn't recognized.");
+				Log.w(TAG, "That wasn't recognized.");
 			/*else if (pref_key.equals(KEY_UPDATES_ONOFF_PREF))
 			{
 				Log.e(TAG, "Auto-Updates Change: " + value.booleanValue());
@@ -387,10 +308,11 @@ public class MobilityControl extends PreferenceActivity
 		}
 	};
 
-	private OnPreferenceClickListener mOnClickListener = new OnPreferenceClickListener()
+	private final OnPreferenceClickListener mOnClickListener = new OnPreferenceClickListener()
 	{
 
-		public boolean onPreferenceClick(Preference preference)
+		@Override
+        public boolean onPreferenceClick(Preference preference)
 		{
 			String pref_key = preference.getKey();
 			if (pref_key.equals(KEY_MOBILITY_BLACKOUT_PREF))
@@ -423,7 +345,7 @@ public class MobilityControl extends PreferenceActivity
 
 	private void createMobilityGroup(PreferenceScreen root)
 	{
-		Log.d(TAG, "Creating mobility group");
+		Log.v(TAG, "Creating mobility group");
 		PreferenceCategory mobilityPrefCat = new PreferenceCategory(this);
 		mobilityPrefCat.setTitle("Mobility");// is " + running);
 		root.addPreference(mobilityPrefCat);
@@ -483,8 +405,7 @@ public class MobilityControl extends PreferenceActivity
 			super.onAttachedToActivity();
 			if (mDependencyKey != null)
 			{
-				if (DEBUG)
-					Log.d(TAG, "onAttachedToActivity(): " + mDependencyKey);
+				Log.v(TAG, "onAttachedToActivity(): " + mDependencyKey);
 				super.setDependency(mDependencyKey);
 			}
 		}
@@ -492,8 +413,7 @@ public class MobilityControl extends PreferenceActivity
 		@Override
 		public void setDependency(String dependencyKey)
 		{
-			if (DEBUG)
-				Log.d(TAG, "setDependency: " + dependencyKey);
+			Log.v(TAG, "setDependency: " + dependencyKey);
 			mDependencyKey = dependencyKey;
 		}
 
@@ -532,8 +452,7 @@ public class MobilityControl extends PreferenceActivity
 			super.onAttachedToActivity();
 			if (mDependencyKey != null)
 			{
-				if (DEBUG)
-					Log.d(TAG, "onAttachedToActivity(): " + mDependencyKey);
+				Log.v(TAG, "onAttachedToActivity(): " + mDependencyKey);
 				super.setDependency(mDependencyKey);
 			}
 		}
@@ -541,8 +460,7 @@ public class MobilityControl extends PreferenceActivity
 		@Override
 		public void setDependency(String dependencyKey)
 		{
-			if (DEBUG)
-				Log.d(TAG, "setDependency: " + dependencyKey);
+			Log.v(TAG, "setDependency: " + dependencyKey);
 			mDependencyKey = dependencyKey;
 		}
 
@@ -562,7 +480,7 @@ public class MobilityControl extends PreferenceActivity
 		@Override
 		public void onClick()
 		{
-			Log.e(TAG, "checkbox: onClick " + this.isEnabled());
+			Log.v(TAG, "checkbox: onClick " + this.isEnabled());
 			super.onClick();
 		}
 	}

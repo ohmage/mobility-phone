@@ -1,11 +1,6 @@
 package org.ohmage.mobility.blackout.notif;
 
 
-import java.util.List;
-import java.util.Set;
-
-import org.ohmage.mobility.blackout.utils.TrigPrefManager;
-
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -16,8 +11,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+
+import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.R;
+import org.ohmage.mobility.blackout.utils.TrigPrefManager;
+
+import java.util.List;
+import java.util.Set;
 
 /*
  * The trigger notification manager. The logic which displays, repeats and
@@ -162,14 +162,14 @@ public class Notifier {
 	 */
 	public static void refreshNotification(Context context, boolean quiet) {
 		
-		Log.i(DEBUG_TAG, "Notifier: Refreshing notification, quiet = " + quiet);
+		Log.v(DEBUG_TAG, "Notifier: Refreshing notification, quiet = " + quiet);
 		
 		//Get the list of all the surveys active at the moment
 		Set<String> actSurveys = NotifSurveyAdaptor.getAllActiveSurveys(context);
 		
 		//Remove the notification if there are no active surveys
 		if(actSurveys.size() == 0) {
-			Log.i(DEBUG_TAG, "Notifier: No active surveys");
+			Log.v(DEBUG_TAG, "Notifier: No active surveys");
 			hideNotification(context);
 		}
 		else {
@@ -224,7 +224,7 @@ public class Notifier {
 						  		 int mins,
 						  		 Bundle extras) {
 		
-		Log.i(DEBUG_TAG, "Notifier: Setting alarm(" + trigId + 
+		Log.v(DEBUG_TAG, "Notifier: Setting alarm(" + trigId + 
 						 ", " + mins + ", " + action + ")");
 		
 		AlarmManager alarmMan = (AlarmManager) 
@@ -443,7 +443,7 @@ public class Notifier {
 	
 	private static void handleTriggerExpired(Context context, int trigId) {
 	
-		Log.i(DEBUG_TAG, "Notifier: Handling expiration alarm for: " 
+		Log.v(DEBUG_TAG, "Notifier: Handling expiration alarm for: " 
 				+ trigId);
 		
 		//Log information related to expired blackout.
@@ -496,7 +496,6 @@ public class Notifier {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			Log.d(TAG, "An alarm when off!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			if(intent.getAction().equals(ACTION_NOTIF_CLICKED)) {
 				Notifier.handleNotifClicked(context);
 			}

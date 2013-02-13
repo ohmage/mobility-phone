@@ -14,12 +14,10 @@ import org.ohmage.mobility.MobilityControl;
 
 public class MobilityInterfaceService extends Service {
 
-    protected static final String TAG = "Mobility";
+    protected static final String TAG = "MobilityInterfaceService";
 
     @Override
     public IBinder onBind(Intent intent) {
-
-        Mobility.initSystemLog(getApplicationContext());
 
         return new IMobility.Stub() {
             @Override
@@ -30,30 +28,28 @@ public class MobilityInterfaceService extends Service {
                     Editor editor = settings.edit();
                     editor.putBoolean(MobilityControl.MOBILITY_ON, false);
                     editor.commit();
-                    Log.e(TAG, "MOBILITY_ON was just totally set to false");
+                    Log.v(TAG, "MOBILITY_ON was set to false");
                     Mobility.stop(getApplicationContext());
 
                 } else {
-                    Log.e(TAG, "Mobility is already off according to settings");
+                    Log.w(TAG, "Mobility is already off according to settings");
                 }
             }
 
             @Override
             public void startMobility() {
-                Log.e(TAG, "I got called!");
                 SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY,
                         Context.MODE_PRIVATE);
                 if (!settings.getBoolean(MobilityControl.MOBILITY_ON, false)) {
                     Editor editor = settings.edit();
                     editor.putBoolean(MobilityControl.MOBILITY_ON, true);
                     editor.commit();
-                    Log.e(TAG, "MOBILITY_ON was just totally set to true");
+                    Log.v(TAG, "MOBILITY_ON was just totally set to true");
                     Mobility.start(getApplicationContext());
 
                 } else {
                     Log.e(TAG, "Mobility is already on according to settings");
                 }
-                Log.e(TAG, "MOBILITY_ON was just totally set to true unless it was already");
             }
 
             /**

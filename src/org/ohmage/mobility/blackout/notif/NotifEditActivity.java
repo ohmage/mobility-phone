@@ -1,27 +1,27 @@
 package org.ohmage.mobility.blackout.notif;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import org.ohmage.mobility.blackout.config.NotifConfig;
-import org.ohmage.mobility.blackout.utils.TrigTextInput;
-
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.R;
+import org.ohmage.mobility.blackout.config.NotifConfig;
+import org.ohmage.mobility.blackout.utils.TrigTextInput;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /*
  * Activity to edit the notification description visually. 
@@ -309,7 +309,8 @@ public class NotifEditActivity extends ListActivity
 		ti.setNegativeButtonText("Cancel");
 		ti.setOnClickListener(new TrigTextInput.onClickListener() {
 			
-			public void onClick(TrigTextInput textInput, int which) {
+			@Override
+            public void onClick(TrigTextInput textInput, int which) {
 
 				if(which == TrigTextInput.BUTTON_POSITIVE) {
 					int listPos = (Integer) textInput.getTag();
@@ -343,7 +344,8 @@ public class NotifEditActivity extends ListActivity
 		}
 	}
 	
-	public void onClick(View v) {
+	@Override
+    public void onClick(View v) {
 		//Ignore all clicks on the list once a dialog has been 
 		//created. This is needed to guard against quikly pressing
 		//the buttons multiple times.

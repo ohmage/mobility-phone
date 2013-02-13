@@ -6,7 +6,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
+
+import org.ohmage.logprobe.Log;
 
 /*
  * The database to store all triggers in the system. Each row 
@@ -26,7 +27,7 @@ import android.util.Log;
 public class TriggerDB
 {
 
-	private static final String TAG = "Blackout DB";
+	private static final String TAG = "TriggerDB";
 
 	private static final String DATABASE_NAME = "blackout_framework";
 	private static final int DATABASE_VERSION = 1;
@@ -45,7 +46,7 @@ public class TriggerDB
 	public static final String ON = "on";
 	public static final String OFF = "off";
 
-	private Context mContext;
+	private final Context mContext;
 	private DatabaseHelper mDbHelper;
 	private SQLiteDatabase mDb;
 
@@ -57,7 +58,7 @@ public class TriggerDB
 	/* Open the database */
 	public boolean open()
 	{
-		Log.i(TAG, "DB: open");
+		Log.v(TAG, "DB: open");
 
 		mDbHelper = new DatabaseHelper(mContext);
 
@@ -67,7 +68,7 @@ public class TriggerDB
 		}
 		catch (SQLException e)
 		{
-			Log.e(TAG, e.toString());
+			Log.e(TAG, "error opening db: ", e);
 			return false;
 		}
 		return true;
@@ -76,7 +77,7 @@ public class TriggerDB
 	/* Close the database */
 	public void close()
 	{
-		Log.i(TAG, "DB: close");
+		Log.v(TAG, "DB: close");
 
 		if (mDbHelper != null)
 		{
@@ -93,7 +94,7 @@ public class TriggerDB
 			String rtDescript)
 	{
 
-		Log.i(TAG, "DB: addTrigger(" + /*
+		Log.v(TAG, "DB: addTrigger(" + /*
 										 * trigType + ", " +
 										 */trigDescript + ", " + trigActDesc +
 		// ", " + notifDescript +
@@ -114,7 +115,7 @@ public class TriggerDB
 	 */
 	public Cursor getTrigger(int trigId)
 	{
-		Log.i(TAG, "DB: getTrigger(" + trigId + ")");
+		Log.v(TAG, "DB: getTrigger(" + trigId + ")");
 
 		return mDb.query(BLACKOUT_TRIGGERS, null, KEY_ID + "=?", new String[] { String.valueOf(trigId) }, null, null, null);
 	}
@@ -124,7 +125,7 @@ public class TriggerDB
 	 */
 	public Cursor getTriggers(/* String trigType */)
 	{
-		Log.i(TAG, "DB: getTriggers");
+		Log.v(TAG, "DB: getTriggers");
 
 		return mDb.query(BLACKOUT_TRIGGERS, null, null, null,
 		// KEY_TRIG_TYPE + "=?",
@@ -137,7 +138,7 @@ public class TriggerDB
 	 */
 	public Cursor getAllTriggers()
 	{
-		Log.i(TAG, "DB: getAllTriggers");
+		Log.v(TAG, "DB: getAllTriggers");
 
 		return mDb.query(BLACKOUT_TRIGGERS, null, null, null, null, null, null);
 	}
@@ -146,7 +147,7 @@ public class TriggerDB
 	 * Get the notification description for a trigger
 	 */
 	// public String getNotifDescription(int trigId) {
-	// Log.i(TAG, "DB: getNotifDescription(" + trigId + ")");
+	// Log.v(TAG, "DB: getNotifDescription(" + trigId + ")");
 	//
 	// Cursor c = mDb.query(TABLE_TRIGGERS, new String[] {KEY_NOTIF_DESCRIPT},
 	// KEY_ID + "=?", new String[] {String.valueOf(trigId)},
@@ -165,7 +166,7 @@ public class TriggerDB
 	 * Get the type of a trigger
 	 */
 	// public String getTriggerType(int trigId) {
-	// Log.i(TAG, "DB: getTriggerType(" + trigId + ")");
+	// Log.v(TAG, "DB: getTriggerType(" + trigId + ")");
 	//
 	// Cursor c = mDb.query(TABLE_TRIGGERS, new String[] {KEY_TRIG_TYPE},
 	// KEY_ID + "=?", new String[] {String.valueOf(trigId)},
@@ -185,7 +186,7 @@ public class TriggerDB
 	 */
 	public String getTriggerDescription(int trigId)
 	{
-		Log.i(TAG, "DB: getTriggerDescription(" + trigId + ")");
+		Log.v(TAG, "DB: getTriggerDescription(" + trigId + ")");
 
 		Cursor c = mDb.query(BLACKOUT_TRIGGERS, new String[] { KEY_TRIG_DESCRIPT }, KEY_ID + "=?", new String[] { String.valueOf(trigId) }, null, null, null);
 
@@ -203,7 +204,7 @@ public class TriggerDB
 	 */
 	public boolean getActionDescription(int trigId)
 	{
-		Log.i(TAG, "DB: getActionDescription(" + trigId + ")");
+		Log.v(TAG, "DB: getActionDescription(" + trigId + ")");
 
 		Cursor c = mDb.query(BLACKOUT_TRIGGERS, new String[] { KEY_TRIG_ACTIVE_DESCRIPT }, KEY_ID + "=?", new String[] { String.valueOf(trigId) }, null, null, null);
 
@@ -221,7 +222,7 @@ public class TriggerDB
 	 */
 	public String getRunTimeDescription(int trigId)
 	{
-		Log.i(TAG, "DB: getRunTimeDescription(" + trigId + ")");
+		Log.v(TAG, "DB: getRunTimeDescription(" + trigId + ")");
 
 		Cursor c = mDb.query(BLACKOUT_TRIGGERS, new String[] { KEY_RUNTIME_DESCRIPT }, KEY_ID + "=?", new String[] { String.valueOf(trigId) }, null, null, null);
 
@@ -239,7 +240,7 @@ public class TriggerDB
 	 */
 	public boolean updateTriggerDescription(int trigId, String newDesc)
 	{
-		Log.i(TAG, "DB: updateTriggerDescription(" + trigId + ", " + newDesc + ")");
+		Log.v(TAG, "DB: updateTriggerDescription(" + trigId + ", " + newDesc + ")");
 
 		ContentValues values = new ContentValues();
 		values.put(KEY_TRIG_DESCRIPT, newDesc);
@@ -257,7 +258,7 @@ public class TriggerDB
 	 */
 	public boolean updateActionDescription(int trigId, boolean newDesc)
 	{
-		Log.i(TAG, "DB: updateActionDescription(" + trigId + ", " + (newDesc ? ON : OFF) + ")");
+		Log.v(TAG, "DB: updateActionDescription(" + trigId + ", " + (newDesc ? ON : OFF) + ")");
 
 		ContentValues values = new ContentValues();
 		values.put(KEY_TRIG_ACTIVE_DESCRIPT, newDesc ? ON : OFF);
@@ -275,7 +276,7 @@ public class TriggerDB
 	 */
 	public boolean updateRunTimeDescription(int trigId, String newDesc)
 	{
-		Log.i(TAG, "DB: updateRunTimeDescription(" + trigId + ", " + newDesc + ")");
+		Log.v(TAG, "DB: updateRunTimeDescription(" + trigId + ", " + newDesc + ")");
 
 		ContentValues values = new ContentValues();
 		values.put(KEY_RUNTIME_DESCRIPT, newDesc);
@@ -292,7 +293,7 @@ public class TriggerDB
 	 * Update the notification descriptions of all triggers with a new one
 	 */
 	// public boolean updateAllNotificationDescriptions(String newDesc) {
-	// Log.i(TAG, "DB: updateAllNotificationDescriptions(" + newDesc + ")");
+	// Log.v(TAG, "DB: updateAllNotificationDescriptions(" + newDesc + ")");
 	//
 	// ContentValues values = new ContentValues();
 	// values.put(KEY_NOTIF_DESCRIPT, newDesc);
@@ -306,7 +307,7 @@ public class TriggerDB
 	 */
 	public boolean deleteTrigger(int trigId)
 	{
-		Log.i(TAG, "DB: deleteTrigger(" + trigId + ")");
+		Log.v(TAG, "DB: deleteTrigger(" + trigId + ")");
 
 		mDb.delete(BLACKOUT_TRIGGERS, KEY_ID + "=?", new String[] { String.valueOf(trigId) });
 
@@ -325,7 +326,7 @@ public class TriggerDB
 		@Override
 		public void onCreate(SQLiteDatabase mDb)
 		{
-			Log.i(TAG, "DB: SQLiteOpenHelper.onCreate");
+			Log.v(TAG, "DB: SQLiteOpenHelper.onCreate");
 
 			final String QUERY_CREATE_TRIGGERS_TB = "create table " + BLACKOUT_TRIGGERS + " (" + KEY_ID + " integer primary key autoincrement, "
 			// + KEY_TRIG_TYPE + " text not null, "

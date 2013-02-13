@@ -1,14 +1,10 @@
 package org.ohmage.mobility.blackout.base;
 
-import org.ohmage.mobility.blackout.Blackout;
-import org.ohmage.mobility.blackout.notif.Notifier;
-import org.ohmage.mobility.blackout.utils.TrigPrefManager;
-
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
-import android.util.Log;
+
+import org.ohmage.logprobe.Log;
+import org.ohmage.mobility.blackout.Blackout;
 
 /*
  * Boot listener. Starts all the active triggers. 
@@ -20,7 +16,7 @@ public class TriggerInit/* extends BroadcastReceiver */{
 	
 	public static void initTriggers(Context context) {
 		
-		Log.i(TAG, "TriggerInit: Initializing triggers");
+		Log.v(TAG, "TriggerInit: Initializing triggers");
 		
 //		TriggerTypeMap trigMap = new TriggerTypeMap();
 		
@@ -28,7 +24,6 @@ public class TriggerInit/* extends BroadcastReceiver */{
 		db.open();
 		
 		Cursor c = db.getAllTriggers();
-		Log.d(TAG, "Starting triggers!");
 		if(c.moveToFirst()) {
 			do {
 				int trigId = c.getInt(
@@ -49,7 +44,7 @@ public class TriggerInit/* extends BroadcastReceiver */{
 				String actDesc = c.getString(
  		   		  				 c.getColumnIndexOrThrow(TriggerDB.KEY_TRIG_ACTIVE_DESCRIPT));
 				
-				Log.i(TAG, "TriggerInit: Read from db: " + trigId +
+				Log.v(TAG, "TriggerInit: Read from db: " + trigId +
 								 ", " + trigDesc + ", " + actDesc);	
 				
 				TriggerBase trig = new Blackout();//trigMap.getTrigger(trigType);
@@ -59,7 +54,7 @@ public class TriggerInit/* extends BroadcastReceiver */{
 					TriggerActionDesc aDesc = new TriggerActionDesc();
 					//Start only if it has a positive number of surveys
 					if(aDesc.loadBoolean(actDesc)/* && aDesc.getCount() > 0*/) {
-						Log.i(TAG, "TriggerInit: Starting trigger: " + trigId + 
+						Log.v(TAG, "TriggerInit: Starting trigger: " + trigId + 
 										 ", " + trigDesc);
 						
 						trig.startTrigger(context, trigId, trigDesc);
@@ -68,7 +63,7 @@ public class TriggerInit/* extends BroadcastReceiver */{
 					//Restore the notification states for this trigger
 //					TriggerRunTimeDesc desc = new TriggerRunTimeDesc();
 //					if(desc.loadString(rtDesc) && desc.hasTriggerTimeStamp()) {
-//						Log.i(TAG, "TriggerInit: Restoring notifications for " + trigId);
+//						Log.v(TAG, "TriggerInit: Restoring notifications for " + trigId);
 //						
 ////						Notifier.restorePastNotificationStates(context, trigId, /*notifDesc,*/ 
 ////														desc.getTriggerTimeStamp());
@@ -77,7 +72,6 @@ public class TriggerInit/* extends BroadcastReceiver */{
 			
 			} while(c.moveToNext());
 		}
-		Log.d(TAG, "Started triggers!");
 		c.close();
 		db.close();
 		
@@ -89,7 +83,7 @@ public class TriggerInit/* extends BroadcastReceiver */{
 //	public void onReceive(Context context, Intent intent) {
 //		
 //		if(intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-//			Log.i(DEBUG_TAG, "TriggerInit: Received boot completed intent");
+//			Log.v(DEBUG_TAG, "TriggerInit: Received boot completed intent");
 //			
 //			initTriggers(context);
 //		}
@@ -100,7 +94,7 @@ public class TriggerInit/* extends BroadcastReceiver */{
 	 * Removes all triggers from the database after stopping them.
 	 */
 //	public static boolean resetAllTriggersAndSettings(Context context) {
-//		Log.i(DEBUG_TAG, "TriggerInit: Resetting all triggers");
+//		Log.v(DEBUG_TAG, "TriggerInit: Resetting all triggers");
 //		
 ////		TriggerTypeMap trigMap = new TriggerTypeMap();
 //		

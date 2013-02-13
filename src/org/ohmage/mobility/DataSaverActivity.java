@@ -11,8 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.ohmage.mobility.R;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 public class DataSaverActivity extends Activity {
-    private static final String TAG = "DATA_SAVER";
+    private static final String TAG = "DataSaverActivity";
 
     /** Called when the activity is first created. */
     Button goButton;
@@ -89,11 +87,11 @@ public class DataSaverActivity extends Activity {
         // file = path;
         // }
         public int rescueData(String filename) throws IOException {
-            Log.d(TAG, "Starting rescueData");
+            Log.v(TAG, "Starting rescueData");
             // Cursor c =
             // MobilityInterface.getMobilityCursor(DataSaverActivity.this, 0L);
             MobilityDbAdapter mdb = new MobilityDbAdapter(DataSaverActivity.this);
-            Log.d(TAG, "Got cursor");
+            Log.v(TAG, "Got cursor");
             int skipped = 0;
             HashMap<String, Integer> indexMap = new HashMap<String, Integer>();
             int ki = 0;
@@ -190,13 +188,13 @@ public class DataSaverActivity extends Activity {
 
                         } catch (CursorIndexOutOfBoundsException ce) {
                             outWrite.close();
-                            Log.i(TAG, "OK, done!");
+                            Log.v(TAG, "OK, done!");
                             // c.close();
                             return skipped;
                         } catch (Exception e) {
                             skipped++;
                             // throw new RuntimeException(e);
-                            Log.e(TAG, e.toString());
+                            Log.e(TAG, "Unknown error", e);
                         }
 
                         outWrite.write(mobilityPointJson.toString());
@@ -210,7 +208,7 @@ public class DataSaverActivity extends Activity {
 
                 // c.close();
             }
-            Log.i(TAG, "OK, done!");
+            Log.v(TAG, "OK, done!");
             // else {
             // Log.i(TAG, "No mobility points to write.");
             // }
@@ -233,7 +231,7 @@ public class DataSaverActivity extends Activity {
                         return "...finished! Data stored on sd card.";
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Log.e(TAG, "IO Exception");
+                    Log.e(TAG, "IO Exception", e);
                     return "...failed! There was a writing error";
                 }
             }
@@ -284,7 +282,7 @@ public class DataSaverActivity extends Activity {
                         JSONObject dataJson = new JSONObject();
                         dataJson.put("mode",
                                 c.getString(c.getColumnIndex(MobilityInterface.KEY_MODE)));
-                        Log.d(TAG,
+                        Log.i(TAG,
                                 Float.parseFloat(c.getString(c
                                         .getColumnIndex(MobilityInterface.KEY_SPEED)))
                                         + " is the speed");
@@ -345,10 +343,10 @@ public class DataSaverActivity extends Activity {
                 outWrite.close();
 
             }
-            Log.i(TAG, "OK, done!");
+            Log.v(TAG, "OK, done!");
             c.close();
         } else {
-            Log.i(TAG, "No mobility points to write.");
+            Log.v(TAG, "No mobility points to write.");
         }
 
     }

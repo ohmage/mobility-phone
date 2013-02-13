@@ -1,43 +1,38 @@
 package org.ohmage.mobility.blackout.ui;
 
-import org.ohmage.mobility.MobilityControl;
-import org.ohmage.mobility.blackout.Blackout;
-import org.ohmage.mobility.blackout.BlackoutEditActivity;
-import org.ohmage.mobility.blackout.base.BlackoutList;
-import org.ohmage.mobility.blackout.base.TriggerActionDesc;
-import org.ohmage.mobility.blackout.base.TriggerBase;
-import org.ohmage.mobility.blackout.base.TriggerDB;
-import org.ohmage.mobility.blackout.config.TrigUserConfig;
-import org.ohmage.mobility.blackout.notif.NotifDesc;
-import org.ohmage.mobility.blackout.notif.NotifEditActivity;
-import org.ohmage.mobility.blackout.notif.Notifier;
-import org.ohmage.mobility.blackout.utils.TrigPrefManager;
-import org.ohmage.mobility.blackout.utils.TrigTextInput;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
+
+import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.R;
+import org.ohmage.mobility.blackout.Blackout;
+import org.ohmage.mobility.blackout.base.BlackoutList;
+import org.ohmage.mobility.blackout.base.TriggerActionDesc;
+import org.ohmage.mobility.blackout.base.TriggerBase;
+import org.ohmage.mobility.blackout.base.TriggerDB;
+import org.ohmage.mobility.blackout.notif.NotifDesc;
+import org.ohmage.mobility.blackout.notif.NotifEditActivity;
+import org.ohmage.mobility.blackout.notif.Notifier;
+import org.ohmage.mobility.blackout.utils.TrigPrefManager;
+import org.ohmage.mobility.blackout.utils.TrigTextInput;
 
 public class TriggerListActivity extends ListActivity 
 			implements OnClickListener {
@@ -71,7 +66,7 @@ public class TriggerListActivity extends ListActivity
 	
 	private static final int REQ_EDIT_NOTIF = 0;
 
-	private static final String TAG = "List of blackouts";
+	private static final String TAG = "TriggerListActivity";
 	
 	private Cursor mCursor;
 	private TriggerDB mDb;
@@ -126,7 +121,8 @@ public class TriggerListActivity extends ListActivity
 		TrigPrefManager.registerPreferenceFile(this, PREF_FILE_NAME);
     }
 	
-	public void onDestroy() {
+	@Override
+    public void onDestroy() {
 		super.onDestroy();
 		
 		mCursor.close();
@@ -236,7 +232,8 @@ public class TriggerListActivity extends ListActivity
 		//The viewbinder class to define each list item
         class CategListViewBinder 
 			  implements SimpleCursorAdapter.ViewBinder {
-			public boolean setViewValue(View view, Cursor c, int colIndex) {
+			@Override
+            public boolean setViewValue(View view, Cursor c, int colIndex) {
 			
 //				String trigType = c.getString(
 //							   	  c.getColumnIndexOrThrow(TriggerDB.KEY_TRIG_TYPE));
@@ -275,28 +272,25 @@ public class TriggerListActivity extends ListActivity
 					bAct.setTag(new Integer(trigId));
 					
 					view.setOnClickListener(new View.OnClickListener() {
-						public void onClick(View v) {
+						@Override
+                        public void onClick(View v) {
 							mDialogTrigId = (Integer) v.getTag();
 							mActSelected = null;
-//							Log.d(TAG, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 //							removeDialog(DIALOG_ID_ACTION_SEL);
 //							showDialog(DIALOG_ID_ACTION_SEL);
 							
 							// toggle onness of the trigger
 							
 //							int trigId = mDialogTrigId;
-							Log.d(TAG, "Trigger id is " + mDialogTrigId);
-							Log.d(TAG, TriggerListActivity.this.mDb.getActionDescription(mDialogTrigId) ? TriggerDB.ON : TriggerDB.OFF);
 							if (TriggerListActivity.this.mDb.updateActionDescription(mDialogTrigId, !TriggerListActivity.this.mDb.getActionDescription(mDialogTrigId)))
 							{
-//								Log.d(TAG, TriggerListActivity.this.mDb.getActionDescription(trigId) ? TriggerDB.ON : TriggerDB.OFF);
 								((Button)v).setText(TriggerListActivity.this.mDb.getActionDescription(mDialogTrigId) ? "On" : "Off");
 								
 								Notifier.refreshNotification(TriggerListActivity.this, true);
 								toggleTrigger(mDialogTrigId, TriggerListActivity.this.mDb.getActionDescription(mDialogTrigId));
 							}
 							else
-								Log.d(TAG, "Failed to update.");
+								Log.w(TAG, "Failed to update.");
 							
 							
 							
@@ -343,7 +337,7 @@ public class TriggerListActivity extends ListActivity
 	@Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
-        Log.d(TAG, "Click on a blackout");
+        Log.v(TAG, "Click on a blackout");
 		if(!mCursor.moveToPosition(position)) {
 			//TODO this should not happen. log
 			return;
@@ -391,7 +385,8 @@ public class TriggerListActivity extends ListActivity
 		}
 		
 		ti.setOnTextChangedListener(new TrigTextInput.onTextChangedListener() {
-			public boolean onTextChanged(TrigTextInput textInput, String text) {
+			@Override
+            public boolean onTextChanged(TrigTextInput textInput, String text) {
 				mDialogText = text;
 				return true;
 			}
@@ -399,7 +394,8 @@ public class TriggerListActivity extends ListActivity
 		
 		ti.setOnClickListener(new TrigTextInput.onClickListener() {
 			
-			public void onClick(TrigTextInput ti, int which) {
+			@Override
+            public void onClick(TrigTextInput ti, int which) {
 				if(which == TrigTextInput.BUTTON_POSITIVE) {
 					
 //					if(ti.getText().equals(TrigUserConfig.adminPass)) {
@@ -428,7 +424,8 @@ public class TriggerListActivity extends ListActivity
 					.setPositiveButton("Yes", 
 								new DialogInterface.OnClickListener() {
 						
-						public void onClick(DialogInterface dialog, int which) {
+						@Override
+                        public void onClick(DialogInterface dialog, int which) {
 							deleteTrigger(mDialogTrigId);
 				    		mCursor.requery();
 						}
@@ -665,7 +662,6 @@ public class TriggerListActivity extends ListActivity
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
-		Log.d(TAG, "This actually happens!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 		menu.add(0, MENU_ID_DELETE_TRIGGER, 0, "Delete")
 			.setEnabled(true/*isAdminLoggedIn() || TrigUserConfig.removeTrigers*/);
 	}
@@ -715,7 +711,8 @@ public class TriggerListActivity extends ListActivity
 //		
 //	}
 
-	public void onClick(View v) {
+	@Override
+    public void onClick(View v) {
 		
 		if(v.getId() == R.id.button_add_new) {
 			

@@ -1,13 +1,5 @@
 package org.ohmage.mobility.blackout;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Random;
-import java.util.Vector;
-
-import org.ohmage.mobility.Mobility;
-import org.ohmage.mobility.blackout.utils.SimpleTime;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -18,7 +10,13 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.util.Log;
+
+import org.ohmage.logprobe.Log;
+import org.ohmage.mobility.Mobility;
+import org.ohmage.mobility.blackout.utils.SimpleTime;
+
+import java.util.Calendar;
+import java.util.Vector;
 
 public class BlackoutService extends Service
 {
@@ -45,7 +43,7 @@ public class BlackoutService extends Service
 	{
 		super.onCreate();
 
-		Log.i(TAG, "BlackoutService: onCreate");
+		Log.v(TAG, "onCreate");
 
 		mAlarmMan = (AlarmManager) getSystemService(ALARM_SERVICE);
 	}
@@ -55,13 +53,13 @@ public class BlackoutService extends Service
 	{
 		super.onStart(intent, startId);
 
-		Log.i(TAG, "BlackoutService: onStart");
+		Log.v(TAG, "onStart");
 
 		String action = intent.getAction();
 		if (action == null || !intent.hasExtra(KEY_TRIG_ID) || !intent.hasExtra(KEY_TRIG_DESC))
 		{
 
-			Log.w(TAG, "BlackoutService: Started with invalid intent");
+			Log.w(TAG, "Started with invalid intent");
 
 			releaseWakeLock();
 			return;
@@ -72,7 +70,7 @@ public class BlackoutService extends Service
 
 		if (action.equals(ACTION_HANDLE_TRIGGER))
 		{
-			Log.i(TAG, "BlackoutService: Handling trigger " + trigId);
+			Log.v(TAG, "Handling trigger " + trigId);
 
 			// Notify user
 			// new Blackout().notifyTrigger(this, trigId);
@@ -85,17 +83,17 @@ public class BlackoutService extends Service
 					Log.e(TAG, "Something is wrong with this trigger");
 					return;
 				}
-				Log.d(TAG, "Time to " + (startEnd == 0 ? "start" : "end") + " this blackout!");
+				Log.i(TAG, "Time to " + (startEnd == 0 ? "start" : "end") + " this blackout!");
 
 				// repeat the alarm
 				if (startEnd == 0)
 				{
-					Log.d(TAG, "Blackout!");
+					Log.v(TAG, "Blackout!");
 					Mobility.stopMobility(this, true);
 				}
 				else
 				{
-					Log.d(TAG, "All clear!");
+					Log.v(TAG, "All clear!");
 					Mobility.startMobility(this);
 				}
 			}
@@ -108,19 +106,19 @@ public class BlackoutService extends Service
 		}
 		else if (action.equals(ACTION_SET_TRIGGER))
 		{
-			Log.i(TAG, "BlackoutService: Setting trigger " + trigId);
+			Log.v(TAG, "Setting trigger " + trigId);
 
 			setTrigger(trigId, trigDesc);
 		}
 		else if (action.equals(ACTION_REMOVE_TRIGGER))
 		{
-			Log.i(TAG, "BlackoutService: Removing trigger " + trigId);
+			Log.v(TAG, "Removing trigger " + trigId);
 
 			removeTrigger(trigId, trigDesc);
 		}
 		else if (action.equals(ACTION_RESET_TRIGGER))
 		{
-			Log.i(TAG, "BlackoutService: Resetting trigger " + trigId);
+			Log.v(TAG, "Resetting trigger " + trigId);
 
 			removeTrigger(trigId, trigDesc);
 			setTrigger(trigId, trigDesc);
@@ -296,7 +294,7 @@ public class BlackoutService extends Service
 			Vector<Calendar> targets = getTriggerTimeForDay(trigId, trigDesc, i);
 			if (targets != null)
 			{
-				Log.i(TAG, "BlackoutService: Calculated target time: " + targets.get(0).getTime().toString() + " until " + targets.get(1).getTime().toString());
+				Log.i(TAG, "Calculated target time: " + targets.get(0).getTime().toString() + " until " + targets.get(1).getTime().toString());
 				Vector<Long> ret = new Vector<Long>();
 				ret.add(targets.get(0).getTimeInMillis());
 				ret.add(targets.get(1).getTimeInMillis());
@@ -304,7 +302,7 @@ public class BlackoutService extends Service
 			}
 		}
 
-		Log.w(TAG, "BlackoutService: No valid day of " + "the week found!");
+		Log.w(TAG, "No valid day of " + "the week found!");
 
 		// Must not reach here
 		return null;
@@ -325,7 +323,7 @@ public class BlackoutService extends Service
 		if (pi != null)
 		{
 			// remove the pending intent
-			Log.i(TAG, "BlackoutService: Canceling the pending" + " intent and alarm for id: " + trigId);
+			Log.v(TAG, "Canceling the pending" + " intent and alarm for id: " + trigId);
 
 			mAlarmMan.cancel(pi);
 			pi.cancel();
@@ -338,7 +336,7 @@ public class BlackoutService extends Service
 		// Cancel the pending intent and the existing alarm first
 		cancelAlarm(trigId, desc.toString());
 
-		Log.i(TAG, "BlackoutService: Attempting to set trigger " + trigId);
+		Log.v(TAG, "Attempting to set trigger " + trigId);
 
 		Intent i0 = createAlarmIntent(trigId, desc.toString(), 0);
 		PendingIntent pi0 = PendingIntent.getBroadcast(this, 0, i0, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -349,7 +347,7 @@ public class BlackoutService extends Service
 		Vector<Long> alarmTimes = getAlarmTimeInMillis(trigId, desc);
 		if (alarmTimes == null)
 		{
-			Log.i(TAG, "BlackoutService: No valid time found for " + trigId);
+			Log.w(TAG, "No valid time found for " + trigId);
 			return;
 		}
 
@@ -362,27 +360,25 @@ public class BlackoutService extends Service
 		long elapsedRT0 = alarmTimes.get(0) - System.currentTimeMillis();
 		if (elapsedRT0 <= 0)
 		{
-			Log.i(TAG, "BlackoutService: negative elapsed realtime - " + "alarm not setting: " + trigId);
+			Log.w(TAG, "negative elapsed realtime - " + "alarm not setting: " + trigId);
 //			return;
 		}
 		else
 		{
-			Log.i(TAG, "BlackoutService: Setting alarm to start blackout for " + elapsedRT0 + " millis into the future");
-			//		Log.d(TAG, "Setting start alarm for " + new Date(SystemClock.elapsedRealtime() + elapsedRT0).toString());
+			Log.i(TAG, "Setting alarm to start blackout for " + elapsedRT0 + " millis into the future");
 			mAlarmMan.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + elapsedRT0, pi0);
 		}
 		long elapsedRT1 = alarmTimes.get(1) - System.currentTimeMillis();
-//		Log.d(TAG, "Setting start alarm for " + new Date(SystemClock.elapsedRealtime() + elapsedRT1).toString());
 		if (elapsedRT1 <= 0)
 		{
-			Log.i(TAG, "BlackoutService: negative elapsed realtime - " + "alarm not setting: " + trigId);
+			Log.w(TAG, "negative elapsed realtime - " + "alarm not setting: " + trigId);
 			return;
 		}
 		
 		if (elapsedRT0 <= 0 && elapsedRT1 > 0)
 			Mobility.stopMobility(this, true); // If the phone is in a blackout now, stop it.
 
-		Log.i(TAG, "BlackoutService: Setting stop to start blackout for " + elapsedRT1 + " millis into the future");
+		Log.i(TAG, "Setting stop to start blackout for " + elapsedRT1 + " millis into the future");
 
 		mAlarmMan.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + elapsedRT1, pi1);
 	}
@@ -390,7 +386,7 @@ public class BlackoutService extends Service
 	private void setTrigger(int trigId, String trigDesc)
 	{
 
-		Log.i(TAG, "BlackoutService: Attempting to set " + "the trigger: " + trigId);
+		Log.v(TAG, "Attempting to set " + "the trigger: " + trigId);
 
 		BlackoutDesc desc = new BlackoutDesc();
 		if (desc.loadString(trigDesc))
@@ -399,7 +395,7 @@ public class BlackoutService extends Service
 		}
 		else
 		{
-			Log.i(TAG, "BlackoutService: Failed to parse" + " trigger config: id = " + trigId);
+			Log.w(TAG, "Failed to parse" + " trigger config: id = " + trigId);
 		}
 	}
 
@@ -419,15 +415,16 @@ public class BlackoutService extends Service
 	public static class AlarmReceiver extends BroadcastReceiver
 	{
 
-		public void onReceive(Context context, Intent intent)
+		@Override
+        public void onReceive(Context context, Intent intent)
 		{
 
-			Log.e(TAG, "BlackoutService: Received broadcast");
+			Log.v(TAG, "Received broadcast");
 
 			if (intent.getAction().equals(ACTION_TRIG_ALM))
 			{
 
-				Log.i(TAG, "BlackoutService: Handling alarm event");
+				Log.v(TAG, "Handling alarm event");
 
 				acquireWakeLock(context);
 

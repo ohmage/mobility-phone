@@ -5,8 +5,8 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
+import org.ohmage.logprobe.Log;
 
 
 public class GarbageCollectReceiver extends BroadcastReceiver
@@ -18,7 +18,7 @@ public class GarbageCollectReceiver extends BroadcastReceiver
 	@Override
 	public void onReceive(Context context, Intent intent)
 	{
-		Log.d(TAG, "Collect garbage");
+		Log.v(TAG, "Collect garbage");
 		// Start service
 		// For NW, fix this!
 //		if (true)

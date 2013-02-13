@@ -13,12 +13,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.util.Log;
 
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.glue.MobilityInterface;
 import org.ohmage.probemanager.ProbeBuilder;
 
@@ -27,7 +27,7 @@ import java.util.UUID;
 import java.util.Vector;
 
 public class MobilityDbAdapter {
-	public static final String TAG = "awDB";
+	public static final String TAG = "MobilityDbAdapter";
 
 	public static final String MOBILITY_TABLE = "mobility";
 	public static final String AGGREGATE_TABLE = "aggregate";
@@ -116,10 +116,10 @@ public class MobilityDbAdapter {
 		
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			Log.d(TAG, "onCreate: Creating database table: " + MOBILITY_TABLE);
+			Log.v(TAG, "onCreate: Creating database table: " + MOBILITY_TABLE);
 			db.execSQL(String.format(DATABASE_CREATE, MOBILITY_TABLE));
 
-			Log.d(TAG, "onCreate: Creating database table: " + AGGREGATE_TABLE);
+			Log.v(TAG, "onCreate: Creating database table: " + AGGREGATE_TABLE);
 			db.execSQL(String.format(AGGREGATE_TABLE_CREATE, AGGREGATE_TABLE));
 		}
 
@@ -190,7 +190,7 @@ public class MobilityDbAdapter {
 						+ duration + " WHERE " + KEY_MODE + "=? AND "
 						+ KEY_DAY + "=" + ((TextUtils.isEmpty(day)) ? SQL_TODAY_LOCAL : "'"+day+"'") + " AND " + KEY_USERNAME + "=?", new String[] { mode, username });
 			} catch (SQLiteException e) {
-				Log.e(TAG, "error adding aggregate value " + e);
+				Log.e(TAG, "error adding aggregate value ", e);
 				return 0;
 			}
 			return 1;
@@ -244,7 +244,7 @@ public class MobilityDbAdapter {
 				c = getReadableDatabase().query("mobility", columns, selection, selectionArgs, null, null, orderBy);
 				c.setNotificationUri(mContext.getContentResolver(), MobilityInterface.CONTENT_URI);
 			} catch (SQLiteException e) {
-				Log.e(TAG, e.toString());
+				Log.e(TAG, "Error getting mobility cursor", e);
 				c = null;
 			}
 
@@ -276,7 +276,7 @@ public class MobilityDbAdapter {
 				c = getReadableDatabase().query(AGGREGATE_TABLE, columns, selection, selectionArgs, groupby, null, sortOrder);
 				c.setNotificationUri(mContext.getContentResolver(), MobilityInterface.CONTENT_URI);
 			} catch (SQLiteException e) {
-				Log.e(TAG, e.toString());
+				Log.e(TAG, "Error getting mobility aggregates cursor", e);
 				c = null;
 			}
 
@@ -306,7 +306,7 @@ public class MobilityDbAdapter {
 		
 		String timezone = DateTimeZone.getDefault().getID();
 		vals.put(KEY_ID, id.toString());
-		Log.d(TAG, id.toString());
+		Log.v(TAG, id.toString());
 		vals.put(KEY_MODE, mode);
 		vals.put(KEY_SPEED, speed.toString());
 		vals.put(KEY_STATUS, status);
@@ -320,7 +320,7 @@ public class MobilityDbAdapter {
 		vals.put(KEY_LATITUDE, latitude.toString());
 		vals.put(KEY_LONGITUDE, longitude.toString());
 		vals.put(KEY_USERNAME, username);
-		Log.d(TAG, "createRow: adding to table: " + MOBILITY_TABLE + ": " + mode);
+		Log.v(TAG, "createRow: adding to table: " + MOBILITY_TABLE + ": " + mode);
 
 		long rowid = -1;
 		Uri row = mCtx.getContentResolver().insert(MobilityInterface.CONTENT_URI, vals);
@@ -372,13 +372,13 @@ public class MobilityDbAdapter {
 			}
 			catch(IndexOutOfBoundsException ie)
 			{
-				Log.e(TAG, "X has " + samples.get(0).size() + ", Y has " + samples.get(1).size() + ", Z has " + samples.get(2).size());
+				Log.e(TAG, "X has " + samples.get(0).size() + ", Y has " + samples.get(1).size() + ", Z has " + samples.get(2).size(), ie);
 				
 //				throw ie; // want crash to alert me
 			}
 			catch(NullPointerException e)
 			{
-				Log.e(TAG, "Null pointer somehow");
+				Log.e(TAG, "Null pointer somehow", e);
 			}
 			ja.put(jo);
 		}
@@ -393,7 +393,7 @@ public class MobilityDbAdapter {
 	public int deleteSomeRows(long timestamp) {
 		int dels = 0;
 
-		Log.d(TAG, "fetchSomeRows from table: " + MOBILITY_TABLE);
+		Log.v(TAG, "fetchSomeRows from table: " + MOBILITY_TABLE);
 		ContentResolver cr = mCtx.getContentResolver();
 		dels = cr.delete(MobilityInterface.CONTENT_URI, KEY_TIME + "<= ?", new String[] { String.valueOf(timestamp) });
 		cr.notifyChange(MobilityInterface.CONTENT_URI, null, false);
@@ -403,7 +403,7 @@ public class MobilityDbAdapter {
 	public boolean deleteRow(long rowId) {
 		int count = 0;
 		ContentResolver cr = mCtx.getContentResolver();
-		Log.d(TAG, "deleteRow: deleting row: " + rowId + "from table: " + MOBILITY_TABLE);
+		Log.v(TAG, "deleteRow: deleting row: " + rowId + "from table: " + MOBILITY_TABLE);
 		count = cr.delete(MobilityInterface.CONTENT_URI, KEY_ROWID + "=" + rowId, null);
 		if (count > 0) {
 			cr.notifyChange(MobilityInterface.CONTENT_URI, null, false);
@@ -418,7 +418,7 @@ public class MobilityDbAdapter {
 
 		try
 		{
-			Log.d(TAG, "fetchSomeRows from table: " + MOBILITY_TABLE);
+			Log.v(TAG, "fetchSomeRows from table: " + MOBILITY_TABLE);
 			ContentResolver cr = mCtx.getContentResolver();
 			Cursor c = cr.query(MobilityInterface.CONTENT_URI, new String[] { KEY_ROWID, KEY_ID, KEY_MODE, KEY_SPEED, KEY_STATUS, KEY_LOC_TIMESTAMP, KEY_ACCURACY, KEY_PROVIDER, KEY_WIFIDATA, KEY_ACCELDATA, KEY_TIME, KEY_TIMEZONE, KEY_LATITUDE, KEY_LONGITUDE }, selection, selectionArgs, null);
 			c.moveToFirst();
@@ -451,7 +451,7 @@ public class MobilityDbAdapter {
 			c.close();
 		} catch (Exception e)
 		{
-			Log.e(TAG, e.getMessage());
+			Log.e(TAG, "Error reading rows from mobility table", e);
 		}
 		return ret;
 	}

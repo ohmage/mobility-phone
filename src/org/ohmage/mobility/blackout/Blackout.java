@@ -1,21 +1,18 @@
 package org.ohmage.mobility.blackout;
 
-import org.json.JSONObject;
-import org.ohmage.mobility.Mobility;
-import org.ohmage.mobility.MobilityControl;
-import org.ohmage.mobility.blackout.base.TriggerBase;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
+
+import org.json.JSONObject;
+import org.ohmage.logprobe.Log;
+import org.ohmage.mobility.Mobility;
+import org.ohmage.mobility.MobilityControl;
 import org.ohmage.mobility.R;
+import org.ohmage.mobility.blackout.base.TriggerBase;
 
 public class Blackout extends TriggerBase
 {
-
-	private static final String DEBUG_TAG = "Blackout";
-
 	// private static final String TRIGGER_TYPE = "TimeTrigger";
 	// TODO localize
 	private static final String DISP_NAME = "Time Trigger";
@@ -73,7 +70,7 @@ public class Blackout extends TriggerBase
 		SharedPreferences settings = context.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
 		if (settings.getBoolean(MobilityControl.MOBILITY_ON, false))
 		{
-			Log.d(TAG, "Starting trigger by starting blackoutservice!");
+			Log.v(TAG, "Starting trigger by starting blackoutservice!");
 			Intent i = new Intent(context, BlackoutService.class);
 			i.setAction(BlackoutService.ACTION_SET_TRIGGER);
 			i.putExtra(BlackoutService.KEY_TRIG_ID, trigId);
@@ -89,10 +86,11 @@ public class Blackout extends TriggerBase
 		BlackoutEditActivity.setOnExitListener(new BlackoutEditActivity.ExitListener()
 		{
 
-			public void onDone(Context context, int trigId, String trigDesc)
+			@Override
+            public void onDone(Context context, int trigId, String trigDesc)
 			{
 
-				Log.i(DEBUG_TAG, "TimeTrigger: Saving new trigger: " + trigDesc);
+				Log.v(TAG, "TimeTrigger: Saving new trigger: " + trigDesc);
 				addNewTrigger(context, trigDesc);
 			}
 		});
@@ -100,13 +98,15 @@ public class Blackout extends TriggerBase
 		context.startActivity(new Intent(context, BlackoutEditActivity.class));
 	}
 
-	public void launchTriggerEditActivity(Context context, int trigId, String trigDesc, boolean adminMode)
+	@Override
+    public void launchTriggerEditActivity(Context context, int trigId, String trigDesc, boolean adminMode)
 	{
-		Log.i(TAG, "Editing the blackout time!");
+		Log.v(TAG, "Editing the blackout time!");
 		BlackoutEditActivity.setOnExitListener(new BlackoutEditActivity.ExitListener()
 		{
 
-			public void onDone(Context context, int trigId, String trigDesc)
+			@Override
+            public void onDone(Context context, int trigId, String trigDesc)
 			{
 
 				updateTrigger(context, trigId, trigDesc);

@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
-//import android.util.Log;
-
 public class ClassifierService extends WakefulIntentService {
     private LogProbe logger;
 
@@ -118,13 +116,13 @@ public class ClassifierService extends WakefulIntentService {
         try {
             if (Mobility.getmAccel() == null
                     || System.currentTimeMillis() - Mobility.getmAccel().getLastTimeStamp() > 10000 + Mobility.sampleRate) {
-                Log.e(TAG, "mAccel fails to not be null or old.");
+                Log.v(TAG, "mAccel fails to not be null or old.");
                 if (Mobility.failCount++ > 2) {
                     if (Mobility.getmAccel() == null)
                         Mobility.setNotification(this, Mobility.STATUS_ERROR,
                                 "Please verify that AccelService is installed");
                     else {
-                        Log.e(TAG, "Last accelerometer sample is "
+                        Log.w(TAG, "Last accelerometer sample is "
                                 + (System.currentTimeMillis() - Mobility.getmAccel()
                                         .getLastTimeStamp()) / 1000 + " seconds old");
                         Mobility.setNotification(this, Mobility.STATUS_ERROR,
@@ -153,7 +151,7 @@ public class ClassifierService extends WakefulIntentService {
             // force.add((Double)(forceWithTimes.get(i))[0]);
             // Log.d(TAG, (forceWithTimes.get(i))[1] + "  " + i);
             // }
-            Log.d(TAG, (System.currentTimeMillis() - Mobility.getmAccel().getLastTimeStamp())
+            Log.i(TAG, (System.currentTimeMillis() - Mobility.getmAccel().getLastTimeStamp())
                     / 1000 + " is how old this sample is!!!!!!");
             Vector<ArrayList<Double>> curList = new Vector<ArrayList<Double>>();
             curList.add((ArrayList<Double>) Mobility.getmAccel().getLastXValues());
@@ -165,7 +163,7 @@ public class ClassifierService extends WakefulIntentService {
                 // curList.toString());
                 return curList;
             } else
-                Log.i(TAG, "List was null, try later.");
+                Log.w(TAG, "List was null, try later.");
         } catch (RemoteException re) {
             Log.e(TAG, "Remote Ex", re);
 
@@ -239,7 +237,7 @@ public class ClassifierService extends WakefulIntentService {
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
-                    Log.d(TAG, "Error running checkWifi :" + wifiData);
+                    Log.e(TAG, "Error running checkWifi :" + wifiData, e);
                 }
                 // globalLoc = mWiFiGPS.getLocation();
                 // if (!setInterval)
@@ -248,7 +246,7 @@ public class ClassifierService extends WakefulIntentService {
                 // (int) Mobility.sampleRate);
                 // setInterval = true;
                 // }
-                Log.d(TAG, "mWiFiGPS is not null!");
+                Log.v(TAG, "mWiFiGPS is not null!");
                 if (loc != null) {
                     lat = loc.getLatitude();
                     lon = loc.getLongitude();
@@ -257,48 +255,48 @@ public class ClassifierService extends WakefulIntentService {
                     provider = loc.getProvider();
                     timestamp = loc.getTime();
                     if (provider.equals(FAKE_PROVIDER)) {
-                        Log.d(TAG, "Fake provider");
+                        Log.v(TAG, "Fake provider");
                         status = UNAVAILABLE;
                         speed = Float.NaN;
                         cachedCount = 0;
                     } else if (provider.equals(WIFIGPSCACHED_PROVIDER)) {
                         cachedCount++;
-                        Log.d(TAG, "Cached provider");
+                        Log.v(TAG, "Cached provider");
                         if (acc > INACCURACY_THRESHOLD) {
-                            Log.d(TAG, "Inaccurate");
+                            Log.v(TAG, "Inaccurate");
                             status = INACCURATE;
                             if (!driveCheat)
                                 speed = Float.NaN;
                         } else {
-                            Log.d(TAG, "Valid");
+                            Log.v(TAG, "Valid");
                             status = VALID;
                         }
                     } else if (provider.equals(WIFIGPS_PROVIDER)) {
-                        Log.d(TAG, "GPS provider");
+                        Log.v(TAG, "GPS provider");
                         cachedCount = 0;
                         if (timestamp > System.currentTimeMillis() - STALENESS_THRESHOLD) {
                             if (acc > INACCURACY_THRESHOLD) {
-                                Log.d(TAG, "Inaccurate");
+                                Log.v(TAG, "Inaccurate");
                                 status = INACCURATE;
                                 if (!driveCheat)
                                     speed = Float.NaN;
                             } else {
-                                Log.d(TAG, "Valid");
+                                Log.v(TAG, "Valid");
                                 status = VALID;
                             }
                         } else {
-                            Log.d(TAG, "Stale");
+                            Log.v(TAG, "Stale");
                             status = STALE;
                             speed = Float.NaN;
                         }
                     } else if (provider.equals(APPROX_PROVIDER)) {
                         cachedCount = 0;
-                        Log.d(TAG, "Stale");
+                        Log.v(TAG, "Stale");
                         status = STALE;
                         speed = 0;
                     } else if (provider.equals(NET_PROVIDER)) {
                         cachedCount = 0;
-                        Log.d(TAG, "Network");
+                        Log.v(TAG, "Network");
                         status = NETWORK;
                         speed = 0;
                     } else {
@@ -307,14 +305,14 @@ public class ClassifierService extends WakefulIntentService {
                         Mobility.setDebugNotification(this, "Invalid WiFiGPS code: " + provider);
                     }
                 } else {
-                    Log.d(TAG, "mWiFiGPS.getLocation() is null, losing sample");
+                    Log.e(TAG, "mWiFiGPS.getLocation() is null, losing sample");
                 }
                 // Mobility.gpsFailCount = 0;
             } else {
                 loc = null;
                 // Mobility.gpsFailCount++;
                 gpsFail = true;
-                Log.d(TAG, "mWiFiGPS is null, no GPS data");
+                Log.w(TAG, "mWiFiGPS is null, no GPS data");
                 status = UNAVAILABLE;
                 speed = Float.NaN;
             }
@@ -323,12 +321,12 @@ public class ClassifierService extends WakefulIntentService {
             loc = null;
             status = UNAVAILABLE;
             speed = Float.NaN;
-            Log.e(TAG, "Exception happened with connection to WiFiGPS service");
+            Log.e(TAG, "Exception happened with connection to WiFiGPS service", e);
             e.printStackTrace();
         }
         String activity = UNKNOWN;
         if (samples == null) {
-            Log.i(TAG, "Null object from AccelService");
+            Log.w(TAG, "Null object from AccelService");
 
             activity = ERROR;
             addTransportMode(activity, samples, speed, acc, provider, status, timestamp, wifiData,
@@ -338,7 +336,7 @@ public class ClassifierService extends WakefulIntentService {
         ArrayList<Double> accData = samples.get(3);
 
         if (samples.get(0).size() < 10) {
-            Log.i(TAG, "Too few samples to do accelerometer feature analysis");
+            Log.w(TAG, "Too few samples to do accelerometer feature analysis");
             addTransportMode(STILL, samples, speed, acc, provider, status, timestamp, wifiData,
                     lat, lon);
             return;
@@ -411,7 +409,7 @@ public class ClassifierService extends WakefulIntentService {
         // speed = loc.getSpeed();
         // //acc = loc.getAccuracy();
         // }
-        Log.d(TAG, speed + " is the speed");
+        Log.i(TAG, speed + " is the speed");
         String features = String
                 .format("%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f,%2.4f",
                         var, accFft1, accFft2, accFft3, speed, v, a, a1, a2, a3, a4, a5, a6, a7,
@@ -425,7 +423,7 @@ public class ClassifierService extends WakefulIntentService {
                 activity = wifiActivity; // The other classifier is rubbish for
                                          // still/drive, just use WiFi result
         } else
-            Log.d(TAG, "wifi not used (turned off or unknown for this sample)");
+            Log.i(TAG, "wifi not used (turned off or unknown for this sample)");
         if (gpsFail && Mobility.debugMode)
             Mobility.setNotification(this, Mobility.STATUS_OK, activity + " (Warning: No GPS)");
         else
@@ -592,10 +590,9 @@ public class ClassifierService extends WakefulIntentService {
                         prev.add(str);
                     }
                     lastAPs.put(prevTimestamp, prev);
-                    Log.d(TAG, count++ + " history lines!");
                 } catch (NumberFormatException e) {
                     Log.e(TAG, "Malformed timestamp in line " + l + " of previous strings: \""
-                            + lines[1] + "\"");
+                            + lines[1] + "\"", e);
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -610,10 +607,10 @@ public class ClassifierService extends WakefulIntentService {
             int total = 0;
             if (lastTime == time) // no new wifi data
             {
-                Log.d(TAG, "Returning previous value since there has been no new WiFi data");
+                Log.v(TAG, "Returning previous value since there has been no new WiFi data");
                 return lastMode;
             }
-            Log.d(TAG, "Current wifi is " + (System.currentTimeMillis() - time) / 60000
+            Log.i(TAG, "Current wifi is " + (System.currentTimeMillis() - time) / 60000
                     + " minutes old.");
             if (lastTime < System.currentTimeMillis() - 1000 * 60 * 8) // if no
                                                                        // recent
@@ -621,12 +618,12 @@ public class ClassifierService extends WakefulIntentService {
                                                                        // for
                                                                        // comparison
             {
-                Log.d(TAG, "Last stored wifi was ages (" + (System.currentTimeMillis() - lastTime)
+                Log.i(TAG, "Last stored wifi was ages (" + (System.currentTimeMillis() - lastTime)
                         / 60000 + " minutes) ago .");
                 writeWifi(settings, time, UNKNOWN, APs, null);
                 return UNKNOWN;
             } else
-                Log.d(TAG, "Last stored wifi is " + (System.currentTimeMillis() - lastTime) / 60000
+                Log.i(TAG, "Last stored wifi is " + (System.currentTimeMillis() - lastTime) / 60000
                         + " minutes old.");
             // Now we can do the comparison
             for (String AP : APs) {
@@ -641,7 +638,7 @@ public class ClassifierService extends WakefulIntentService {
             // same++;
             // total++;
             // }
-            Log.d(TAG, "There were " + same + " matches out of " + total
+            Log.i(TAG, "There were " + same + " matches out of " + total
                     + " APs were in this sample. current:" + APs + " previous:" + APsFromLastTimes);
             if (total > 0) {
                 int threshold = 2;
@@ -650,22 +647,22 @@ public class ClassifierService extends WakefulIntentService {
                 if (total == 1)
                     threshold = 0;
                 if (same <= threshold) {
-                    Log.d(TAG, "Wifi chooses drive!");
+                    Log.v(TAG, "Wifi chooses drive!");
                     writeWifi(settings, time, DRIVE, APs, lastAPs);
                     return DRIVE;// + " " + same / total;
                 } else {
-                    Log.d(TAG, "Wifi chooses still!");
+                    Log.v(TAG, "Wifi chooses still!");
                     writeWifi(settings, time, STILL, APs, lastAPs);
                     return STILL;// + " " + same / total;
                 }
 
             } else {
-                Log.d(TAG, "No wifi detected in new sample; it's up to the GPS.");
+                Log.v(TAG, "No wifi detected in new sample; it's up to the GPS.");
                 writeWifi(settings, time, UNKNOWN, APs, lastAPs);
                 return UNKNOWN;
             }
         } else {
-            Log.d(TAG, "No previous AP!");
+            Log.v(TAG, "No previous AP!");
             // no history
             Vector<String> APs = JSONToList(jsonObject);
             writeWifi(settings, time, UNKNOWN, APs, null);
@@ -821,7 +818,7 @@ public class ClassifierService extends WakefulIntentService {
                     }
                 } else {
                     output = DRIVE;
-                    Log.d(TAG, "Drive 3");
+                    Log.v(TAG, "Drive 3");
                 }
                 /*
                  * } else { output = DRIVE;Log.d(TAG, "Drive 4"); }
@@ -834,7 +831,7 @@ public class ClassifierService extends WakefulIntentService {
                 output = STILL;
             } else {
                 output = DRIVE;
-                Log.d(TAG, "Drive 5");
+                Log.v(TAG, "Drive 5");
             }
         } else {
             if (a3 <= 16.840921) {
@@ -917,7 +914,6 @@ public class ClassifierService extends WakefulIntentService {
     public void addTransportMode(String mode, Vector<ArrayList<Double>> samples, float speed,
             float accuracy, String provider, String status, long timestamp, String wifiData,
             double lat, double lon) {
-        Log.d(TAG, "GPS is " + lat + " and " + lon + "");
         long time = System.currentTimeMillis();// resJson.setAndReturnTime();
 
         // Open the database, and store the response

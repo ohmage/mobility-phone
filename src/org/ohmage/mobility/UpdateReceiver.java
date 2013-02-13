@@ -1,22 +1,21 @@
 package org.ohmage.mobility;
 
-import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.util.Log;
+
+import org.ohmage.logprobe.Log;
 
 public class UpdateReceiver extends BroadcastReceiver
 {
 
-	public static final String TAG = "UPDATE_RECEIVER";
+	public static final String TAG = "UpdateReceiver";
 
 	@Override
 	public void onReceive(final Context context, Intent intent)
 	{
-		Log.i(TAG, "Mobility updated");
+		Log.v(TAG, "Mobility updated");
 		
 		// start components
 		SharedPreferences settings = context.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);

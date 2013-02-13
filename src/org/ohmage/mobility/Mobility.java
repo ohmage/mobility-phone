@@ -19,7 +19,6 @@ import android.os.RemoteException;
 import org.ohmage.accelservice.IAccelService;
 import org.ohmage.logprobe.Log;
 import org.ohmage.logprobe.LogProbe;
-import org.ohmage.logprobe.LogProbe.Loglevel;
 import org.ohmage.mobility.blackout.Blackout;
 import org.ohmage.mobility.blackout.BlackoutDesc;
 import org.ohmage.mobility.blackout.base.TriggerDB;
@@ -70,19 +69,19 @@ public class Mobility {
                 getmAccel().suggestRate(SERVICE_TAG, SensorManager.SENSOR_DELAY_GAME);
                 getmAccel().suggestInterval(SERVICE_TAG, (int) sampleRate);
 
-                Log.d(TAG, "START WAS CALLED ON ACCEL");
+                Log.v(TAG, "START WAS CALLED ON ACCEL");
                 accelConnected = true;
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             // accelConnected = true;
-            Log.i(TAG, "Connected to accel service");
+            Log.v(TAG, "Connected to accel service");
         }
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            Log.d(TAG, "onServiceDisconnected was called!");
+            Log.v(TAG, "onServiceDisconnected was called!");
             // try
             // {
             // getmAccel().stop(SERVICE_TAG);
@@ -108,13 +107,7 @@ public class Mobility {
     // start(context);
     // }
 
-    public static void initSystemLog(Context context) {
-        LogProbe.setLevel(true, Loglevel.VERBOSE);
-        LogProbe.get(context);
-    }
-
     public static void start(Context context) {
-        initSystemLog(context);
         TriggerDB db = new TriggerDB(context);
         db.open();
         boolean canRunNow = true;
@@ -132,7 +125,7 @@ public class Mobility {
                 SimpleTime start = conf.getRangeStart();
                 SimpleTime end = conf.getRangeEnd();
                 SimpleTime now = new SimpleTime();
-                Log.d(TAG,
+                Log.i(TAG,
                         start.getHour() + ":" + start.getMinute() + " until " + end.getHour() + ":"
                                 + end.getMinute() + " is blackout and now is " + now.getHour()
                                 + now.getMinute());
@@ -148,7 +141,7 @@ public class Mobility {
         // if (!initialized)
         initialize(context);
         if (canRunNow) {
-            Log.d(TAG, "Starting mobility!");
+            Log.v(TAG, "Starting mobility!");
             startMobility(context);
 
         }
@@ -185,10 +178,10 @@ public class Mobility {
         db.close();
         // TriggerInit.initTriggers(context);
         if (runningNow) {
-            Log.d(TAG, "Stopping mobility!");
+            Log.v(TAG, "Stopping mobility!");
             stopMobility(context, false);
         } else
-            Log.d(TAG, "Not running, so ignoring stop command");
+            Log.v(TAG, "Not running, so ignoring stop command");
         LogProbe.close(context);
     }
 
@@ -240,7 +233,7 @@ public class Mobility {
     }
 
     public static void startMobility(Context context) {
-        Log.d(TAG, "Starting mobility service, no blackout!");
+        Log.v(TAG, "Starting mobility service, no blackout!");
         setNotification(context, STATUS_PENDING, "Waiting for the first sensor sample");
         // nm = (NotificationManager)
         // context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -264,17 +257,17 @@ public class Mobility {
 
         // context.registerReceiver(accReceiver, new IntentFilter(ACC_START));
 
-        Log.d(TAG, "Sample rate is: " + sampleRate);
+        Log.i(TAG, "Sample rate is: " + sampleRate);
         startGPS(context, sampleRate);
         startAcc(context, sampleRate);
         // Toast.makeText(context, R.string.mobilityservicestarted,
         // Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "Starting transport mode service with sampleRate: " + sampleRate);
+        Log.i(TAG, "Starting transport mode service with sampleRate: " + sampleRate);
 
     }
 
     public static void stopMobility(Context context, boolean blackout) {
-        Log.d(TAG, "Stopping mobility service!");
+        Log.v(TAG, "Stopping mobility service!");
         if (mgr == null) // just in case
             mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (mgr != null) {
@@ -282,7 +275,7 @@ public class Mobility {
             startPI = PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
             mgr.cancel(startPI);
         } else {
-            Log.e(TAG, "AlarmManager was null so it wasn't cancelled!");
+            Log.w(TAG, "AlarmManager was null so it wasn't cancelled!");
         }
         stopAcc(context);
         stopGPS(context);
@@ -325,7 +318,7 @@ public class Mobility {
             if (blackout) {
                 setNotification(context, STATUS_BLACKOUT, "Mobility paused during blackout time");
             } else {
-                Log.d(TAG, "Canceling notification!");
+                Log.v(TAG, "Canceling notification!");
                 NotificationManager nm = (NotificationManager) context
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 nm.cancel(123);
@@ -344,10 +337,9 @@ public class Mobility {
                 getmAccel().suggestRate(SERVICE_TAG, SensorManager.SENSOR_DELAY_GAME);
                 getmAccel().suggestInterval(SERVICE_TAG, (int) sampleRate);
 
-                Log.d(TAG, "START WAS CALLED ON ACCEL");
+                Log.v(TAG, "START WAS CALLED ON ACCEL");
             } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Log.e(TAG, "Error starting accel", e);
             }
         } else
             initialize(context);
@@ -370,12 +362,10 @@ public class Mobility {
         try {
             if (accelConnected && getmAccel() != null) {
                 getmAccel().stop(SERVICE_TAG);
-                Log.i(TAG, "Successfully stopped service!");
+                Log.v(TAG, "Successfully stopped service!");
             }
         } catch (Exception e) {
-            Log.e(TAG, "Failed to stop service!");
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.e(TAG, "Failed to stop service!", e);
         }
         // try
         // {
@@ -447,16 +437,15 @@ public class Mobility {
             // service through an IDL interface, so get a client-side
             // representation of that from the raw service object.
             setmWiFiGPS(IWiFiGPSLocationService.Stub.asInterface(service));
-            Log.i(TAG, "Connected to WiFiGPSLocation Service");
+            Log.v(TAG, "Connected to WiFiGPSLocation Service");
             try {
                 mWiFiGPS.start(SERVICE_TAG);
                 gpsConnected = true;
             } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Log.e(TAG, "Error starting wifigps", e);
             }
             // As part of the sample, tell the user what happened.
-            Log.i(TAG, "Connected");
+            Log.v(TAG, "Connected");
 
         }
 
@@ -466,7 +455,7 @@ public class Mobility {
             // unexpectedly disconnected -- that is, its process crashed.
             setmWiFiGPS(null);
             gpsConnected = false;
-            Log.i(TAG, "Disconnected from WiFiGPSLocation Service");
+            Log.v(TAG, "Disconnected from WiFiGPSLocation Service");
 
             // As part of the sample, tell the user what happened.
 
@@ -476,7 +465,7 @@ public class Mobility {
     private static MobilityProbeWriter probeWriter;
 
     public static void initialize(Context context) {
-        Log.i(TAG, "Initializing");
+        Log.v(TAG, "Initializing");
         // ServiceState.sampleRate = sampleRate;
         context.bindService(
                 new Intent(IWiFiGPSLocationService.class.getName()),
@@ -505,7 +494,7 @@ public class Mobility {
     }
 
     public static void restartAccelService(Context context) {
-        Log.d(TAG,
+        Log.w(TAG,
                 "There is an accel object that didn't start when I told it to. Accel connected: "
                         + accelConnected);
         try {

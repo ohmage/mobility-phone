@@ -10,12 +10,12 @@ import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 
-import java.util.ArrayList;
-
+import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.MobilityDbAdapter.DatabaseHelper;
 import org.ohmage.mobility.glue.MobilityInterface;
+
+import java.util.ArrayList;
 
 /**
  * This is the ContentProvider for the System Sens Lite Service that provides
@@ -230,14 +230,14 @@ public class MobilityContentProvider extends ContentProvider
 	 */
 	@Override
 	public Cursor query(Uri uri, String[] columns, String selection, String[] selectionArgs, String sortOrder) {
-		Log.i(TAG, (new StringBuilder()).append("Query: ").append(uri.toString()).toString());
+		Log.v(TAG, (new StringBuilder()).append("Query: ").append(uri.toString()).toString());
 		
 		switch(mUriMatcher.match(uri)) {
 			
 			case URI_CODE_AGGREGATES: {
 				return dbHelper.getMobilityAggregatesCursor(columns, selection, selectionArgs, sortOrder);
 			} case URI_CODE_MOBILITY: {
-				Log.i(TAG, "Querying mobility.");
+				Log.v(TAG, "Querying mobility.");
 				return dbHelper.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
 			}
 		}

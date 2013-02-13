@@ -15,9 +15,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import org.ohmage.mobility.R;
-
 import org.ohmage.logprobe.Log;
+import org.ohmage.mobility.R;
 import org.ohmage.mobility.blackout.config.TrigUserConfig;
 import org.ohmage.mobility.blackout.utils.TimePickerPreference;
 
@@ -43,7 +42,7 @@ public class BlackoutEditActivity extends PreferenceActivity implements View.OnC
 
     private static final int DIALOG_ID_REPEAT_SEL = 0;
     private static final int DIALOG_ID_INVALID_TIME_ALERT = 1;
-    private static final String TAG = "Blackout list activity";
+    private static final String TAG = "BlackoutEditActivity";
 
     private BlackoutDesc mTrigDesc;
     private String[] mDays;
@@ -223,7 +222,6 @@ public class BlackoutEditActivity extends PreferenceActivity implements View.OnC
 
         mTrigDesc.setRangeStart(startPref.getTime());
         mTrigDesc.setRangeEnd(endPref.getTime());
-        Log.i(TAG, "Set range times!");
     }
 
     // else {
@@ -238,19 +236,18 @@ public class BlackoutEditActivity extends PreferenceActivity implements View.OnC
         switch (v.getId()) {
 
             case R.id.trig_edit_done:
-                Log.i(TAG, "Clicked Done!");
                 if (mExitListener != null) {
                     udateTriggerDesc();
                     if (mTrigDesc.validate(this, mTrigId)) {
-                        Log.i(TAG, "Validation succeeded!");
+                        Log.v(TAG, "Validation succeeded!");
                         mExitListener.onDone(this, mTrigId, mTrigDesc.toString());
                     } else {
-                        Log.i(TAG, "Failed validation");
+                        Log.v(TAG, "Failed validation");
                         showDialog(DIALOG_ID_INVALID_TIME_ALERT);
                         return;
                     }
                 } else
-                    Log.i(TAG, "Exit listener is null for no reason.");
+                    Log.w(TAG, "Exit listener is null for no reason.");
 
                 break;
         }

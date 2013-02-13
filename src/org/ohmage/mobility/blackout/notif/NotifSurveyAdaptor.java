@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -68,7 +67,7 @@ public class NotifSurveyAdaptor {
         String actions = trig.getString(trig
                 .getColumnIndexOrThrow(TriggerDB.KEY_TRIG_ACTIVE_DESCRIPT));
 
-        Log.i(DEBUG_TAG, "NotifSurveyAdaptor: Calculating active surveys for trigger");
+        Log.v(DEBUG_TAG, "NotifSurveyAdaptor: Calculating active surveys for trigger");
 
         TriggerRunTimeDesc rtDesc = new TriggerRunTimeDesc();
         NotifDesc notifDesc = new NotifDesc();
@@ -84,7 +83,7 @@ public class NotifSurveyAdaptor {
         }
 
         if (!rtDesc.hasTriggerTimeStamp()) {
-            Log.i(DEBUG_TAG, "NotifSurveyAdaptor: Trigger time stamp is invalid");
+            Log.w(DEBUG_TAG, "NotifSurveyAdaptor: Trigger time stamp is invalid");
 
             return actSurveys;
         }
@@ -279,14 +278,6 @@ public class NotifSurveyAdaptor {
     }
 
     /*
-     * Convenience wrapper for SystemLog api.
-     */
-    private static void systemLog(Context context, String msg) {
-
-        Log.i(SYSTEM_LOG_TAG, msg);
-    }
-
-    /*
      * To be called when a trigger expires. This function logs using SystemLog,
      * the list of all surveys not taken by the user but were activated by the
      * given trigger.
@@ -355,11 +346,6 @@ public class NotifSurveyAdaptor {
         }
 
         // Log the info
-        String msg = "Expired trigger has surveys not taken: " + jExpired.toString();
-
-        Log.i(DEBUG_TAG, "NotifSurveyAdaptor: SystemLogging the following message: ");
-        Log.i(DEBUG_TAG, msg);
-
-        systemLog(context, msg);
+        Log.i(DEBUG_TAG, "Expired trigger has surveys not taken: " + jExpired.toString());
     }
 }

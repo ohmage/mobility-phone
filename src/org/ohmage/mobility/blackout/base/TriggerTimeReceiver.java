@@ -1,13 +1,13 @@
 package org.ohmage.mobility.blackout.base;
 
-import org.ohmage.mobility.blackout.Blackout;
-import org.ohmage.mobility.blackout.notif.Notifier;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.util.Log;
+
+import org.ohmage.logprobe.Log;
+import org.ohmage.mobility.blackout.Blackout;
+import org.ohmage.mobility.blackout.notif.Notifier;
 
 /*
  * Time/Time-zone change listener. Restarts the triggers and
@@ -59,7 +59,7 @@ public class TriggerTimeReceiver extends BroadcastReceiver{
 		if(i.getAction().equals(Intent.ACTION_TIME_CHANGED) || 
 		   i.getAction().equals(Intent.ACTION_TIMEZONE_CHANGED)) {
 			
-			Log.i(DEBUG_TAG, "TriggerTimeReceiver: " + i.getAction());
+			Log.v(DEBUG_TAG, "TriggerTimeReceiver: " + i.getAction());
 			
 			handleTimeChange(context);
 		}
