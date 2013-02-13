@@ -673,42 +673,24 @@ public class ClassifierService extends WakefulIntentService {
 
     private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs,
             HashMap<Long, Vector<String>> lastAPs) {
-        // APs = new Vector<String>(); // remove!
-        String store = time + "\n" + mode + "\n" + time + ",";
+        StringBuilder store = new StringBuilder(time + "\n" + mode + "\n" + time);
         for (String s : APs)
-            store += s + ",";
-        if (APs.size() > 0) {
-            if (!store.endsWith(","))
-                Log.e(TAG, "This is wrong: " + store + " " + APs.size());
-            else
-                store = store.substring(0, store.length() - 1); // cut off last
-            // comma
-        }
+            store.append(",").append(s);
         long now = System.currentTimeMillis();
         if (lastAPs != null) {
 
             for (Long ts : lastAPs.keySet()) {
                 if (ts > now - checkLength) {
-                    store += "\n" + ts + ",";
+                    store.append("\n").append(ts);
                     for (String ap : lastAPs.get(ts))
-                        store += ap + ",";
+                        store.append(",").append(ap);
                 }
-                if (!store.endsWith(","))
-                    Log.e(TAG, "This is wrong: " + store + " " + APs.size());
-                else
-                    store = store.substring(0, store.length() - 1); // cut off
-                                                                    // last
-                // comma
             }
 
         }
-        // else if (store.endsWith("\n"))
-        // Log.d(TAG, "Ends with newline, so that's fine. Splits into " +
-        // store.split("\n").length + " lines.");
-        // Log.d(TAG, store);
+
         Editor editor = settings.edit();
-        // Log.d(TAG, "Storing " + store);
-        editor.putString(WIFI_HISTORY, store);
+        editor.putString(WIFI_HISTORY, store.toString());
         editor.commit();
     }
 
