@@ -568,6 +568,11 @@ public class ClassifierService extends WakefulIntentService {
                                                                             // with
                                                                             // previous
                                                                             // sample
+        if(jsonObject.length() == 0) {
+            // WiFi wasn't able to give us any information.
+            return UNKNOWN;
+        }
+
         long time = jsonObject.getLong("time");
 
         if (APsFromLastTimeStr != null) {
