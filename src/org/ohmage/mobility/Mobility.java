@@ -226,7 +226,7 @@ public class Mobility {
 
         // appContext = context;
         PendingIntent pi = PendingIntent.getActivity(context.getApplicationContext(), 1,
-                new Intent(), 1);
+                new Intent("org.ohmage.mobility.control"), 1);
         notification.setLatestEventInfo(context.getApplicationContext(), "MobilityError", message,
                 pi);
         nm.notify(124, notification);
