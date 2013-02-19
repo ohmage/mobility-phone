@@ -6,9 +6,11 @@ import android.content.SharedPreferences;
 
 import org.ohmage.logprobe.LogProbe;
 import org.ohmage.logprobe.LogProbe.Loglevel;
+import org.ohmage.probemanager.MobilityProbeWriter;
 
-public class MobilityApplication extends Application
-{
+public class MobilityApplication extends Application {
+
+    public static MobilityProbeWriter probeWriter;
 
 	@Override
 	public void onCreate()
@@ -18,6 +20,9 @@ public class MobilityApplication extends Application
         LogProbe.setLevel(true, Loglevel.VERBOSE);
         LogProbe.get(this);
         
+        probeWriter = new MobilityProbeWriter(this);
+        probeWriter.connect();
+
 		SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
 		if (settings.getBoolean(MobilityControl.MOBILITY_ON, false))
 		{
@@ -30,5 +35,7 @@ public class MobilityApplication extends Application
 	public void onTerminate() {
 	    super.onTerminate();
 	    LogProbe.close(this);
+
+        probeWriter.close();
 	}
 }

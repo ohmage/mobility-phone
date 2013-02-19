@@ -24,7 +24,6 @@ import org.ohmage.mobility.blackout.BlackoutDesc;
 import org.ohmage.mobility.blackout.base.TriggerDB;
 import org.ohmage.mobility.blackout.base.TriggerInit;
 import org.ohmage.mobility.blackout.utils.SimpleTime;
-import org.ohmage.probemanager.MobilityProbeWriter;
 import org.ohmage.probemanager.ProbeBuilder;
 import org.ohmage.wifigpslocation.IWiFiGPSLocationService;
 
@@ -462,8 +461,6 @@ public class Mobility {
         }
     };
 
-    private static MobilityProbeWriter probeWriter;
-
     public static void initialize(Context context) {
         Log.v(TAG, "Initializing");
         // ServiceState.sampleRate = sampleRate;
@@ -473,10 +470,6 @@ public class Mobility {
         context.bindService(new Intent(IAccelService.class.getName()), accelServiceConnection,
                 Context.BIND_AUTO_CREATE);
 
-        if (probeWriter == null)
-            probeWriter = new MobilityProbeWriter(context);
-        probeWriter.connect();
-
         initialized = true;
     }
 
@@ -484,7 +477,6 @@ public class Mobility {
         try {
             context.unbindService(mConnection);
             context.unbindService(accelServiceConnection);
-            probeWriter.close();
 
             initialized = false;
         } catch (Exception e) {
@@ -521,10 +513,11 @@ public class Mobility {
 
     public static void writeProbe(Context context, ProbeBuilder probe, String mode, Float speed,
             String accel, String wifi) {
-        if (probeWriter == null)
-            probeWriter = new MobilityProbeWriter(context);
-        probeWriter.connect();
-        Mobility.probeWriter.write(probe, mode, speed, accel, wifi);
+        if(MobilityApplication.probeWriter != null) {
+            MobilityApplication.probeWriter.write(probe, mode, speed, accel, wifi);
+        } else {
+            Log.e(TAG, "Probewriter is null");
+        }
     }
 
     // public static void unbindServices(Context context)
