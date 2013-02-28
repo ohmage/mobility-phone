@@ -30,6 +30,8 @@ import org.ohmage.wifigpslocation.IWiFiGPSLocationService;
 //import android.widget.Toast;
 
 public class Mobility {
+    public static final int NOTIF_ERROR_ID = 124;
+
     static final boolean debugMode = false;
     static Location globalLoc;
     static boolean setInterval = false;
@@ -228,7 +230,7 @@ public class Mobility {
                 new Intent("org.ohmage.mobility.control"), 1);
         notification.setLatestEventInfo(context.getApplicationContext(), "MobilityError", message,
                 pi);
-        nm.notify(124, notification);
+        nm.notify(NOTIF_ERROR_ID, notification);
     }
 
     public static void startMobility(Context context) {

@@ -1,6 +1,7 @@
 
 package org.ohmage.mobility;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -140,6 +141,9 @@ public class ClassifierService extends WakefulIntentService {
                 return null;
             }
             Mobility.failCount = 0;
+            // Remove the accelservice error notification
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nm.cancel(Mobility.NOTIF_ERROR_ID);
 
             // ArrayList<Double[]> forceWithTimes =
             // (ArrayList<Double[]>)mAccel.getLastForce();
