@@ -16,6 +16,7 @@
 	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
+	<uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
 
 <uses-sdk android:targetSdkVersion="17" android:minSdkVersion="8"/>
     <application android:name="MobilityApplication" android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
