@@ -18,6 +18,8 @@
 	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
 	<uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
 
+	<uses-permission android:name="org.ohmage.SEND_PROBES" />
+
 <uses-sdk android:targetSdkVersion="17" android:minSdkVersion="8"/>
     <application android:name="MobilityApplication" android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
     <provider android:name="org.ohmage.mobility.MobilityContentProvider" android:authorities="org.ohmage.mobility.MobilityContentProvider" android:exported="true" />
@@ -32,6 +34,11 @@
                <action android:name="org.ohmage.mobility.control"/>
                <category android:name="android.intent.category.DEFAULT" />
     		</intent-filter>
+    		<intent-filter>
+                <action android:name="org.ohmage.probes.ACTION_CONFIGURE" />
+                <data android:mimeType="probe/edu.ucla.cens.Mobility" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity android:name="org.ohmage.mobility.blackout.ui.TriggerListActivity" />
         <activity android:name="org.ohmage.mobility.blackout.BlackoutEditActivity" />

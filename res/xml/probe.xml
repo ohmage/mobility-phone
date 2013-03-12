@@ -1,0 +1,14 @@
+<probes xmlns:probe="http://schemas.android.com/apk/res-auto" >
+
+    <probe
+        probe:observerId="edu.ucla.cens.Mobility"
+        probe:observerName="Mobility"
+        probe:observerVersionCode="2012061300"
+        probe:observerVersionName="1.4.3" />
+    <probe
+        probe:observerId="org.ohmage.LogProbe"
+        probe:observerName="LogProbe"
+        probe:observerVersionCode="1"
+        probe:observerVersionName="1.0" />
+
+</probes>
