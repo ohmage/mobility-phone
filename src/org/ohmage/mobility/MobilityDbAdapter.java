@@ -238,7 +238,7 @@ public class MobilityDbAdapter {
 		 * @return A Cursor object pointing to all the elements that satisfy the the
 		 *         parameters. If a SQLite exception occurs, null is returned.
 		 */
-		public synchronized Cursor getMobilityCursor(String[] columns, String selection, String[] selectionArgs, String orderBy) {
+		public Cursor getMobilityCursor(String[] columns, String selection, String[] selectionArgs, String orderBy) {
 			Cursor c;
 			try {
 				c = getReadableDatabase().query("mobility", columns, selection, selectionArgs, null, null, orderBy);
@@ -494,4 +494,4 @@ public class MobilityDbAdapter {
 			return ret;
 		}
 	}
-}
+	}
