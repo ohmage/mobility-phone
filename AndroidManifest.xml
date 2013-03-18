@@ -49,6 +49,9 @@
 		<intent-filter>
 			<action android:name="org.ohmage.mobility.glue.IMobility"/>
 		</intent-filter>
+		<intent-filter>
+			<action android:name="org.ohmage.mobility.glue.ACTION_SET_USERNAME"/>
+		</intent-filter>
 	</service>
 	<receiver android:name="org.ohmage.mobility.blackout.BlackoutService$AlarmReceiver">
 	    	<intent-filter>

@@ -297,6 +297,10 @@ public class MobilityDbAdapter {
 		Account[] accounts = am.getAccountsByType("org.ohmage");
 		if(accounts.length > 0) {
 		    username = accounts[0].name;
+		} else {
+			// Maybe ohmage is old and told us the username
+			SharedPreferences settings = mCtx.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
+			username = settings.getString(Mobility.KEY_USERNAME, DEFAULT_USERNAME);
 		}
 
 		if (wifiData.equals(""))
@@ -494,4 +498,15 @@ public class MobilityDbAdapter {
 			return ret;
 		}
 	}
+
+	/**
+	 * Updates the username for mobility points after a certain time
+	 * @param username
+	 * @param backdate
+	 */
+	public void updateUsername(String username, long backdate) {
+		ContentValues vals = new ContentValues();
+		vals.put(KEY_USERNAME, username);
+		mCtx.getContentResolver().update(MobilityInterface.CONTENT_URI, vals, KEY_USERNAME + "=? AND " + KEY_TIME + ">=" + backdate, new String[] { DEFAULT_USERNAME });
 	}
+}

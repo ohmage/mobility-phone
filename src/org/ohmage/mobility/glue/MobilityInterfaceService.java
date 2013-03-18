@@ -11,10 +11,29 @@ import android.os.IBinder;
 import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.Mobility;
 import org.ohmage.mobility.MobilityControl;
+import org.ohmage.mobility.MobilityDbAdapter;
 
 public class MobilityInterfaceService extends Service {
 
     protected static final String TAG = "MobilityInterfaceService";
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (MobilityInterface.ACTION_SET_USERNAME.equals(intent.getAction())) {
+            String username = intent.getStringExtra(MobilityInterface.EXTRA_USERNAME);
+            long backdate = intent.getLongExtra(MobilityInterface.EXTRA_BACKDATE, -1);
+            SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY,
+                    Context.MODE_PRIVATE);
+            settings.edit().putString(Mobility.KEY_USERNAME, username).commit();
+
+            if (backdate != -1) {
+                MobilityDbAdapter mdb = new MobilityDbAdapter(this);
+                mdb.updateUsername(username, backdate);
+            }
+            return START_NOT_STICKY;
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     @Override
     public IBinder onBind(Intent intent) {

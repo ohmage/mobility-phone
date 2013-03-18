@@ -10,6 +10,10 @@ import android.widget.Toast;
 
 public class MobilityInterface
 {
+	public static final String ACTION_SET_USERNAME = "org.ohmage.mobility.glue.ACTION_SET_USERNAME";
+	public static final String EXTRA_USERNAME = "extra_username";
+	public static final String EXTRA_BACKDATE = "extra_backdate";
+
 	public static final String KEY_MODE = "mode";
 	public static final String KEY_ID = "id";
 	public static final String KEY_SPEED = "speed";
