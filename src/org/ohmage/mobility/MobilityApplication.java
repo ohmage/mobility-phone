@@ -44,8 +44,7 @@ public class MobilityApplication extends Application {
 
         self = this;
 
-        LogProbe.setLevel(true, Loglevel.VERBOSE);
-        LogProbe.get(this);
+        ensureLogProbe(this);
 
         probeWriter = new MobilityProbeWriter(this);
         probeWriter.connect();
@@ -60,6 +59,11 @@ public class MobilityApplication extends Application {
             // Only try to download aggregate data once.
             aggregateRead();
         }
+    }
+
+    public static void ensureLogProbe(Context context) {
+        LogProbe.setLevel(true, Loglevel.VERBOSE);
+        LogProbe.get(context);
     }
 
     @Override

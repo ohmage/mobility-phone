@@ -67,6 +67,7 @@ public class MobilityContentProvider extends ContentProvider
 	@Override
 	public boolean onCreate() {
 		dbHelper = new DatabaseHelper(getContext());
+		MobilityApplication.ensureLogProbe(getContext());
 		return true;
 	}
 
