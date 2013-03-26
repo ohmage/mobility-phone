@@ -239,7 +239,12 @@ public class MobilityContentProvider extends ContentProvider
 				return dbHelper.getMobilityAggregatesCursor(columns, selection, selectionArgs, sortOrder);
 			} case URI_CODE_MOBILITY: {
 				Log.v(TAG, "Querying mobility.");
-				return dbHelper.getMobilityCursor(columns, selection, selectionArgs, sortOrder);
+				String groupBy = null;
+				String groupByParam = uri.getQueryParameter("group_by");
+				if("day".equals(groupByParam)) {
+				    groupBy = "date(time/1000, 'unixepoch', 'localtime')";
+				}
+				return dbHelper.getMobilityCursor(columns, selection, selectionArgs, groupBy, sortOrder);
 			}
 		}
 		

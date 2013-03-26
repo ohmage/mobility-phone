@@ -1,6 +1,4 @@
 package org.ohmage.mobility;
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -238,10 +236,10 @@ public class MobilityDbAdapter {
 		 * @return A Cursor object pointing to all the elements that satisfy the the
 		 *         parameters. If a SQLite exception occurs, null is returned.
 		 */
-		public Cursor getMobilityCursor(String[] columns, String selection, String[] selectionArgs, String orderBy) {
+		public Cursor getMobilityCursor(String[] columns, String selection, String[] selectionArgs, String groupBy, String orderBy) {
 			Cursor c;
 			try {
-				c = getReadableDatabase().query("mobility", columns, selection, selectionArgs, null, null, orderBy);
+				c = getReadableDatabase().query("mobility", columns, selection, selectionArgs, groupBy, null, orderBy);
 				c.setNotificationUri(mContext.getContentResolver(), MobilityInterface.CONTENT_URI);
 			} catch (SQLiteException e) {
 				Log.e(TAG, "Error getting mobility cursor", e);
@@ -291,18 +289,6 @@ public class MobilityDbAdapter {
 	public long createRow(String mode, long time, String status, Float speed, long timestamp, Float accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, Double latitude, Double longitude) {
 		ContentValues vals = new ContentValues();
 
-		String username = DEFAULT_USERNAME;
-
-		AccountManager am = AccountManager.get(mCtx);
-		Account[] accounts = am.getAccountsByType("org.ohmage");
-		if(accounts.length > 0) {
-		    username = accounts[0].name;
-		} else {
-			// Maybe ohmage is old and told us the username
-			SharedPreferences settings = mCtx.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
-			username = settings.getString(Mobility.KEY_USERNAME, DEFAULT_USERNAME);
-		}
-
 		if (wifiData.equals(""))
 			wifiData = "{}";
 
@@ -323,7 +309,7 @@ public class MobilityDbAdapter {
 		vals.put(KEY_TIMEZONE, timezone);
 		vals.put(KEY_LATITUDE, latitude.toString());
 		vals.put(KEY_LONGITUDE, longitude.toString());
-		vals.put(KEY_USERNAME, username);
+		vals.put(KEY_USERNAME, Utilities.getUserName(mCtx));
 		Log.v(TAG, "createRow: adding to table: " + MOBILITY_TABLE + ": " + mode);
 
 		long rowid = -1;

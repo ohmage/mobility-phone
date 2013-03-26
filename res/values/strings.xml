@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">Mobility</string>
     <string name="mobilityservicestarted">Mobility service is running.</string>
     <string name="mobilityservicestopped">Mobility service is not running.</string>
+    <string name="summary">Summary</string>
+    <string name="title_activity_mobility_summary">Mobility Summary</string>
+    <string name="action_settings">Settings</string>
+
 </resources>

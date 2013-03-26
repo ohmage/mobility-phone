@@ -17,6 +17,9 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
@@ -56,6 +59,25 @@ public class MobilityControl extends PreferenceActivity
 //		Cursor c = MobilityInterface.getMobilityCursor(MobilityControl.this, "0");
 //		Log.i(TAG, c.getColumnCount() + " is the column count");
 		
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.control_menu, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    // Handle item selection
+	    switch (item.getItemId()) {
+	        case R.id.menu_show_summary:
+	            startActivity(new Intent(this, MobilitySummary.class));
+	            return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
 	}
 	
 	int rate = 60;
