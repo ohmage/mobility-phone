@@ -6,8 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -25,9 +28,16 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.blackout.ui.TriggerListActivity;
+import org.ohmage.mobility.glue.MobilityInterface;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 public class MobilityControl extends PreferenceActivity
 {
@@ -74,6 +84,10 @@ public class MobilityControl extends PreferenceActivity
 	    switch (item.getItemId()) {
 	        case R.id.menu_show_summary:
 	            startActivity(new Intent(this, MobilitySummary.class));
+	            return true;
+	        case R.id.menu_dump_data:
+	            WritePointsTask task = new WritePointsTask(this);
+	            task.execute();
 	            return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
@@ -721,4 +735,55 @@ public class MobilityControl extends PreferenceActivity
 		}
 
 	}*/
+
+    public static class WritePointsTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final Context mContext;
+
+        private static final String[] PROJECTION = new String[] {
+                MobilityInterface.KEY_ID + " as _id", MobilityInterface.KEY_MODE,
+                MobilityInterface.KEY_TIME
+        };
+
+        public WritePointsTask(Context context) {
+            mContext = context.getApplicationContext();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            try {
+                File myFile = new File(Environment.getExternalStorageDirectory().getPath(),
+                        "mobility_dump_" + System.currentTimeMillis() + ".txt");
+                myFile.createNewFile();
+                FileOutputStream fOut = new FileOutputStream(myFile);
+                OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+
+                Cursor points = mContext.getContentResolver().query(MobilityInterface.CONTENT_URI,
+                        PROJECTION, MobilityInterface.KEY_USERNAME + "=?", new String[] {
+                            Utilities.getUserName(mContext)
+                        }, "time");
+
+                while (points.moveToNext()) {
+                    myOutWriter.append(points.getString(0) + "," + points.getString(1) + ","
+                            + points.getString(2) + "\n");
+
+                }
+
+                myOutWriter.close();
+                fOut.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error saving mobility data to sdcard", e);
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (result)
+                Toast.makeText(mContext, R.string.data_dump_finished, Toast.LENGTH_SHORT).show();
+            else
+                Toast.makeText(mContext, R.string.data_dump_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
 }

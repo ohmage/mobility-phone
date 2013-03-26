@@ -7,5 +7,8 @@
     <string name="summary">Summary</string>
     <string name="title_activity_mobility_summary">Mobility Summary</string>
     <string name="action_settings">Settings</string>
+    <string name="menu_dump_data">Dump Data</string>
+    <string name="data_dump_finished">Mobility Data saved to sdcard</string>
+    <string name="data_dump_failed">Save Mobility Data failed</string>
 
 </resources>
