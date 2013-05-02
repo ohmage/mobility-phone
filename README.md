@@ -9,3 +9,4 @@ Dependencies
 * [ohmageProbeLibrary](https://github.com/cens/ohmageProbeLibrary)
 * [AccelService](https://github.com/ohmage/AccelService)
 * [WiFiGPSLocation](https://github.com/ohmage/WiFiGPSLocation)
+* [LogProbe](https://github.com/cens/LogProbe)
