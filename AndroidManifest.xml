@@ -19,7 +19,6 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="org.ohmage.SEND_PROBES" />
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -136,6 +135,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.ohmage.mobility.MobilityControl" />
         </activity>
+
+        <meta-data
+            android:name="org.ohmage.probemanager"
+            android:resource="@xml/probe" />
     </application>
 
 </manifest>
