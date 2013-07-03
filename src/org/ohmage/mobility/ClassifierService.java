@@ -225,7 +225,7 @@ public class ClassifierService extends WakefulIntentService {
         String status = UNAVAILABLE;
         // double acc = 99999;
         Location loc;
-        String wifiData = "";
+        String wifiData = null;
         String wifiActivity = UNKNOWN;
         try {
             // while (mWiFiGPS == null) Log.e(TAG,
@@ -237,7 +237,8 @@ public class ClassifierService extends WakefulIntentService {
                 // Log.d(TAG, wifiData);
 
                 try {
-                    wifiActivity = checkWifi(new JSONObject(wifiData));
+                    if(wifiData != null)
+                        wifiActivity = checkWifi(new JSONObject(wifiData));
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();

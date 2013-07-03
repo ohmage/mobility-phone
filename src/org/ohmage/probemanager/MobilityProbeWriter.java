@@ -3,7 +3,7 @@ package org.ohmage.probemanager;
 
 import android.content.Context;
 import android.os.RemoteException;
-
+import android.text.TextUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,7 +40,8 @@ public class MobilityProbeWriter extends ProbeWriter {
                 probe.setStream(STREAM_EXTENDED, STREAM_EXTENDED_VERSION);
                 data.put("speed", speed);
                 data.put("accel_data", new JSONArray(accel));
-                data.put("wifi_data", new JSONObject(wifi));
+                if(!TextUtils.isEmpty(wifi))
+                    data.put("wifi_data", new JSONObject(wifi));
             }
 
             probe.setData(data.toString()).write(this);

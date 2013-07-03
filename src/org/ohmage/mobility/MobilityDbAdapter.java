@@ -289,9 +289,6 @@ public class MobilityDbAdapter {
 	public long createRow(String mode, long time, String status, Float speed, long timestamp, Float accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, Double latitude, Double longitude) {
 		ContentValues vals = new ContentValues();
 
-		if (wifiData.equals(""))
-			wifiData = "{}";
-
 		UUID id = UUID.randomUUID();
 		
 		String timezone = DateTimeZone.getDefault().getID();
@@ -303,7 +300,7 @@ public class MobilityDbAdapter {
 		vals.put(KEY_LOC_TIMESTAMP, timestamp);
 		vals.put(KEY_ACCURACY, accuracy.toString());
 		vals.put(KEY_PROVIDER, provider);
-		vals.put(KEY_WIFIDATA, wifiData);
+		vals.put(KEY_WIFIDATA, TextUtils.isEmpty(wifiData) ? "{}" : wifiData);
 		vals.put(KEY_ACCELDATA, formatAccelData(samples));
 		vals.put(KEY_TIME, time + "");
 		vals.put(KEY_TIMEZONE, timezone);
