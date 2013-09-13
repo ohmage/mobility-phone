@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
+
+
 public class ClassifierService extends WakefulIntentService {
     private LogProbe logger;
 
@@ -198,13 +200,14 @@ public class ClassifierService extends WakefulIntentService {
     private static final String NETWORK = "network";
     private static final int INACCURACY_THRESHOLD = 30;
     private static final int STALENESS_THRESHOLD = 3 * 60 * 1000;
-    private static final String WALK = "walk";
-    private static final String RUN = "run";
-    private static final String STILL = "still";
-    private static final String DRIVE = "drive";
-    private static final String BIKE = "bike";
-    private static final String ERROR = "error";
-    private static final String UNKNOWN = "unknown";
+    public static final String WALK = "walk";
+    public static final String RUN = "run";
+    public static final String STILL = "still";
+    public static final String DRIVE = "drive";
+    public static final String BIKE = "bike";
+    public static final String ERROR = "error";
+    public static final String UNKNOWN = "unknown";
+    public static final String TILT = "tilt";
     private static final String WIFI_HISTORY = "wifi_history";
 
     private void getTransportMode() {
@@ -225,7 +228,7 @@ public class ClassifierService extends WakefulIntentService {
         String status = UNAVAILABLE;
         // double acc = 99999;
         Location loc;
-        String wifiData = "";
+        String wifiData = null;
         String wifiActivity = UNKNOWN;
         try {
             // while (mWiFiGPS == null) Log.e(TAG,
@@ -237,7 +240,8 @@ public class ClassifierService extends WakefulIntentService {
                 // Log.d(TAG, wifiData);
 
                 try {
-                    wifiActivity = checkWifi(new JSONObject(wifiData));
+                	if(wifiData != null) 
+                		wifiActivity = checkWifi(new JSONObject(wifiData));
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -421,7 +425,7 @@ public class ClassifierService extends WakefulIntentService {
         // Log.d(TAG, speed +
         // " is the speed and the features are " + features);
         activity = activity(speed, a, v, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0);
-
+//        activity = GoogleActivityClassifier.getGooglemode(); // TODO get rid of this!
         if (wifiChecking && !wifiActivity.equals(UNKNOWN)) {
             if (activity.equals(DRIVE) || activity.equals(STILL))
                 activity = wifiActivity; // The other classifier is rubbish for
@@ -908,6 +912,7 @@ public class ClassifierService extends WakefulIntentService {
         long time = System.currentTimeMillis();// resJson.setAndReturnTime();
 
         // Open the database, and store the response
+        
         tmdb.createRow(mode, time, status, speed, timestamp, accuracy, provider, wifiData, samples,
                 lat, lon);
     }

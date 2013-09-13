@@ -15,6 +15,25 @@
 -->
 
 <resources>
+	
+    <string-array name="pref_mobility_rate_options_training">
+		<item>1 minute</item>
+		<item>30 seconds</item>
+		<item>10 seconds</item>
+		<item>5 seconds</item>
+		
+		
+	</string-array>
+	<string-array name="pref_mobility_rate_options_values_training">
+		<item>60</item>
+		<item>30</item>
+		<item>10</item>
+		<item>5</item>
+		
+		
+	</string-array>
+	
+	
 	<string-array name="pref_mobility_rate_options">
 		<item>5 minutes</item>
 		<item>1 minute</item>

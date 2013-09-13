@@ -1,6 +1,7 @@
 
 package org.ohmage.mobility;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -26,6 +27,14 @@ import org.ohmage.mobility.blackout.base.TriggerInit;
 import org.ohmage.mobility.blackout.utils.SimpleTime;
 import org.ohmage.probemanager.ProbeBuilder;
 import org.ohmage.wifigpslocation.IWiFiGPSLocationService;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
+//import com.google.android.gms.common.ConnectionResult;
+//import com.google.android.gms.common.GooglePlayServicesUtil;
+//import com.google.android.gms.location.ActivityRecognitionClient;
+
 
 //import android.widget.Toast;
 
@@ -55,10 +64,11 @@ public class Mobility {
     // public static Context appContext = null;
     static AlarmManager mgr;
 
-    static long sampleRate = 60000;
+    static long sampleRate = 5000;
     static boolean intervalSet = false;
     static boolean accelConnected = false;
     static boolean gpsConnected = false;
+    static boolean arcConnected = false;
     // public static boolean mConnected = false;
     public static ServiceConnection accelServiceConnection = new ServiceConnection() {
         @Override
@@ -107,7 +117,16 @@ public class Mobility {
     // bootService = boot;
     // start(context);
     // }
-
+    
+    static Activity mActivityContext = null;
+    
+    public static void setActivityContext(Activity activityContext)
+    {
+    	mActivityContext = activityContext;
+    }
+    
+    
+    
     public static void start(Context context) {
         TriggerDB db = new TriggerDB(context);
         db.open();
@@ -233,8 +252,54 @@ public class Mobility {
         nm.notify(NOTIF_ERROR_ID, notification);
     }
 
+    /**
+     * Verify that Google Play services is available before making a request.
+     *
+     * @return true if Google Play services is available, otherwise false
+     * @throws Exception 
+     */
+    private static boolean servicesConnected() throws Exception {
+
+    	if (mActivityContext == null)
+    		throw new Exception("Need to set activity context for installation of google services.");
+        // Check that Google Play services is available
+        int resultCode =
+                GooglePlayServicesUtil.isGooglePlayServicesAvailable(mActivityContext);
+//        Log.d(TAG, resultCode == ConnectionResult.SUCCESS ? "Google Play Services are installed" : "Need to install Google Play Services");
+        // If Google Play services is available
+        if (ConnectionResult.SUCCESS == resultCode) {
+            return true;
+
+        // Google Play services was not available for some reason
+        } else {
+
+            // Display an error dialog
+            GooglePlayServicesUtil.getErrorDialog(resultCode, mActivityContext, 0).show();
+            return false;
+        }
+        
+    }
+    
     public static void startMobility(Context context) {
-        Log.v(TAG, "Starting mobility service, no blackout!");
+        
+    	try {
+			if (!servicesConnected())
+			{
+				
+				setNotification(context, STATUS_ERROR, "Restart mobility, Google services were not installed before.");
+				Log.d(TAG, "Need google services");
+				return;
+			}
+			else
+				Log.d(TAG, "Everything is fine");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	
+    	
+    	Log.v(TAG, "Starting mobility service, no blackout!");
         setNotification(context, STATUS_PENDING, "Waiting for the first sensor sample");
         // nm = (NotificationManager)
         // context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -252,15 +317,18 @@ public class Mobility {
         // nm.notify(123, notification);
 
         SharedPreferences settings = context.getSharedPreferences(MOBILITY, Context.MODE_PRIVATE);
-        sampleRate = (long) settings.getInt(SAMPLE_RATE, 60) * 1000;
+        sampleRate = (long) settings.getInt(SAMPLE_RATE, 5) * 1000;
 
         mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         // context.registerReceiver(accReceiver, new IntentFilter(ACC_START));
 
+        
+        
         Log.i(TAG, "Sample rate is: " + sampleRate);
         startGPS(context, sampleRate);
         startAcc(context, sampleRate);
+        startARC(context, sampleRate);
         // Toast.makeText(context, R.string.mobilityservicestarted,
         // Toast.LENGTH_SHORT).show();
         Log.i(TAG, "Starting transport mode service with sampleRate: " + sampleRate);
@@ -280,6 +348,7 @@ public class Mobility {
         }
         stopAcc(context);
         stopGPS(context);
+        stopARC(context);
         // try
         // {
         // context.unregisterReceiver(accReceiver);
@@ -329,6 +398,25 @@ public class Mobility {
         // Log.d(TAG, "nm is null!");
     }
 
+    
+    static GoogleActivityClassifier mGAC;
+    private static void startARC(Context context, long milliseconds)
+    {
+    	
+    	mGAC = new GoogleActivityClassifier(context, milliseconds);
+    	
+    
+    }
+    
+    
+    private static void stopARC(Context context)
+    {
+    	
+    	mGAC.stop();
+    	
+    
+    }
+    
     private static void startAcc(Context context, long milliseconds) {
         // start accel
         if (accelConnected) {
@@ -513,10 +601,10 @@ public class Mobility {
 
     }
 
-    public static void writeProbe(Context context, ProbeBuilder probe, String mode, Float speed,
+    public static void writeProbe(Context context, ProbeBuilder probe, String mode, String googlemode1, String googlemode2, Float speed,
             String accel, String wifi) {
         if(MobilityApplication.probeWriter != null) {
-            MobilityApplication.probeWriter.write(probe, mode, speed, accel, wifi);
+            MobilityApplication.probeWriter.write(probe, mode, googlemode1, googlemode2, speed, accel, wifi);
         } else {
             Log.e(TAG, "Probewriter is null");
         }

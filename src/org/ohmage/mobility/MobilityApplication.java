@@ -57,7 +57,7 @@ public class MobilityApplication extends Application {
         if (settings.getBoolean("first_run", true)) {
             settings.edit().putBoolean("first_run", true).commit();
             // Only try to download aggregate data once.
-            aggregateRead();
+//            aggregateRead(); // commented out for testing without ohmage dev key
         }
     }
 

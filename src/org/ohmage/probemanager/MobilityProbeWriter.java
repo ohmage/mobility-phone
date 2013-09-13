@@ -3,11 +3,14 @@ package org.ohmage.probemanager;
 
 import android.content.Context;
 import android.os.RemoteException;
+import android.text.TextUtils;
+import android.util.Log;
 
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.mobility.ModeSelectorActivity;
 import org.ohmage.mobility.glue.MobilityInterface;
 
 public class MobilityProbeWriter extends ProbeWriter {
@@ -27,20 +30,25 @@ public class MobilityProbeWriter extends ProbeWriter {
         super(context);
     }
 
-    public void write(ProbeBuilder probe, String mode, Float speed, String accel, String wifi) {
+    public void write(ProbeBuilder probe, String mode, String googlemode1, String googlemode2, Float speed, String accel, String wifi) {
         probe.setObserver(OBSERVER_ID, OBSERVER_VERSION);
 
         try {
             JSONObject data = new JSONObject();
             data.put("mode", mode);
-
+            data.put("googlemode", googlemode1);
+            data.put("googlemode2", googlemode2);
+            data.put("trainingmode", ModeSelectorActivity.getTrainingMode());
+            Log.d(TAG, "Adding training mode: " + ModeSelectorActivity.getTrainingMode());
+            Log.d(TAG, "Google mode: " + googlemode1);
             if (MobilityInterface.ERROR.equals(mode)) {
                 probe.setStream(STREAM_ERROR, STREAM_ERROR_VERSION);
             } else {
                 probe.setStream(STREAM_EXTENDED, STREAM_EXTENDED_VERSION);
                 data.put("speed", speed);
                 data.put("accel_data", new JSONArray(accel));
-                data.put("wifi_data", new JSONObject(wifi));
+                if(!TextUtils.isEmpty(wifi))
+                	data.put("wifi_data", new JSONObject(wifi));
             }
 
             probe.setData(data.toString()).write(this);

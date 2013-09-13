@@ -42,9 +42,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-public class MobilityControl extends PreferenceActivity
+public class MobilityTraining extends PreferenceActivity
 {
-	private final static String TAG = "MobilityControl";
+	private final static String TAG = "MobilityTraining";
 
 	// KEYS FOR PREFERENCES
 	private static final String KEY_MOBILITY_ONOFF_PREF = "pref_mobility_onoff";
@@ -98,7 +98,7 @@ public class MobilityControl extends PreferenceActivity
 	    }
 	}
 	
-	int rate = 60;
+	int rate = 5;
 	boolean running = false;
 	
 	@Override
@@ -106,7 +106,7 @@ public class MobilityControl extends PreferenceActivity
 	{
 		super.onResume();
 		SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
-		rate = settings.getInt(Mobility.SAMPLE_RATE, 60);
+		rate = settings.getInt(Mobility.SAMPLE_RATE, 5);
 		running = settings.getBoolean(MOBILITY_ON, false);
 		setPreferenceScreen(createPreferenceHierarchy());
 	}
@@ -115,7 +115,7 @@ public class MobilityControl extends PreferenceActivity
 	private static final int DIALOG_IDX_NEWUPDATE = 2;
 	private static final int DIALOG_IDX_NOUPDATE = 3;
 	private static final int DIALOG_IDX_TIMEOUT = 4;
-	private static final String KEY_MOBILITY_BLACKOUT_PREF = "pref_mobility_blackout";
+	private static final String KEY_MOBILITY_TRAINING_MODE = "pref_mobility_training";
 
 
 	public static View createSpacer(Context c, int height)
@@ -266,23 +266,33 @@ public class MobilityControl extends PreferenceActivity
 				Log.v(TAG, "Mobility Change: " + value.booleanValue());
 				if (value.booleanValue())
 				{
-					SharedPreferences settings = MobilityControl.this.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
+					SharedPreferences settings = MobilityTraining.this.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
 					Editor editor = settings.edit();
 					editor.putBoolean(MOBILITY_ON, true);
+					editor.putString(ModeSelectorActivity.CURRENT_MODE, ModeSelectorActivity.NO_MODE);
+					editor.putInt(ModeSelectorActivity.CURRENT_CHECK, R.id.undefined);
 					editor.commit();
+					ModeSelectorActivity.resetMode();
+					Toast.makeText(MobilityTraining.this, "Set ground truth again, it's been reset", 2).show();
+					
 //					startService(new Intent(MobilityControl.this, Mobility.class));
-					Mobility.setActivityContext(MobilityControl.this);
-					Mobility.start(MobilityControl.this.getApplicationContext());
+					Mobility.setActivityContext(MobilityTraining.this);
+					Mobility.start(MobilityTraining.this.getApplicationContext());
 					
 				} 
 				else
 				{
-					SharedPreferences settings = MobilityControl.this.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
+					SharedPreferences settings = MobilityTraining.this.getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
 					Editor editor = settings.edit();
 					editor.putBoolean(MOBILITY_ON, false);
+					editor.putString(ModeSelectorActivity.CURRENT_MODE, ModeSelectorActivity.NO_MODE);
+					editor.putInt(ModeSelectorActivity.CURRENT_CHECK, R.id.undefined);
 					editor.commit();
 //					stopService(new Intent(MobilityControl.this, Mobility.class));
-					Mobility.stop(MobilityControl.this.getApplicationContext());
+					Mobility.stop(MobilityTraining.this.getApplicationContext());
+					ModeSelectorActivity.resetMode();
+					
+					
 				}
 			} 
 			/*
@@ -311,16 +321,16 @@ public class MobilityControl extends PreferenceActivity
 //					Intent MobilityServiceIntent = new Intent(MobilityControl.this, MobilityService.class);
 //					stopService(MobilityServiceIntent);
 //					startService(MobilityServiceIntent);
-					Mobility.stop(MobilityControl.this);
-					Mobility.start(MobilityControl.this);
+					Mobility.stop(MobilityTraining.this);
+					Mobility.start(MobilityTraining.this);
 				}
 				
 			}
-			else if (pref_key.equals(KEY_MOBILITY_BLACKOUT_PREF))
+			else if (pref_key.equals(KEY_MOBILITY_TRAINING_MODE))
 			{
-				Intent intent = new Intent(MobilityControl.this, TriggerListActivity.class);
+				Intent intent = new Intent(MobilityTraining.this, ModeSelectorActivity.class);
 //				intent.setAction("android.intent.action.BLACKOUT");
-		        MobilityControl.this.startActivity(intent);
+		        MobilityTraining.this.startActivity(intent);
 			}
 			else
 				Log.w(TAG, "That wasn't recognized.");
@@ -356,11 +366,11 @@ public class MobilityControl extends PreferenceActivity
         public boolean onPreferenceClick(Preference preference)
 		{
 			String pref_key = preference.getKey();
-			if (pref_key.equals(KEY_MOBILITY_BLACKOUT_PREF))
+			if (pref_key.equals(KEY_MOBILITY_TRAINING_MODE))
 			{
-				Intent intent = new Intent(MobilityControl.this, /*DataSaverActivity.class);//*/TriggerListActivity.class);
+				Intent intent = new Intent(MobilityTraining.this, /*DataSaverActivity.class);//*/ModeSelectorActivity.class);
 //				intent.setAction("android.intent.action.BLACKOUT");
-		        MobilityControl.this.startActivity(intent);
+		        MobilityTraining.this.startActivity(intent);
 			}
 			return false;
 		}
@@ -406,8 +416,8 @@ public class MobilityControl extends PreferenceActivity
 		DisplayValueListPreference moSampPref = new DisplayValueListPreference(this);
 		moSampPref.setKey(KEY_MOBILITY_SAMPLERATE_PREF);
 		moSampPref.setTitle("Sampling rate");
-		moSampPref.setEntries(R.array.pref_mobility_rate_options);
-		moSampPref.setEntryValues(R.array.pref_mobility_rate_options_values);
+		moSampPref.setEntries(R.array.pref_mobility_rate_options_training);
+		moSampPref.setEntryValues(R.array.pref_mobility_rate_options_values_training);
 		moSampPref.setDefaultValue("" + rate);
 		
 		moSampPref.setDialogTitle("Set sample rate");
@@ -416,13 +426,15 @@ public class MobilityControl extends PreferenceActivity
 		mobilityPrefCat.addPreference(moSampPref);
 		moSampPref.setValue(rate + "");
 		// Blackout
-		Preference blackoutPref = new Preference(this);
-		blackoutPref.setKey(KEY_MOBILITY_BLACKOUT_PREF);
-		blackoutPref.setTitle("Blackout times");
-		blackoutPref.setTitle("Tap here to set blackout times");
-//		blackoutPref.setDependency(KEY_MOBILITY_ONOFF_PREF);
-		blackoutPref.setOnPreferenceClickListener(mOnClickListener);
-		mobilityPrefCat.addPreference(blackoutPref);
+		Preference trainingMode = new Preference(this);
+		trainingMode.setKey(KEY_MOBILITY_TRAINING_MODE);
+		trainingMode.setTitle("Ground truth selector");
+//		trainingMode.setTitle("Tap here to record ground truth");
+
+		trainingMode.setOnPreferenceClickListener(mOnClickListener);
+//		trainingMode.setDependency(KEY_MOBILITY_ONOFF_PREF);
+		mobilityPrefCat.addPreference(trainingMode);
+		
 	}
 
 	

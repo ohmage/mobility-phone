@@ -21,6 +21,7 @@ import org.ohmage.mobility.glue.MobilityInterface;
 import org.ohmage.probemanager.ProbeBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -289,9 +290,6 @@ public class MobilityDbAdapter {
 	public long createRow(String mode, long time, String status, Float speed, long timestamp, Float accuracy, String provider, String wifiData, Vector<ArrayList<Double>> samples, Double latitude, Double longitude) {
 		ContentValues vals = new ContentValues();
 
-		if (wifiData.equals(""))
-			wifiData = "{}";
-
 		UUID id = UUID.randomUUID();
 		
 		String timezone = DateTimeZone.getDefault().getID();
@@ -303,7 +301,7 @@ public class MobilityDbAdapter {
 		vals.put(KEY_LOC_TIMESTAMP, timestamp);
 		vals.put(KEY_ACCURACY, accuracy.toString());
 		vals.put(KEY_PROVIDER, provider);
-		vals.put(KEY_WIFIDATA, wifiData);
+		vals.put(KEY_WIFIDATA, TextUtils.isEmpty(wifiData) ? "{}" : wifiData);
 		vals.put(KEY_ACCELDATA, formatAccelData(samples));
 		vals.put(KEY_TIME, time + "");
 		vals.put(KEY_TIMEZONE, timezone);
@@ -323,8 +321,11 @@ public class MobilityDbAdapter {
         // We can't send NaN or Inf, so we set those values to null
         if(Float.isInfinite(speed) || Float.isNaN(speed))
             speed = null;
-
-        Mobility.writeProbe(mCtx, probe, mode, speed, formatAccelData(samples), wifiData);
+        
+        List<String> googlemodes = GoogleActivityClassifier.getGooglemodes();
+        
+        // MODE is FIRST!!!!!
+        Mobility.writeProbe(mCtx, probe, mode, googlemodes.get(0), googlemodes.get(1), speed, formatAccelData(samples), wifiData);
 
 		if(row != null) {
 			rowid = ContentUris.parseId(row);
