@@ -134,10 +134,10 @@
         <activity
             android:name="org.ohmage.mobility.MobilitySummary"
             android:label="@string/title_activity_mobility_summary"
-            android:parentActivityName="org.ohmage.mobility.MobilityControl" >
+            android:parentActivityName="org.ohmage.mobility.MobilityTraining" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.ohmage.mobility.MobilityControl" />
+                android:value="org.ohmage.mobility.MobilityTraining" />
         </activity>
 
         <meta-data
