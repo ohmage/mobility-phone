@@ -209,6 +209,7 @@ public class ClassifierService extends WakefulIntentService {
     public static final String UNKNOWN = "unknown";
     public static final String TILT = "tilt";
     private static final String WIFI_HISTORY = "wifi_history";
+    private static final String LOC_HISTORY = "loc_history";
 
     private void getTransportMode() {
         Vector<ArrayList<Double>> samples = getAccSamples();
@@ -228,8 +229,9 @@ public class ClassifierService extends WakefulIntentService {
         String status = UNAVAILABLE;
         // double acc = 99999;
         Location loc;
-        String wifiData = null;
-        String wifiActivity = UNKNOWN;
+        String wifiData = "";
+        Classification wifiClass = null;
+        Classification locClass = null;
         try {
             // while (mWiFiGPS == null) Log.e(TAG,
             // "wifigps is null even though android returned from onbind. Fantastic.");
@@ -240,13 +242,26 @@ public class ClassifierService extends WakefulIntentService {
                 // Log.d(TAG, wifiData);
 
                 try {
-                	if(wifiData != null) 
-                		wifiActivity = checkWifi(new JSONObject(wifiData));
+                	if(wifiData != null)
+                		wifiClass = checkWifi(new JSONObject(wifiData));
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                     Log.e(TAG, "Error running checkWifi :" + wifiData, e);
                 }
+                
+                try {
+                	if (loc != null)
+                	{
+	                	LocationPoint lp = new LocationPoint(loc.getLatitude(), loc.getLongitude(), loc.getTime());
+	                    locClass = checkLocation(lp);
+                	}
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    Log.e(TAG, "Error running checkLocation :" + loc.toString(), e);
+                }
+                
                 // globalLoc = mWiFiGPS.getLocation();
                 // if (!setInterval)
                 // {
@@ -424,14 +439,20 @@ public class ClassifierService extends WakefulIntentService {
                         a8, a9, a0, 0., 0., 0.);
         // Log.d(TAG, speed +
         // " is the speed and the features are " + features);
-        activity = activity(speed, a, v, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0);
+        
+        int totalAPs = wifiClass.getWifiTotal();
+        int matchedAPs = wifiClass.getWifiRecogTotal();
+        double radius = locClass.getRadius();
+        double travelled = locClass.getTravelled();
+        
+        activity = activity(speed, a, v, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0, totalAPs, matchedAPs, radius, travelled);
 //        activity = GoogleActivityClassifier.getGooglemode(); // TODO get rid of this!
-        if (wifiChecking && !wifiActivity.equals(UNKNOWN)) {
-            if (activity.equals(DRIVE) || activity.equals(STILL))
-                activity = wifiActivity; // The other classifier is rubbish for
-                                         // still/drive, just use WiFi result
-        } else
-            Log.i(TAG, "wifi not used (turned off or unknown for this sample)");
+//        if (wifiChecking && !wifiActivity.equals(UNKNOWN)) {
+//            if (activity.equals(DRIVE) || activity.equals(STILL))
+//                activity = wifiActivity; // The other classifier is rubbish for
+//                                         // still/drive, just use WiFi result
+//        } else
+//            Log.i(TAG, "wifi not used (turned off or unknown for this sample)");
         if (gpsFail && Mobility.debugMode)
             Mobility.setNotification(this, Mobility.STATUS_OK, activity + " (Warning: No GPS)");
         else
@@ -567,18 +588,48 @@ public class ClassifierService extends WakefulIntentService {
     // }
 
     // private double historySize = 5.;
-    private final double checkLength = 11 * 60 * 1000; // 11 minutes
+    private final double wifiCheckLength = 10 * 60 * 1000; // 11 minutes
+    private final double locCheckLength = 6 * 60 * 1000;
+    /**
+     * Gets distance as a naïve Euclidean distance between lat/lon points.
+     * @param loc1
+     * @param loc2
+     * @return
+     */
+    private double NaïveDistance(Location loc1, Location loc2) {
+		return Math.sqrt(Math.pow(loc1.getLatitude() - loc2.getLatitude(), 2) + Math.pow(loc1.getLongitude() - loc2.getLongitude(), 2));
+	}
+    
+    private double Distance(LocationPoint loc1, LocationPoint loc2) {
+    	
+	    double pk = (float) (180/3.14169);
 
-    private String checkWifi(JSONObject jsonObject) throws JSONException {
+	    double a1 = loc1.getLatitude() / pk;
+	    double a2 = loc1.getLongitude() / pk;
+	    double b1 = loc2.getLatitude() / pk;
+	    double b2 = loc2.getLongitude() / pk;
+
+	    double t1 = Math.cos(a1)*Math.cos(a2)*Math.cos(b1)*Math.cos(b2);
+	    double t2 = Math.cos(a1)*Math.sin(a2)*Math.cos(b1)*Math.sin(b2);
+	    double t3 = Math.sin(a1)*Math.sin(b1);
+	    double tt = Math.acos(t1 + t2 + t3);
+	   
+	    return 6366000*tt;
+    	
+    }
+    
+    private Classification checkWifi(JSONObject jsonObject) throws JSONException {
         // load previous
         SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
         String APsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare
                                                                             // with
                                                                             // previous
                                                                             // sample
+        Classification wifiClass = new Classification();
+        wifiClass.setWifiMode(UNKNOWN);
         if(jsonObject.length() == 0) {
             // WiFi wasn't able to give us any information.
-            return UNKNOWN;
+            return wifiClass; // UNKNOWN
         }
 
         long time = jsonObject.getLong("time");
@@ -587,12 +638,18 @@ public class ClassifierService extends WakefulIntentService {
             HashMap<Long, Vector<String>> lastAPs = new HashMap<Long, Vector<String>>();
             String[] lines = APsFromLastTimeStr.split("\n");
             long lastTime = Long.parseLong(lines[0]);
-            String lastMode = lines[1];
+            String lastClassificationString = lines[1];
+//            String [] lastFeatures = lines[1].split(";");
+//            String lastMode = UNKNOWN;
+	            
+	        int lastTotal = Integer.parseInt(lines[1]);
+	        int lastMatching = Integer.parseInt(lines[2]);
+            
             Vector<String> APsFromLastTimes = new Vector<String>();
             // Log.d(TAG, "aps from last time object: " + APsFromLastTimeStr);
             // Log.d(TAG, APsFromLastTimes.size() + " previous scans");
             int count = 0;
-            for (int l = 2; l < lines.length; l++) {
+            for (int l = 3; l < lines.length; l++) {
                 try {
                     Vector<String> prev = new Vector<String>();
                     String[] APStrs = lines[l].split(",");
@@ -621,11 +678,14 @@ public class ClassifierService extends WakefulIntentService {
             if (lastTime == time) // no new wifi data
             {
                 Log.v(TAG, "Returning previous value since there has been no new WiFi data");
-                return lastMode;
+//                wifiClass.setWifiMode(lastMode);
+                wifiClass.setWifiTotal(lastTotal);
+                wifiClass.setWifiRecogTotal(lastMatching);
+                return wifiClass;
             }
             Log.i(TAG, "Current wifi is " + (System.currentTimeMillis() - time) / 60000
                     + " minutes old.");
-            if (lastTime < System.currentTimeMillis() - 1000 * 60 * 8) // if no
+            if (lastTime <= System.currentTimeMillis() - 1000 * 60 * wifiCheckLength) // if no
                                                                        // recent
                                                                        // wifi
                                                                        // for
@@ -633,8 +693,8 @@ public class ClassifierService extends WakefulIntentService {
             {
                 Log.i(TAG, "Last stored wifi was ages (" + (System.currentTimeMillis() - lastTime)
                         / 60000 + " minutes) ago .");
-                writeWifi(settings, time, UNKNOWN, APs, null);
-                return UNKNOWN;
+                writeWifi(settings, time, APs, null, 0, 0);
+                return wifiClass; // UNKNOWN
             } else
                 Log.i(TAG, "Last stored wifi is " + (System.currentTimeMillis() - lastTime) / 60000
                         + " minutes old.");
@@ -653,47 +713,234 @@ public class ClassifierService extends WakefulIntentService {
             // }
             Log.i(TAG, "There were " + same + " matches out of " + total
                     + " APs were in this sample. current:" + APs + " previous:" + APsFromLastTimes);
+            writeWifi(settings, time, APs, lastAPs, total, same);
+            wifiClass.setWifiRecogTotal(same);
+            wifiClass.setWifiTotal(total);
+            
             if (total > 0) {
-                int threshold = 2;
-                if (total <= 3)
-                    threshold = 1;
-                if (total == 1)
-                    threshold = 0;
-                if (same <= threshold) {
-                    Log.v(TAG, "Wifi chooses drive!");
-                    writeWifi(settings, time, DRIVE, APs, lastAPs);
-                    return DRIVE;// + " " + same / total;
-                } else {
-                    Log.v(TAG, "Wifi chooses still!");
-                    writeWifi(settings, time, STILL, APs, lastAPs);
-                    return STILL;// + " " + same / total;
-                }
+//                int threshold = 2;
+//                if (total <= 3)
+//                    threshold = 1;
+//                if (total == 1)
+//                    threshold = 0;
+//                if (same <= threshold) {
+//                    Log.v(TAG, "Wifi chooses drive!");
+//                    writeWifi(settings, time, DRIVE, APs, lastAPs, total, same);
+//                    return DRIVE;// + " " + same / total;
+//                } else {
+//                    Log.v(TAG, "Wifi chooses still!");
+//                    writeWifi(settings, time, STILL, APs, lastAPs, total, same);
+//                    return STILL;// + " " + same / total;
+//                }
 
             } else {
                 Log.v(TAG, "No wifi detected in new sample; it's up to the GPS.");
-                writeWifi(settings, time, UNKNOWN, APs, lastAPs);
-                return UNKNOWN;
+                writeWifi(settings, time, APs, lastAPs, total, same);
+                return wifiClass; // UNKNOWN
             }
+            return wifiClass;
         } else {
             Log.v(TAG, "No previous AP!");
             // no history
             Vector<String> APs = JSONToList(jsonObject);
-            writeWifi(settings, time, UNKNOWN, APs, null);
-            return UNKNOWN;
+            writeWifi(settings, time, APs, null, 0, 0);
+            return wifiClass;
         }
 
     }
 
-    private void writeWifi(SharedPreferences settings, long time, String mode, Vector<String> APs,
-            HashMap<Long, Vector<String>> lastAPs) {
-        StringBuilder store = new StringBuilder(time + "\n" + mode + "\n" + time);
+    private Classification checkLocation(LocationPoint loc) throws JSONException {
+        // load previous
+        SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
+        String locsFromLastTimeStr = settings.getString(LOC_HISTORY, null); // compare
+                                                                            // with
+                                                                            // previous
+                                                                            // samples
+        Classification locClass = new Classification();
+//        locClass.setiMode(UNKNOWN);
+        if (Double.isNaN(loc.getLatitude()) || Double.isNaN(loc.getLongitude()))
+        {
+            // WiFi wasn't able to give us any information.
+            return locClass; // UNKNOWN
+        }
+
+        long time = loc.getTime();
+
+        if (locsFromLastTimeStr != null) {
+//            HashMap<Long, LocationPoint> lastLocations = new HashMap<Long, LocationPoint>();
+//            ArrayList<Long> times = new ArrayList<Long>();
+            ArrayList<LocationPoint> lastLocations = new ArrayList<LocationPoint>();
+            String[] lines = locsFromLastTimeStr.split("\n");
+            long lastTime = Long.parseLong(lines[0]);
+//            String lastClassificationString = lines[1];
+//            String [] lastFeatures = lines[1].split(";");
+//            String lastMode = UNKNOWN;
+	            
+	        double lastRadius = Double.parseDouble(lines[1]);
+	        double lastTravelled = Double.parseDouble(lines[2]);
+	        
+            
+            Vector<String> locsFromLastTimes = new Vector<String>();
+            // Log.d(TAG, "aps from last time object: " + APsFromLastTimeStr);
+            // Log.d(TAG, APsFromLastTimes.size() + " previous scans");
+            int count = 0;
+            for (int l = 3; l < lines.length; l++) {
+                try {
+//                    Vector<String> prev = new Vector<String>();
+                    String[] locStrs = lines[l].split(",");
+                    long prevTimestamp = Long.parseLong(locStrs[0]);
+                    if (prevTimestamp <= System.currentTimeMillis() - 1000 * 60 * locCheckLength)
+                    	continue;
+                    LocationPoint prev = new LocationPoint(Double.parseDouble(locStrs[1]), Double.parseDouble(locStrs[2]), prevTimestamp);
+//                    times.add(prevTimestamp);
+                    lastLocations.add(prev);
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "Malformed timestamp in line " + l + " of previous strings: \""
+                            + lines[1] + "\"", e);
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            
+            
+
+            // Log.d(TAG, "AP from last time exists and is well-formed:\n"
+            // + APsFromLastTimeStr);
+//            Vector<String> locs = JSONToList(jsonObject);
+
+            // compare to locsFromLastTime
+            double radius = 0;
+            double travelled = 0;
+            if (lastTime == time) // no new wifi data
+            {
+                Log.v(TAG, "Returning previous value since there has been no new location data");
+//                wifiClass.setWifiMode(lastMode);
+                locClass.setRadius(lastRadius);
+                locClass.setTravelled(lastTravelled);
+                return locClass;
+            }
+            
+         // Add current to same list if it's new
+//            times.add(time);
+            lastLocations.add(loc);
+            
+            Log.i(TAG, "Current location is " + (System.currentTimeMillis() - time) / 60000
+                    + " minutes old.");
+            if (lastTime <= System.currentTimeMillis() - 1000 * 60 * locCheckLength) // if no
+                                                                       // recent
+                                                                       // location
+                                                                       // for
+                                                                       // comparison
+            {
+                Log.i(TAG, "Last stored wifi was ages (" + (System.currentTimeMillis() - lastTime)
+                        / 60000 + " minutes) ago .");
+                writeLocations(settings, time, loc, null, radius, travelled);
+                return locClass; // UNKNOWN
+            } else
+                Log.i(TAG, "Last stored wifi is " + (System.currentTimeMillis() - lastTime) / 60000
+                        + " minutes old.");
+            // Now we can do the comparison
+//            for (String AP : APs) {
+//                if (locsFromLastTimes.contains(AP))
+//                    same++;
+//                total++;
+//            }
+            // for (String AP : APsFromLastTime)
+            // {
+            // if (APs.contains(AP)) // only count others that don't match. We
+            // don't count the same ones again.
+            // same++;
+            // total++;
+            // }
+//            Log.i(TAG, "There were " + same + " matches out of " + total
+//                    + " APs were in this sample. current:" + APs + " previous:" + APsFromLastTimes);
+            
+//            ArrayList<Long> timestamps = new ArrayList<Long>();
+//            for ()
+//            {
+//            	
+//            }
+            double maxDist = 0;
+			travelled = Distance(loc, lastLocations.get(0));
+			
+            for (LocationPoint lp : lastLocations)
+            {
+            	for (LocationPoint lp2 : lastLocations)
+				{
+					double dist = Distance(lp, lp2);
+					if (dist > maxDist)
+						maxDist = dist;
+				}
+            }
+            //radius = maxDist / 2; // to laggy to detect stops
+            
+            	
+            if (lastLocations.size() >= 2)
+            {
+            	int index = lastLocations.size() - 2;
+                while (index >= 0)
+                {
+                	if (lastLocations.get(lastLocations.size() - 1).getTime() > 60  * 1000 + lastLocations.get(index).getTime())
+                	{
+                		radius = Distance(lastLocations.get(lastLocations.size() - 1), lastLocations.get(index)) / 2;
+                		break;
+                	}
+                	index--;
+                }
+            }            	
+            
+            writeLocations(settings, time, loc, lastLocations, radius, travelled);
+            
+            
+            
+            
+            locClass.setRadius(radius);
+            locClass.setTravelled(travelled);
+            
+//            if (total > 0) {
+////                int threshold = 2;
+////                if (total <= 3)
+////                    threshold = 1;
+////                if (total == 1)
+////                    threshold = 0;
+////                if (same <= threshold) {
+////                    Log.v(TAG, "Wifi chooses drive!");
+////                    writeWifi(settings, time, DRIVE, APs, lastAPs, total, same);
+////                    return DRIVE;// + " " + same / total;
+////                } else {
+////                    Log.v(TAG, "Wifi chooses still!");
+////                    writeWifi(settings, time, STILL, APs, lastAPs, total, same);
+////                    return STILL;// + " " + same / total;
+////                }
+//
+//            } else {
+////                Log.v(TAG, "No wifi detected in new sample; it's up to the GPS.");
+//                writeWifi(settings, time, APs, lastAPs, total, same);
+//                return locClass; // UNKNOWN
+//            }
+            return locClass;
+        } else {
+            Log.v(TAG, "No previous Location!");
+            // no history
+//            LocationPoint loc = loc;
+            writeLocations(settings, time, loc, null, 0, 0);
+            return locClass;
+        }
+
+    }
+    
+    
+    
+    private void writeWifi(SharedPreferences settings, long time, Vector<String> APs,
+            HashMap<Long, Vector<String>> lastAPs, int total, int same) {
+        StringBuilder store = new StringBuilder(time + "\n" + total + "\n" + same + "\n" + time);
         for (String s : APs)
             store.append(",").append(s);
         long now = System.currentTimeMillis();
         if (lastAPs != null) {
 
             for (Long ts : lastAPs.keySet()) {
-                if (ts > now - checkLength) {
+                if (ts >= now - wifiCheckLength) {
                     store.append("\n").append(ts);
                     for (String ap : lastAPs.get(ts))
                         store.append(",").append(ap);
@@ -704,6 +951,28 @@ public class ClassifierService extends WakefulIntentService {
 
         Editor editor = settings.edit();
         editor.putString(WIFI_HISTORY, store.toString());
+        editor.commit();
+    }
+    
+    private void writeLocations(SharedPreferences settings, long time, LocationPoint location,
+            ArrayList<LocationPoint> lastLocs, double radius, double travelled) {
+        StringBuilder store = new StringBuilder(time + "\n" + radius + "\n" + travelled + "\n");
+        store.append(location);
+        long now = System.currentTimeMillis();
+        if (lastLocs != null) {
+
+            for (LocationPoint lp : lastLocs) {
+                if (lp.getTime() >= now - locCheckLength) {
+                    store.append("\n").append(lp);
+//                    store.append(",").append(lp.getLatitude());
+//                    store.append(",").append(lp.getLongitude());
+                }
+            }
+
+        }
+        Log.d(TAG, "Writing location: " + store.toString());
+        Editor editor = settings.edit();
+        editor.putString(LOC_HISTORY, store.toString());
         editor.commit();
     }
 
@@ -738,7 +1007,7 @@ public class ClassifierService extends WakefulIntentService {
     }
 
     /**
-     * This is the main classification method. Updated code after retraining
+     * This is the main classification method. Updated code after retraining 11/28/2013
      * 
      * @param acc_var
      * @param accgz1
@@ -759,7 +1028,141 @@ public class ClassifierService extends WakefulIntentService {
      * @param a0
      * @return Classification object with the mode
      */
+    private String oldactivity(Float gps_speed, double avg, double var, double a1, double a2,
+            double a3, double a4, double a5, double a6, double a7, double a8, double a9, double a0) {
+        String output = STILL;
+
+        if (var <= 0.016791) {
+            if (a6 <= 0.002427) {
+                /*
+                 * if(a7 <= 0.001608) {
+                 */
+                if (gps_speed <= 0.791462 || gps_speed.isNaN())// || gps_speed
+                                                               // !=
+                                                               // Double.NaN)
+                {
+
+                    // if(avg <= 0.963016)
+                    // {
+                    // output = STILL;
+                    // }
+                    // else if(avg <= 0.98282)
+                    // {
+                    // output = DRIVE;Log.d(TAG, "Drive 0 because gps speed is "
+                    // + gps_speed + " and avg is " + avg);
+                    // }
+                    // else if(avg <= 1.042821)
+                    // {
+                    // if(avg <= 1.040987)
+                    // {
+                    // if(avg <= 1.037199)
+                    // {
+                    // if(avg <= 1.03592)
+                    // {
+                    // output = STILL;
+                    // }
+                    // else
+                    // {
+                    // output = DRIVE;Log.d(TAG, "Drive 1");
+                    // }
+                    // }
+                    // else
+                    // {
+                    // output = STILL;
+                    // }
+                    // }
+                    // else
+                    // {
+                    // output = DRIVE;Log.d(TAG, "Drive 2");
+                    // }
+                    // }
+                    // else
+                    {
+                        output = STILL;
+                    }
+                } else {
+                    output = DRIVE;
+                    Log.v(TAG, "Drive 3");
+                }
+                /*
+                 * } else { output = DRIVE;Log.d(TAG, "Drive 4"); }
+                 */
+            } else if (gps_speed <= 0.791462 || gps_speed.isNaN())// &&
+                                                                  // gps_speed
+                                                                  // !=
+                                                                  // Double.NaN)
+            {
+                output = STILL;
+            } else {
+                output = DRIVE;
+                Log.v(TAG, "Drive 5");
+            }
+        } else {
+            if (a3 <= 16.840921) {
+                output = WALK;
+            } else {
+                output = RUN;
+            }
+        }
+
+        return output;
+
+    }
+    
     private String activity(Float gps_speed, double avg, double var, double a1, double a2,
+            double a3, double a4, double a5, double a6, double a7, double a8, double a9, double a0, 
+            int totalWiFi, int matchingWifi, double radius, double travelled) {
+//        String output = STILL;
+        double ratio = 0;
+    	if (totalWiFi > 0)
+        	ratio = (double)matchingWifi / totalWiFi;
+    	if (var <= 0.038625)
+			if ((matchingWifi <= 3 && ratio <= .380952) || radius > 108)
+				return DRIVE;
+			else
+				return STILL;
+		else return WALK;
+    	
+    	
+//		if (matchingWifi <= 3)
+//		{
+//			if (var <= 0.038625)
+//			{
+//				if (radius <= 238.44889)//0.002696)
+//				{
+////					if (radius <= 0) // TODO more robust 
+////						return DRIVE;
+////					else
+////					{
+////						if (avg <= 1.002447)
+//							return STILL;
+////						else
+////							return WALK;
+////					}
+//				}
+//				else
+//					return DRIVE;
+//			}
+//			else
+//				return WALK;
+//		}
+//		else
+//		{
+//			if (a2 <= .314018)
+//				return STILL;
+//			else
+//				return WALK;
+//			
+//		}
+    	
+        
+
+//        return output;
+
+    }
+    
+    
+    private String activityBefore1_4_7(Float gps_speed, double avg, double var, double a1, double a2,
             double a3, double a4, double a5, double a6, double a7, double a8, double a9, double a0) {
         String output = STILL;
 
