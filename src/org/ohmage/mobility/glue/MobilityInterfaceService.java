@@ -8,7 +8,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.IBinder;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.Mobility;
 import org.ohmage.mobility.MobilityControl;
 import org.ohmage.mobility.MobilityDbAdapter;

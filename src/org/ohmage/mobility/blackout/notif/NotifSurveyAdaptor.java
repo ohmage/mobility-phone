@@ -8,7 +8,7 @@ import android.database.Cursor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.blackout.Blackout;
 import org.ohmage.mobility.blackout.base.TriggerActionDesc;
 import org.ohmage.mobility.blackout.base.TriggerBase;

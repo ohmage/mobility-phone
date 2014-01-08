@@ -16,20 +16,23 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.text.TextUtils;
+import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.accelservice.IAccelService;
-import org.ohmage.logprobe.Log;
-import org.ohmage.logprobe.LogProbe;
 import org.ohmage.mobility.blackout.Blackout;
 import org.ohmage.mobility.blackout.BlackoutDesc;
 import org.ohmage.mobility.blackout.base.TriggerDB;
 import org.ohmage.mobility.blackout.base.TriggerInit;
 import org.ohmage.mobility.blackout.utils.SimpleTime;
-import org.ohmage.probemanager.ProbeBuilder;
+import org.ohmage.streams.StreamPointBuilder;
 import org.ohmage.wifigpslocation.IWiFiGPSLocationService;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 
 //import com.google.android.gms.common.ConnectionResult;
 //import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -60,6 +63,10 @@ public class Mobility {
     public static final String STATUS_ERROR = "error";
     public static final String STATUS_BLACKOUT = "blackout";
     public static final String KEY_USERNAME = "key_username";
+
+    private static final String STREAM_ID = "d86d659a-44d7-43ac-85c9-36ab886d5d4f";
+
+    private static final int STREAM_VERSION = 2013121300;
 
     // public static Context appContext = null;
     static AlarmManager mgr;
@@ -202,7 +209,6 @@ public class Mobility {
             stopMobility(context, false);
         } else
             Log.v(TAG, "Not running, so ignoring stop command");
-        LogProbe.close(context);
     }
 
     static int failCount = 0;
@@ -601,12 +607,26 @@ public class Mobility {
 
     }
 
-    public static void writeProbe(Context context, ProbeBuilder probe, String mode, String googlemode1, String googlemode2, Float speed,
+    public static void writeProbe(Context context, StreamPointBuilder probe, String mode, String googlemode1, String googlemode2, Float speed,
             String accel, String wifi) {
-        if(MobilityApplication.probeWriter != null) {
-            MobilityApplication.probeWriter.write(probe, mode, googlemode1, googlemode2, speed, accel, wifi);
-        } else {
-            Log.e(TAG, "Probewriter is null");
+        try {
+            JSONObject data = new JSONObject();
+            data.put("mode", mode);
+            data.put("googlemode", googlemode1);
+            data.put("googlemode2", googlemode2);
+            data.put("trainingmode", ModeSelectorActivity.getTrainingMode());
+            Log.d(TAG, "Adding training mode: " + ModeSelectorActivity.getTrainingMode());
+            Log.d(TAG, "Google mode: " + googlemode1);
+                probe.setStream(STREAM_ID, STREAM_VERSION);
+                data.put("speed", speed);
+                data.put("accel_data", new JSONArray(accel));
+                if(!TextUtils.isEmpty(wifi))
+                    data.put("wifi_data", new JSONObject(wifi));
+
+            probe.setData(data.toString()).write(context.getContentResolver());
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 

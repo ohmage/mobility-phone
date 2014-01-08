@@ -19,10 +19,7 @@ import com.loopj.android.http.RequestParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.logprobe.LogProbe;
-import org.ohmage.logprobe.LogProbe.Loglevel;
 import org.ohmage.mobility.glue.MobilityInterface;
-import org.ohmage.probemanager.MobilityProbeWriter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,8 +31,6 @@ public class MobilityApplication extends Application {
     private static final String KEY_OHMAGE_SERVER = "key_ohmage_server";
     private static final String MOBILITY_AGGREGATE_READ_PATH = "app/mobility/aggregate/read";
 
-    public static MobilityProbeWriter probeWriter;
-
     public static MobilityApplication self;
 
     @Override
@@ -43,11 +38,6 @@ public class MobilityApplication extends Application {
         super.onCreate();
 
         self = this;
-
-        ensureLogProbe(this);
-
-        probeWriter = new MobilityProbeWriter(this);
-        probeWriter.connect();
 
         SharedPreferences settings = getSharedPreferences(Mobility.MOBILITY, Context.MODE_PRIVATE);
         if (settings.getBoolean(MobilityControl.MOBILITY_ON, false)) {
@@ -59,19 +49,6 @@ public class MobilityApplication extends Application {
             // Only try to download aggregate data once.
 //            aggregateRead(); // commented out for testing without ohmage dev key
         }
-    }
-
-    public static void ensureLogProbe(Context context) {
-        LogProbe.setLevel(true, Loglevel.VERBOSE);
-        LogProbe.get(context);
-    }
-
-    @Override
-    public void onTerminate() {
-        super.onTerminate();
-        LogProbe.close(this);
-
-        probeWriter.close();
     }
 
     public static void aggregateRead() {

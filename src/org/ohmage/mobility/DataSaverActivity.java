@@ -7,6 +7,7 @@ import android.database.CursorIndexOutOfBoundsException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -14,8 +15,6 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.logprobe.Log;
-import org.ohmage.logprobe.LogProbe;
 import org.ohmage.mobility.MobilityDbAdapter.DBRow;
 import org.ohmage.mobility.glue.MobilityInterface;
 
@@ -33,8 +32,6 @@ public class DataSaverActivity extends Activity {
     /** Called when the activity is first created. */
     Button goButton;
     TextView text;
-
-    private LogProbe logger;
 
     // Thread thread;
     @Override

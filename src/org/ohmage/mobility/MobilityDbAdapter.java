@@ -11,14 +11,15 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.util.Log;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.glue.MobilityInterface;
-import org.ohmage.probemanager.ProbeBuilder;
+import org.ohmage.streams.StreamPointBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -313,10 +314,10 @@ public class MobilityDbAdapter {
 		long rowid = -1;
 		Uri row = mCtx.getContentResolver().insert(MobilityInterface.CONTENT_URI, vals);
 
-        ProbeBuilder probe = new ProbeBuilder();
-        probe.withId(id.toString()).withTime(time, timezone);
-        if(!"unavailable".equals(status))
-            probe.withLocation(time, timezone, latitude, longitude, accuracy, provider);
+		StreamPointBuilder probe = new StreamPointBuilder();
+        probe.withId(id.toString()).withTime(new DateTime(time, DateTimeZone.getDefault()));
+//        if(!"unavailable".equals(status))
+//            probe.withLocation(time, timezone, latitude, longitude, accuracy, provider);
 
         // We can't send NaN or Inf, so we set those values to null
         if(Float.isInfinite(speed) || Float.isNaN(speed))

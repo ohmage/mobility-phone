@@ -21,7 +21,7 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.R;
 import org.ohmage.mobility.blackout.Blackout;
 import org.ohmage.mobility.blackout.base.BlackoutList;

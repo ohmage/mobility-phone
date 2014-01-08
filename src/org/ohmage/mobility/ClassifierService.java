@@ -10,13 +10,12 @@ import android.location.Location;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.accelservice.IAccelService;
-import org.ohmage.logprobe.Log;
-import org.ohmage.logprobe.LogProbe;
 import org.ohmage.wifigpslocation.IWiFiGPSLocationService;
 
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ import java.util.Vector;
 
 
 public class ClassifierService extends WakefulIntentService {
-    private LogProbe logger;
 
     public ClassifierService() {
         super("ClassifierService");
@@ -591,12 +589,12 @@ public class ClassifierService extends WakefulIntentService {
     private final double wifiCheckLength = 10 * 60 * 1000; // 11 minutes
     private final double locCheckLength = 6 * 60 * 1000;
     /**
-     * Gets distance as a naïve Euclidean distance between lat/lon points.
+     * Gets distance as a naive Euclidean distance between lat/lon points.
      * @param loc1
      * @param loc2
      * @return
      */
-    private double NaïveDistance(Location loc1, Location loc2) {
+    private double NaiveDistance(Location loc1, Location loc2) {
 		return Math.sqrt(Math.pow(loc1.getLatitude() - loc2.getLatitude(), 2) + Math.pow(loc1.getLongitude() - loc2.getLongitude(), 2));
 	}
     

@@ -15,7 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.R;
 import org.ohmage.mobility.blackout.config.NotifConfig;
 import org.ohmage.mobility.blackout.utils.TrigTextInput;

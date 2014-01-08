@@ -12,7 +12,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.R;
 import org.ohmage.mobility.blackout.utils.TrigPrefManager;
 

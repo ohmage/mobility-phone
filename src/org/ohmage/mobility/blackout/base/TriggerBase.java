@@ -7,7 +7,7 @@ import android.location.LocationManager;
 import android.text.format.DateUtils;
 
 import org.json.JSONObject;
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.blackout.MobilityBlackoutManager;
 import org.ohmage.mobility.blackout.notif.Notifier;
 

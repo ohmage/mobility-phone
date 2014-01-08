@@ -3,7 +3,7 @@ package org.ohmage.mobility.blackout.base;
 import android.content.Context;
 import android.database.Cursor;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.blackout.Blackout;
 
 /*

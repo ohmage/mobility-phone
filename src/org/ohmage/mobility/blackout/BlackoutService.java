@@ -11,7 +11,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.Mobility;
 import org.ohmage.mobility.blackout.utils.SimpleTime;
 

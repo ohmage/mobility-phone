@@ -15,7 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.R;
 import org.ohmage.mobility.blackout.config.TrigUserConfig;
 import org.ohmage.mobility.blackout.utils.TimePickerPreference;

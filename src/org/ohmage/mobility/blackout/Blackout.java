@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 import org.json.JSONObject;
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 import org.ohmage.mobility.Mobility;
 import org.ohmage.mobility.MobilityControl;
 import org.ohmage.mobility.R;

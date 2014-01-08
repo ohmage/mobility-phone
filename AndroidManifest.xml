@@ -140,9 +140,8 @@
                 android:value="org.ohmage.mobility.MobilityTraining" />
         </activity>
 
-        <meta-data
-            android:name="org.ohmage.probemanager"
-            android:resource="@xml/probe" />
+        <meta-data android:name="com.google.android.gms.version"
+           android:value="@integer/google_play_services_version" />
     </application>
 
 </manifest>

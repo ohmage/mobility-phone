@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 
 public class SampleReceiver extends BroadcastReceiver
 {

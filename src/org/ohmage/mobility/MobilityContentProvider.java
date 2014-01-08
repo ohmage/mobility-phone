@@ -10,8 +10,8 @@ import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
-import org.ohmage.logprobe.Log;
 import org.ohmage.mobility.MobilityDbAdapter.DatabaseHelper;
 import org.ohmage.mobility.glue.MobilityInterface;
 
@@ -67,7 +67,6 @@ public class MobilityContentProvider extends ContentProvider
 	@Override
 	public boolean onCreate() {
 		dbHelper = new DatabaseHelper(getContext());
-		MobilityApplication.ensureLogProbe(getContext());
 		return true;
 	}
 

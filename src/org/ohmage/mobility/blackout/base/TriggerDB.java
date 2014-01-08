@@ -7,7 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import org.ohmage.logprobe.Log;
+import android.util.Log;
 
 /*
  * The database to store all triggers in the system. Each row 
