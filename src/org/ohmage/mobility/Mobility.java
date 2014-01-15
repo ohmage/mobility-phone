@@ -64,7 +64,7 @@ public class Mobility {
     // public static Context appContext = null;
     static AlarmManager mgr;
 
-    static long sampleRate = 5000;
+    static long sampleRate = 60000;
     static boolean intervalSet = false;
     static boolean accelConnected = false;
     static boolean gpsConnected = false;
@@ -279,7 +279,7 @@ public class Mobility {
         }
         
     }
-    
+    static boolean runGoogle = false;
     public static void startMobility(Context context) {
         
     	try {
@@ -317,7 +317,7 @@ public class Mobility {
         // nm.notify(123, notification);
 
         SharedPreferences settings = context.getSharedPreferences(MOBILITY, Context.MODE_PRIVATE);
-        sampleRate = (long) settings.getInt(SAMPLE_RATE, 5) * 1000;
+        sampleRate = (long) settings.getInt(SAMPLE_RATE, 60) * 1000;
 
         mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
@@ -328,7 +328,9 @@ public class Mobility {
         Log.i(TAG, "Sample rate is: " + sampleRate);
         startGPS(context, sampleRate);
         startAcc(context, sampleRate);
-        startARC(context, sampleRate);
+        
+        if (runGoogle)
+        	startARC(context, sampleRate);
         // Toast.makeText(context, R.string.mobilityservicestarted,
         // Toast.LENGTH_SHORT).show();
         Log.i(TAG, "Starting transport mode service with sampleRate: " + sampleRate);
@@ -348,7 +350,8 @@ public class Mobility {
         }
         stopAcc(context);
         stopGPS(context);
-        stopARC(context);
+        if (runGoogle)
+        	stopARC(context);
         // try
         // {
         // context.unregisterReceiver(accReceiver);

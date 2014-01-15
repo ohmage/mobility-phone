@@ -440,11 +440,20 @@ public class ClassifierService extends WakefulIntentService {
         // Log.d(TAG, speed +
         // " is the speed and the features are " + features);
         
-        int totalAPs = wifiClass.getWifiTotal();
-        int matchedAPs = wifiClass.getWifiRecogTotal();
-        double radius = locClass.getRadius();
-        double travelled = locClass.getTravelled();
-        
+        int totalAPs = 0;
+        int matchedAPs = 0;
+        if (wifiClass != null)
+        {
+        	totalAPs = wifiClass.getWifiTotal();
+        	matchedAPs = wifiClass.getWifiRecogTotal();
+        }
+        double radius = 0;
+        double travelled = 0;
+        if (locClass != null)
+        {
+	        radius = locClass.getRadius();
+	        travelled = locClass.getTravelled();
+        }
         activity = activity(speed, a, v, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0, totalAPs, matchedAPs, radius, travelled);
 //        activity = GoogleActivityClassifier.getGooglemode(); // TODO get rid of this!
 //        if (wifiChecking && !wifiActivity.equals(UNKNOWN)) {
@@ -1117,7 +1126,7 @@ public class ClassifierService extends WakefulIntentService {
     	if (totalWiFi > 0)
         	ratio = (double)matchingWifi / totalWiFi;
     	if (var <= 0.038625)
-			if ((matchingWifi <= 3 && ratio <= .380952) || radius > 108)
+			if ((matchingWifi <= 3 && ratio <= .380952 && totalWiFi > 0) || radius > 108)
 				return DRIVE;
 			else
 				return STILL;
