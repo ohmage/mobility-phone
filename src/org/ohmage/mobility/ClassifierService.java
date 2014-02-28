@@ -633,7 +633,7 @@ public class ClassifierService extends WakefulIntentService {
         String APsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare
                                                                             // with
                                                                             // previous
-                                                                            // sample
+        Log.d(TAG, "Logs from last time:\n" + APsFromLastTimeStr);                                                                    // sample
         Classification wifiClass = new Classification();
         wifiClass.setWifiMode(UNKNOWN);
         if(jsonObject.length() == 0) {
@@ -647,12 +647,26 @@ public class ClassifierService extends WakefulIntentService {
             HashMap<Long, Vector<String>> lastAPs = new HashMap<Long, Vector<String>>();
             String[] lines = APsFromLastTimeStr.split("\n");
             long lastTime = Long.parseLong(lines[0]);
-            String lastClassificationString = lines[1];
+//            String lastClassificationString = lines[1];
 //            String [] lastFeatures = lines[1].split(";");
 //            String lastMode = UNKNOWN;
-	            
-	        int lastTotal = Integer.parseInt(lines[1]);
-	        int lastMatching = Integer.parseInt(lines[2]);
+            int lastTotal = 0;
+            int lastMatching = 0;
+	        try
+	        {
+	        	lastTotal = Integer.parseInt(lines[1]);
+	        	lastMatching = Integer.parseInt(lines[2]);
+	        }
+	        catch (Exception e)
+	        {
+	        	Log.e(TAG, "Badly formatted string from previous version: " + APsFromLastTimeStr);
+	        	Editor ed = settings.edit();
+	        	ed.putString(WIFI_HISTORY, null);
+	        	ed.commit();
+	        	Vector<String> APs = JSONToList(jsonObject);
+	            writeWifi(settings, time, APs, null, 0, 0);
+	            return wifiClass;
+	        }
             
             Vector<String> APsFromLastTimes = new Vector<String>();
             // Log.d(TAG, "aps from last time object: " + APsFromLastTimeStr);
