@@ -64,9 +64,9 @@ public class Mobility {
     public static final String STATUS_BLACKOUT = "blackout";
     public static final String KEY_USERNAME = "key_username";
 
-    private static final String STREAM_ID = "d86d659a-44d7-43ac-85c9-36ab886d5d4f";
+    private static final String STREAM_ID = "fa3c3b34-996a-41c7-ac4e-38e590499a0f";
 
-    private static final int STREAM_VERSION = 2013121300;
+    private static final int STREAM_VERSION = 2;
 
     // public static Context appContext = null;
     static AlarmManager mgr;
