@@ -438,11 +438,20 @@ public class ClassifierService extends WakefulIntentService {
         // Log.d(TAG, speed +
         // " is the speed and the features are " + features);
         
-        int totalAPs = wifiClass.getWifiTotal();
-        int matchedAPs = wifiClass.getWifiRecogTotal();
-        double radius = locClass.getRadius();
-        double travelled = locClass.getTravelled();
-        
+        int totalAPs = 0;
+        int matchedAPs = 0;
+        if (wifiClass != null)
+        {
+        	totalAPs = wifiClass.getWifiTotal();
+        	matchedAPs = wifiClass.getWifiRecogTotal();
+        }
+        double radius = 0;
+        double travelled = 0;
+        if (locClass != null)
+        {
+	        radius = locClass.getRadius();
+	        travelled = locClass.getTravelled();
+        }
         activity = activity(speed, a, v, a1, a2, a3, a4, a5, a6, a7, a8, a9, a0, totalAPs, matchedAPs, radius, travelled);
 //        activity = GoogleActivityClassifier.getGooglemode(); // TODO get rid of this!
 //        if (wifiChecking && !wifiActivity.equals(UNKNOWN)) {
@@ -622,7 +631,7 @@ public class ClassifierService extends WakefulIntentService {
         String APsFromLastTimeStr = settings.getString(WIFI_HISTORY, null); // compare
                                                                             // with
                                                                             // previous
-                                                                            // sample
+        Log.d(TAG, "Logs from last time:\n" + APsFromLastTimeStr);                                                                    // sample
         Classification wifiClass = new Classification();
         wifiClass.setWifiMode(UNKNOWN);
         if(jsonObject.length() == 0) {
@@ -636,12 +645,26 @@ public class ClassifierService extends WakefulIntentService {
             HashMap<Long, Vector<String>> lastAPs = new HashMap<Long, Vector<String>>();
             String[] lines = APsFromLastTimeStr.split("\n");
             long lastTime = Long.parseLong(lines[0]);
-            String lastClassificationString = lines[1];
+//            String lastClassificationString = lines[1];
 //            String [] lastFeatures = lines[1].split(";");
 //            String lastMode = UNKNOWN;
-	            
-	        int lastTotal = Integer.parseInt(lines[1]);
-	        int lastMatching = Integer.parseInt(lines[2]);
+            int lastTotal = 0;
+            int lastMatching = 0;
+	        try
+	        {
+	        	lastTotal = Integer.parseInt(lines[1]);
+	        	lastMatching = Integer.parseInt(lines[2]);
+	        }
+	        catch (Exception e)
+	        {
+	        	Log.e(TAG, "Badly formatted string from previous version: " + APsFromLastTimeStr);
+	        	Editor ed = settings.edit();
+	        	ed.putString(WIFI_HISTORY, null);
+	        	ed.commit();
+	        	Vector<String> APs = JSONToList(jsonObject);
+	            writeWifi(settings, time, APs, null, 0, 0);
+	            return wifiClass;
+	        }
             
             Vector<String> APsFromLastTimes = new Vector<String>();
             // Log.d(TAG, "aps from last time object: " + APsFromLastTimeStr);
@@ -1115,7 +1138,7 @@ public class ClassifierService extends WakefulIntentService {
     	if (totalWiFi > 0)
         	ratio = (double)matchingWifi / totalWiFi;
     	if (var <= 0.038625)
-			if ((matchingWifi <= 3 && ratio <= .380952) || radius > 108)
+			if ((matchingWifi <= 3 && ratio <= .380952 && totalWiFi > 0) || radius > 108)
 				return DRIVE;
 			else
 				return STILL;
