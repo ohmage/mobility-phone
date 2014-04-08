@@ -17,6 +17,11 @@ android {
     }
 }
 
+// Update the values in this file to sign the apk for release
+if(gradle.startParameter.taskNames.contains('assembleRelease')) {
+    apply from: 'signing.gradle'
+}
+
 dependencies {
     compile 'org.ohmage:accelservice:3.0'
     compile 'org.ohmage:wifigpslocation:3.15'
