@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.ohmage.mobility"
+    android:versionCode="41"
+    android:versionName="2.0" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+
+    <uses-sdk
+        android:minSdkVersion="9"
+        android:targetSdkVersion="17" />
+
+    <application
+        android:name="org.ohmage.mobility.MobilityApplication"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name" >
+        <provider
+            android:name="org.ohmage.mobility.MobilityContentProvider"
+            android:authorities="org.ohmage.mobility.MobilityContentProvider"
+            android:exported="true" />
+		<service android:name="org.ohmage.mobility.GoogleActivityClassificationReceiver" android:exported="true"/>
+        <activity
+            android:name="org.ohmage.mobility.MobilityControl"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:priority="-1" >
+                <action android:name="org.ohmage.mobility.control" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.ohmage.probes.ACTION_CONFIGURE" />
+
+                <data android:mimeType="probe/edu.ucla.cens.Mobility" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="org.ohmage.mobility.blackout.ui.TriggerListActivity" />
+        <activity android:name="org.ohmage.mobility.blackout.BlackoutEditActivity" />
+        <activity android:name="org.ohmage.mobility.DataSaverActivity" />
+        <activity android:name="org.ohmage.mobility.ModeSelectorActivity" />
+		
+        <service android:name="org.ohmage.mobility.GoogleActivityClassificationReceiver"></service>
+        <service android:name="org.ohmage.mobility.ClassifierService" />
+        <service android:name="org.ohmage.mobility.blackout.BlackoutService" />
+        <service android:name="org.ohmage.mobility.glue.MobilityInterfaceService" >
+            <intent-filter>
+                <action android:name="org.ohmage.mobility.glue.IMobility" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.ohmage.mobility.glue.ACTION_SET_USERNAME" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name="org.ohmage.mobility.blackout.BlackoutService$AlarmReceiver" >
+            <intent-filter>
+                <action android:name="org.ohmage.mobility.blackout.BlackoutAlarm" />
+
+                <data android:scheme="blackout" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.ohmage.mobility.blackout.base.TriggerTimeReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name="org.ohmage.mobility.BootReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.ohmage.mobility.SampleReceiver" >
+            <intent-filter>
+                <action android:name="org.ohmage.mobility.record" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.ohmage.mobility.GarbageCollectReceiver" >
+            <intent-filter>
+                <action android:name="org.ohmage.mobility.garbagecollect" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name="org.ohmage.mobility.GarbageCollectService" />
+
+        <receiver android:name="org.ohmage.mobility.UpdateReceiver" >
+            <intent-filter>
+                <action android:name="edu.ucla.cens.Updater.Installer.AppInstalled" />
+                <action android:name="edu.ucla.cens.Updater.Installer.AppReinstalled" />
+
+                <data
+                    android:host="org.ohmage.mobility"
+                    android:scheme="package" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.ohmage.mobility.StartReceiver" >
+            <intent-filter>
+                <action android:name="org.ohmage.mobility.start" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.ohmage.mobility.StopReceiver" >
+            <intent-filter>
+                <action android:name="org.ohmage.mobility.stop" />
+            </intent-filter>
+        </receiver>
+        
+
+        <activity
+            android:name="org.ohmage.mobility.MobilitySummary"
+            android:label="@string/title_activity_mobility_summary"
+            android:parentActivityName="org.ohmage.mobility.MobilityTraining" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.ohmage.mobility.MobilityTraining" />
+        </activity>
+
+        <meta-data android:name="com.google.android.gms.version"
+           android:value="@integer/google_play_services_version" />
+    </application>
+
+</manifest>
