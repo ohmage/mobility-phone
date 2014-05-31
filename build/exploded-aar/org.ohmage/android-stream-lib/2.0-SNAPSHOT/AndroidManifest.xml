@@ -1,0 +1,9 @@
+<!-- From: file:/Users/cketcham/AndroidStudioProjects/StreamLibProject/android-stream-lib/src/main/AndroidManifest.xml --><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="0" android:versionName="2.0-SNAPSHOT" package="org.ohmage.streams">
+
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="19"/>
+
+    <application android:label="@string/app_name">
+
+    </application>
+
+</manifest>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pre-dex-items>
+
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/Mobility-google/mobility/build/pre-dexed/debug/joda-time-2.3-3633042ad78185f6d97e9aeba2fea1234d039d8a.jar"
+        jar="/Users/cketcham/.gradle/caches/modules-2/files-2.1/joda-time/joda-time/2.3/56498efd17752898cfcc3868c1b6211a07b12b8f/joda-time-2.3.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="56498efd17752898cfcc3868c1b6211a07b12b8f"/>
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/mobility-phone/mobility/build/pre-dexed/debug/classes-e52778c622fd095c885792cd8339a6ffb31a62d8.jar"
+        jar="/Users/cketcham/AndroidStudioProjects/mobility-phone/build/exploded-aar/com.google.android.gms/play-services/4.4.52/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3dfdf1db5ce5ea2999a5dcde8c8e650b02660059"/>
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/mobility-phone/mobility/build/pre-dexed/debug/classes-bbdbfc50d61ec83061a0a9e0c1c51428e393e1ca.jar"
+        jar="/Users/cketcham/AndroidStudioProjects/mobility-phone/build/exploded-aar/com.android.support/appcompat-v7/19.1.0/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3499ceba05ca1f6037c6a2fad73df8f636224a28"/>
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/Mobility-google/mobility/build/pre-dexed/debug/support-v4-19.1.0-8888576deadad72d34aaf5090eaf4c953af391b5.jar"
+        jar="/usr/local/opt/android-sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67"/>
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/mobility-phone/mobility/build/pre-dexed/debug/classes-0c5f31152605c838c8139f68a932042b6ba4351a.jar"
+        jar="/Users/cketcham/AndroidStudioProjects/mobility-phone/build/exploded-aar/org.ohmage/android-stream-lib/2.0-SNAPSHOT/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3b81e9eb66ab1217ba5aa9b72b43539a423dfd45"/>
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/Mobility-google/mobility/build/pre-dexed/debug/classes-1c95ca308095a9f920fe29770c78f16742f3e35e.jar"
+        jar="/Users/cketcham/AndroidStudioProjects/Mobility-google/build/exploded-aar/com.android.support/appcompat-v7/19.1.0/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3499ceba05ca1f6037c6a2fad73df8f636224a28"/>
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/Mobility-google/mobility/build/pre-dexed/debug/classes-6bc421ae5267e357b1bba81967cd6ba060a81b32.jar"
+        jar="/Users/cketcham/AndroidStudioProjects/Mobility-google/build/exploded-aar/org.ohmage/android-stream-lib/2.0-SNAPSHOT/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3b81e9eb66ab1217ba5aa9b72b43539a423dfd45"/>
+    <item
+        dex="/Users/cketcham/AndroidStudioProjects/Mobility-google/mobility/build/pre-dexed/debug/classes-b33c602e0f42dba1cb0649d82ae756452c70aaa9.jar"
+        jar="/Users/cketcham/AndroidStudioProjects/Mobility-google/build/exploded-aar/com.google.android.gms/play-services/4.4.52/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3dfdf1db5ce5ea2999a5dcde8c8e650b02660059"/>
+
+</pre-dex-items>

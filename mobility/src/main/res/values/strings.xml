@@ -1,14 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2014 ohmage
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
 <resources>
 
     <string name="app_name">Mobility</string>
-    <string name="mobilityservicestarted">Mobility service is running.</string>
-    <string name="mobilityservicestopped">Mobility service is not running.</string>
-    <string name="summary">Summary</string>
-    <string name="title_activity_mobility_summary">Mobility Summary</string>
-    <string name="action_settings">Settings</string>
-    <string name="menu_dump_data">Dump Data</string>
-    <string name="data_dump_finished">Mobility Data saved to sdcard</string>
-    <string name="data_dump_failed">Save Mobility Data failed</string>
+    <string name="app_description">Saves activity recognition to ohmage</string>
+    <string name="connected">Connected to Location Services</string>
+    <string name="disconnected">Disconnected from Location Services</string>
+    <string name="log_file_deletion_error">Log file deletion error.</string>
+    <string name="menu_item_clearlog">Clear Log</string>
+    <string name="logs_deleted">Log file(s) deleted</string>
+    <string name="start_updates">Start Updates</string>
+    <string name="stop_updates">Stop Updates</string>
+    <string name="log_filename">%1$s%2$s%3$d%4$s</string>
+    <string name="no_resolution">Google Play services: unable to resolve connection error.</string>
+    <string name="unknown_activity_request_code">Received an unknown activity request code %1$d in onActivityResult.</string>
 
 </resources>
