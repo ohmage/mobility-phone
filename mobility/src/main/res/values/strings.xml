@@ -20,12 +20,8 @@
     <string name="app_description">Saves activity recognition to ohmage</string>
     <string name="connected">Connected to Location Services</string>
     <string name="disconnected">Disconnected from Location Services</string>
-    <string name="log_file_deletion_error">Log file deletion error.</string>
-    <string name="menu_item_clearlog">Clear Log</string>
-    <string name="logs_deleted">Log file(s) deleted</string>
     <string name="start_updates">Start Updates</string>
     <string name="stop_updates">Stop Updates</string>
-    <string name="log_filename">%1$s%2$s%3$d%4$s</string>
     <string name="no_resolution">Google Play services: unable to resolve connection error.</string>
     <string name="unknown_activity_request_code">Received an unknown activity request code %1$d in onActivityResult.</string>
 

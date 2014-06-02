@@ -18,6 +18,7 @@ package org.ohmage.mobility;
 
 import android.app.IntentService;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -43,10 +44,6 @@ import java.util.TimeZone;
  */
 public class ActivityRecognitionIntentService extends IntentService {
 
-    // Store the app's shared preferences repository
-    private SharedPreferences mPrefs;
-    private LocalBroadcastManager mBroadcastManager;
-
     private StreamPointBuilder mPointBuilder = new StreamPointBuilder();
 
     public ActivityRecognitionIntentService() {
@@ -60,12 +57,6 @@ public class ActivityRecognitionIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        mBroadcastManager = LocalBroadcastManager.getInstance(this);
-
-        // Get a handle to the repository
-        mPrefs = getApplicationContext().getSharedPreferences(
-                ActivityUtils.SHARED_PREFERENCES, Context.MODE_PRIVATE);
-
         // If the intent contains an update
         if (ActivityRecognitionResult.hasResult(intent)) {
 
@@ -77,11 +68,6 @@ public class ActivityRecognitionIntentService extends IntentService {
 
             // Log the update
             logActivityRecognitionResult(result);
-
-            // Tell the list to refresh
-            Intent broadcast = new Intent(ActivityUtils.ACTION_REFRESH_STATUS_LIST);
-            broadcast.addCategory(ActivityUtils.CATEGORY_LOCATION_SERVICES);
-            mBroadcastManager.sendBroadcast(broadcast);
         }
     }
 
@@ -155,7 +141,9 @@ public class ActivityRecognitionIntentService extends IntentService {
             msg.append("|").append(activityName).append(": ").append(confidence);
         }
 
-        LogFile.getInstance(getApplicationContext()).log(msg.toString());
+        ContentValues values = new ContentValues();
+        values.put(MobilityContentProvider.MobilityPoint.DATA, msg.toString());
+        getContentResolver().insert(MobilityContentProvider.MobilityPoint.CONTENT_URI, values);
     }
 
     /**

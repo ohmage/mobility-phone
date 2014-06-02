@@ -98,7 +98,7 @@ public class DetectionRequester
      */
     private void continueRequestActivityUpdates() {
         /*
-         * Request updates, using the default detection interval.
+         * Request updates, using the given detection interval.
          * The PendingIntent sends updates to ActivityRecognitionIntentService
          */
         getActivityRecognitionClient().requestActivityUpdates(
