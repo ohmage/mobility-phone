@@ -1,5 +1,10 @@
 apply plugin: 'android'
 
+// Update the values in this file to sign the apk for release
+if (gradle.startParameter.taskNames.contains('assembleRelease')) {
+    apply from: 'signing.gradle'
+}
+
 android {
     compileSdkVersion 19
     buildToolsVersion "19.1.0"
@@ -8,7 +13,7 @@ android {
         packageName "org.ohmage.mobility"
         minSdkVersion 9
         targetSdkVersion 19
-        versionCode 42
+        versionCode 44
         versionName "2.0"
     }
     buildTypes {
