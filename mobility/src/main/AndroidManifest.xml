@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".ActivityRecognitionIntentService" />
+        <service android:name=".activity.ActivityRecognitionIntentService" />
 
         <receiver
             android:name=".AutoStartUp"

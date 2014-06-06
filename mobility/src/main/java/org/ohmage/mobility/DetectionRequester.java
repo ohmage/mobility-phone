@@ -26,10 +26,12 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.ActivityRecognitionClient;
+
+import org.ohmage.mobility.activity.ActivityRecognitionIntentService;
 
 /**
  * Class for connecting to Location Services and activity recognition updates.
@@ -41,29 +43,25 @@ import com.google.android.gms.location.ActivityRecognitionClient;
  * To use a DetectionRequester, instantiate it and call requestUpdates(). Everything else is done
  * automatically.
  */
-public class DetectionRequester
+public abstract class DetectionRequester<T extends GooglePlayServicesClient>
         implements ConnectionCallbacks, OnConnectionFailedListener {
 
     // Storage for a context from the calling client
     private Context mContext;
 
     // Stores the PendingIntent used to send activity recognition events back to the app
-    private PendingIntent mActivityRecognitionPendingIntent;
+    private PendingIntent mRequestPendingIntent;
 
     // Stores the current instantiation of the activity recognition client
-    private ActivityRecognitionClient mActivityRecognitionClient;
-
-    // Interval for detector
-    private long mIntervalMillis;
+    private T mGooglePlayServicesClient;
 
     public DetectionRequester(Context context) {
         // Save the context
         mContext = context;
 
         // Initialize the globals to null
-        mActivityRecognitionPendingIntent = null;
-        mActivityRecognitionClient = null;
-
+        mRequestPendingIntent = null;
+        mGooglePlayServicesClient = null;
     }
 
     /**
@@ -72,7 +70,7 @@ public class DetectionRequester
      * @return The PendingIntent used to request activity recognition updates
      */
     public PendingIntent getRequestPendingIntent() {
-        return mActivityRecognitionPendingIntent;
+        return mRequestPendingIntent;
     }
 
     /**
@@ -81,44 +79,48 @@ public class DetectionRequester
      * @param intent The PendingIntent
      */
     public void setRequestPendingIntent(PendingIntent intent) {
-        mActivityRecognitionPendingIntent = intent;
-    }
-
-    /**
-     * Start the activity recognition update request process by
-     * getting a connection.
-     */
-    public void requestUpdates(long intervalMillis) {
-        mIntervalMillis = intervalMillis;
-        requestConnection();
+        mRequestPendingIntent = intent;
     }
 
     /**
      * Make the actual update request. This is called from onConnected().
      */
-    private void continueRequestActivityUpdates() {
+    private void continueRequestUpdates() {
         /*
          * Request updates, using the given detection interval.
          * The PendingIntent sends updates to ActivityRecognitionIntentService
          */
-        getActivityRecognitionClient().requestActivityUpdates(
-                mIntervalMillis,
-                createRequestPendingIntent());
-
-        // Save request state
-        mContext.getSharedPreferences(ActivityUtils.SHARED_PREFERENCES, Context.MODE_PRIVATE).edit()
-                .putBoolean(ActivityUtils.KEY_RUNNING, true).commit();
+        requestUpdatesFromClient(mContext, getGooglePlayServicesClient(), createRequestPendingIntent());
 
         // Disconnect the client
         requestDisconnection();
     }
 
     /**
+     * Extending classes should implement this method and remove the request for updates
+     */
+    protected abstract void requestUpdatesFromClient(Context context, T client, PendingIntent intent);
+
+    /**
+     * Extending classes should implement this method and create the play services client they need
+     */
+    protected abstract T createGooglePlayServicesClient(Context context);
+
+    /**
+     * Extending classes should implement this method and return an intent to the IntentService
+     * they want to receive updates with.
+     *
+     * @param context
+     * @return
+     */
+    protected abstract Intent getIntentService(Context context);
+
+    /**
      * Request a connection to Location Services. This call returns immediately,
      * but the request is not complete until onConnected() or onConnectionFailure() is called.
      */
-    private void requestConnection() {
-        getActivityRecognitionClient().connect();
+    protected void requestConnection() {
+        getGooglePlayServicesClient().connect();
     }
 
     /**
@@ -129,20 +131,18 @@ public class DetectionRequester
      *
      * @return An ActivityRecognitionClient object
      */
-    private ActivityRecognitionClient getActivityRecognitionClient() {
-        if (mActivityRecognitionClient == null) {
-
-            mActivityRecognitionClient =
-                    new ActivityRecognitionClient(mContext, this, this);
+    private T getGooglePlayServicesClient() {
+        if (mGooglePlayServicesClient == null) {
+            mGooglePlayServicesClient = createGooglePlayServicesClient(mContext);
         }
-        return mActivityRecognitionClient;
+        return mGooglePlayServicesClient;
     }
 
     /**
      * Get the current activity recognition client and disconnect from Location Services
      */
     private void requestDisconnection() {
-        getActivityRecognitionClient().disconnect();
+        getGooglePlayServicesClient().disconnect();
     }
 
     /*
@@ -156,7 +156,7 @@ public class DetectionRequester
         Log.d(ActivityUtils.APPTAG, mContext.getString(R.string.connected));
 
         // Continue the process of requesting activity recognition updates
-        continueRequestActivityUpdates();
+        continueRequestUpdates();
     }
 
     /*
@@ -168,7 +168,7 @@ public class DetectionRequester
         Log.d(ActivityUtils.APPTAG, mContext.getString(R.string.disconnected));
 
         // Destroy the current activity recognition client
-        mActivityRecognitionClient = null;
+        mGooglePlayServicesClient = null;
     }
 
     /**
@@ -184,12 +184,12 @@ public class DetectionRequester
         if (null != getRequestPendingIntent()) {
 
             // Return the existing intent
-            return mActivityRecognitionPendingIntent;
+            return mRequestPendingIntent;
 
             // If no PendingIntent exists
         } else {
             // Create an Intent pointing to the IntentService
-            Intent intent = new Intent(mContext, ActivityRecognitionIntentService.class);
+            Intent intent = getIntentService(mContext);
 
             /*
              * Return a PendingIntent to start the IntentService.

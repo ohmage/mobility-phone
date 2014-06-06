@@ -1,3 +1,5 @@
+package org.ohmage.mobility;
+
 /*
  * Copyright (C) 2013 The Android Open Source Project
  *
@@ -14,21 +16,19 @@
  * limitations under the License.
  */
 
-package org.ohmage.mobility;
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.IntentSender.SendIntentException;
+import android.content.IntentSender;
 import android.os.Bundle;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
-import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.ActivityRecognitionClient;
+import com.google.android.gms.location.LocationClient;
+
 
 /**
  * Class for connecting to Location Services and removing activity recognition updates.
@@ -40,18 +40,18 @@ import com.google.android.gms.location.ActivityRecognitionClient;
  * <p/>
  * To use a DetectionRemover, instantiate it, then call removeUpdates().
  */
-public class DetectionRemover
-        implements ConnectionCallbacks, OnConnectionFailedListener {
+public abstract class DetectionRemover<T extends GooglePlayServicesClient>
+        implements GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener {
 
     // Storage for a context from the calling client
     private Context mContext;
 
     // Stores the current instantiation of the activity recognition client
-    private ActivityRecognitionClient mActivityRecognitionClient;
+    private T mGooglePlayServicesClient;
 
     // The PendingIntent sent in removeUpdates()
     private PendingIntent mCurrentIntent;
-
 
     /**
      * Construct a DetectionRemover for the current Context
@@ -63,7 +63,7 @@ public class DetectionRemover
         mContext = context;
 
         // Initialize the globals to null
-        mActivityRecognitionClient = null;
+        mGooglePlayServicesClient = null;
 
     }
 
@@ -90,7 +90,7 @@ public class DetectionRemover
      * but the request is not complete until onConnected() or onConnectionFailure() is called.
      */
     private void requestConnection() {
-        getActivityRecognitionClient().connect();
+        getGooglePlayServicesClient().connect();
     }
 
     /**
@@ -98,7 +98,7 @@ public class DetectionRemover
      *
      * @return An ActivityRecognitionClient object
      */
-    public ActivityRecognitionClient getActivityRecognitionClient() {
+    public GooglePlayServicesClient getGooglePlayServicesClient() {
         /*
          * If a client doesn't already exist, create a new one, otherwise
          * return the existing one. This allows multiple attempts to send
@@ -106,11 +106,11 @@ public class DetectionRemover
          * new clients.
          *
          */
-        if (mActivityRecognitionClient == null) {
+        if (mGooglePlayServicesClient == null) {
             // Create a new one
-            setActivityRecognitionClient(new ActivityRecognitionClient(mContext, this, this));
+            setGooglePlayServicesClient(createGooglePlayServicesClient(mContext));
         }
-        return mActivityRecognitionClient;
+        return mGooglePlayServicesClient;
     }
 
     /**
@@ -119,10 +119,10 @@ public class DetectionRemover
     private void requestDisconnection() {
 
         // Disconnect the client
-        getActivityRecognitionClient().disconnect();
+        getGooglePlayServicesClient().disconnect();
 
         // Set the client to null
-        setActivityRecognitionClient(null);
+        setGooglePlayServicesClient(null);
     }
 
     /**
@@ -130,8 +130,8 @@ public class DetectionRemover
      *
      * @param client An ActivityRecognitionClient object
      */
-    public void setActivityRecognitionClient(ActivityRecognitionClient client) {
-        mActivityRecognitionClient = client;
+    public void setGooglePlayServicesClient(T client) {
+        mGooglePlayServicesClient = client;
 
     }
 
@@ -154,21 +154,27 @@ public class DetectionRemover
     private void continueRemoveUpdates() {
 
         // Remove the updates
-        mActivityRecognitionClient.removeActivityUpdates(mCurrentIntent);
-        
+        removeUpdatesFromClient(mContext, mGooglePlayServicesClient, mCurrentIntent);
+
         /*
          * Cancel the PendingIntent. This stops Intents from arriving at the IntentService, even if
-         * request fails. 
+         * request fails.
          */
         mCurrentIntent.cancel();
-
-        // Save request state
-        mContext.getSharedPreferences(ActivityUtils.SHARED_PREFERENCES, Context.MODE_PRIVATE).edit()
-                .putBoolean(ActivityUtils.KEY_RUNNING, false).commit();
 
         // Disconnect the client
         requestDisconnection();
     }
+
+    /**
+     * Extending classes should implement this method and remove the request for updates
+     */
+    protected abstract void removeUpdatesFromClient(Context context, T client, PendingIntent intent);
+
+    /**
+     * Extending classes should implement this method and create the play services client they need
+     */
+    protected abstract T createGooglePlayServicesClient(Context context);
 
     /*
      * Called by Location Services once the activity recognition client is disconnected.
@@ -180,7 +186,7 @@ public class DetectionRemover
         Log.d(ActivityUtils.APPTAG, mContext.getString(R.string.disconnected));
 
         // Destroy the current activity recognition client
-        mActivityRecognitionClient = null;
+        mGooglePlayServicesClient = null;
     }
 
     /*
@@ -207,7 +213,7 @@ public class DetectionRemover
              * Thrown if Google Play services canceled the original
              * PendingIntent
              */
-            } catch (SendIntentException e) {
+            } catch (IntentSender.SendIntentException e) {
                 // display an error or log it here.
             }
 

@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.ohmage.mobility;
+package org.ohmage.mobility.activity;
 
 import android.app.IntentService;
-import android.app.PendingIntent;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.provider.Settings;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
@@ -33,6 +28,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.mobility.ActivityUtils;
+import org.ohmage.mobility.MobilityContentProvider;
 import org.ohmage.streams.StreamPointBuilder;
 
 import java.util.Date;
@@ -72,30 +69,14 @@ public class ActivityRecognitionIntentService extends IntentService {
     }
 
     /**
-     * Get a content Intent for the notification
-     *
-     * @return A PendingIntent that starts the device's Location Settings panel.
-     */
-    private PendingIntent getContentIntent() {
-
-        // Set the Intent action to open Location Settings
-        Intent gpsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-
-        // Create a PendingIntent to start an Activity
-        return PendingIntent.getActivity(getApplicationContext(), 0, gpsIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    /**
      * Write the activity recognition update to the ohmage stream
      *
      * @param result The result extracted from the incoming Intent
      */
     private void writeResultStream(ActivityRecognitionResult result) {
 
-        mPointBuilder.clear().setStream(ActivityUtils.STREAM_ID, ActivityUtils.STREAM_VERSION)
-                .withTime(new Date(result.getTime()), TimeZone.getDefault())
-                .withId();
+        mPointBuilder.clear().setStream(ActivityUtils.ACTIVITY_STREAM_ID,
+                ActivityUtils.ACTIVITY_STREAM_VERSION).now().withId();
 
         JSONArray json = new JSONArray();
 
@@ -142,8 +123,8 @@ public class ActivityRecognitionIntentService extends IntentService {
         }
 
         ContentValues values = new ContentValues();
-        values.put(MobilityContentProvider.MobilityPoint.DATA, msg.toString());
-        getContentResolver().insert(MobilityContentProvider.MobilityPoint.CONTENT_URI, values);
+        values.put(MobilityContentProvider.ActivityPoint.DATA, msg.toString());
+        getContentResolver().insert(MobilityContentProvider.ActivityPoint.CONTENT_URI, values);
     }
 
     /**

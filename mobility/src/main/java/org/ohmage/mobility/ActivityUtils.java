@@ -24,13 +24,13 @@ public final class ActivityUtils {
 
     // Key in the repository to show if intent service is registered
     public static final String KEY_RUNNING =
-            "org.ohmage.mobility.activityrecognition.KEY_RUNNING";
+            "org.ohmage.mobility.activityrecognition.KEY_ACTIVITY_RUNNING";
 
     // Key in the repository to store the interval
     public static final String KEY_INTERVAL =
-            "org.ohmage.mobility.activityrecognition.KEY_INTERVAL";
+            "org.ohmage.mobility.activityrecognition.KEY_ACTIVITY_INTERVAL";
 
-    public static final String STREAM_ID = "ba902741-3f4b-4909-a15a-f799ba36469b";
+    public static final String ACTIVITY_STREAM_ID = "ba902741-3f4b-4909-a15a-f799ba36469b";
 
-    public static final int STREAM_VERSION = 0;
+    public static final int ACTIVITY_STREAM_VERSION = 0;
 }

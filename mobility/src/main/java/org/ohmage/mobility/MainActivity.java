@@ -44,6 +44,9 @@ import android.support.v4.app.LoaderManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
+import org.ohmage.mobility.activity.ActivityDetectionRemover;
+import org.ohmage.mobility.activity.ActivityDetectionRequester;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -69,10 +72,10 @@ public class MainActivity extends FragmentActivity implements LoaderManager.Load
     private ArrayAdapter<Spanned> mStatusAdapter;
 
     // The activity recognition update request object
-    private DetectionRequester mDetectionRequester;
+    private ActivityDetectionRequester mDetectionRequester;
 
     // The activity recognition update removal object
-    private DetectionRemover mDetectionRemover;
+    private ActivityDetectionRemover mDetectionRemover;
 
     // Spinner to choose the rate
     private Spinner mIntervalSpinner;
@@ -111,8 +114,8 @@ public class MainActivity extends FragmentActivity implements LoaderManager.Load
         mStatusListView.setAdapter(mStatusAdapter);
 
         // Get detection requester and remover objects
-        mDetectionRequester = new DetectionRequester(this);
-        mDetectionRemover = new DetectionRemover(this);
+        mDetectionRequester = new ActivityDetectionRequester(this);
+        mDetectionRemover = new ActivityDetectionRemover(this);
 
         mPrefs = getSharedPreferences(ActivityUtils.SHARED_PREFERENCES, Context.MODE_PRIVATE);
 
