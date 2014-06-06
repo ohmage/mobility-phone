@@ -20,9 +20,11 @@
     <string name="app_description">Saves activity recognition to ohmage</string>
     <string name="connected">Connected to Location Services</string>
     <string name="disconnected">Disconnected from Location Services</string>
-    <string name="start_updates">Start Updates</string>
-    <string name="stop_updates">Stop Updates</string>
+    <string name="start_updates">Start</string>
+    <string name="stop_updates">Stop</string>
     <string name="no_resolution">Google Play services: unable to resolve connection error.</string>
     <string name="unknown_activity_request_code">Received an unknown activity request code %1$d in onActivityResult.</string>
+    <string name="title_activity">Activity</string>
+    <string name="title_location">Location</string>
 
 </resources>

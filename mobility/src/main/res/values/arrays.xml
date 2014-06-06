@@ -13,4 +13,11 @@
         <item>300000</item>
         <item>600000</item>
     </array>
+    <string-array
+        name="priorities">
+        <item>Best</item>
+        <item>Block</item>
+        <item>City</item>
+        <item>Zero Power</item>
+    </string-array>
 </resources>

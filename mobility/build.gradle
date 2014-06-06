@@ -31,4 +31,5 @@ dependencies {
     compile 'com.android.support:support-v4:19.+'
     compile 'org.ohmage:android-stream-lib:2.0-SNAPSHOT'
     compile 'joda-time:joda-time:2.3'
+    compile 'com.android.support:support-v4:19.+'
 }
