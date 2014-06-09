@@ -2,13 +2,11 @@
 <resources>
     <string-array
         name="intervals">
-        <item>Fastest</item>
         <item>1 Minute</item>
         <item>5 Minutes</item>
         <item>10 Minutes</item>
     </string-array>
     <array name="interval_millis">
-        <item>0</item>
         <item>60000</item>
         <item>300000</item>
         <item>600000</item>

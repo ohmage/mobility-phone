@@ -16,27 +16,15 @@
 
 package org.ohmage.mobility.location;
 
-import android.app.Activity;
-import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
-import android.os.Bundle;
-import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
-import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.ActivityRecognitionClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
 
 import org.ohmage.mobility.ActivityUtils;
 import org.ohmage.mobility.DetectionRequester;
-import org.ohmage.mobility.activity.ActivityRecognitionIntentService;
 
 /**
  * Class for connecting to Location Services and activity recognition updates.
@@ -79,7 +67,7 @@ public class LocationDetectionRequester extends DetectionRequester<LocationClien
     protected void requestUpdatesFromClient(Context context, LocationClient client, PendingIntent intent) {
         mLocationRequest.setInterval(mIntervalMillis);
         mLocationRequest.setPriority(mPriority);
-        mLocationRequest.setFastestInterval(0);
+        mLocationRequest.setFastestInterval(60000);
         client.requestLocationUpdates(mLocationRequest, intent);
 
         // Save request state
