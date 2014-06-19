@@ -290,7 +290,7 @@ public class ActivityRecognitionFragment extends Fragment implements LoaderManag
             return;
         }
 
-        mRunning = false;
+        mRunning = true;
 
         /*
          * Set the request type. If a connection error occurs, and Google Play services can
@@ -317,7 +317,7 @@ public class ActivityRecognitionFragment extends Fragment implements LoaderManag
             return;
         }
 
-        mRunning = true;
+        mRunning = false;
 
         /*
          * Set the request type. If a connection error occurs, and Google Play services can
