@@ -5,7 +5,7 @@
 
 # Folders related to builds
 .gradle/
-*/build/
+**/build/
 
 # Local settings
 .idea/workspace.xml
