@@ -332,7 +332,7 @@ public class ActivityRecognitionFragment extends Fragment implements LoaderManag
          * Cancel the PendingIntent. Even if the removal request fails, canceling the PendingIntent
          * will stop the updates.
          */
-        mActivityDetectionRequester.getRequestPendingIntent().cancel();
+        mActivityDetectionRequester.cancelPendingIntent();
 
         // Set correct text on button
         ((TextView) view).setText(R.string.start_updates);

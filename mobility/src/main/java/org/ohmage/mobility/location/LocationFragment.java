@@ -366,7 +366,7 @@ public class LocationFragment extends Fragment implements LoaderManager.LoaderCa
          * Cancel the PendingIntent. Even if the removal request fails, canceling the PendingIntent
          * will stop the updates.
          */
-        mLocationDetectionRequester.getRequestPendingIntent().cancel();
+        mLocationDetectionRequester.cancelPendingIntent();
 
         // Set correct text on button
         ((TextView) view).setText(R.string.start_updates);

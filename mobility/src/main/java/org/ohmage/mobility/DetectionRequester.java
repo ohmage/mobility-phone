@@ -83,6 +83,16 @@ public abstract class DetectionRequester<T extends GooglePlayServicesClient>
     }
 
     /**
+     * Allows callers to cancel this pending intent which will force the request to stop.
+     */
+    public void cancelPendingIntent() {
+        if(mRequestPendingIntent != null) {
+            mRequestPendingIntent.cancel();
+            mRequestPendingIntent = null;
+        }
+    }
+
+    /**
      * Make the actual update request. This is called from onConnected().
      */
     private void continueRequestUpdates() {
