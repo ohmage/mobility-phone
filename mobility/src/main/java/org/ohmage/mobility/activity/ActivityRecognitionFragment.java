@@ -184,7 +184,7 @@ public class ActivityRecognitionFragment extends Fragment implements LoaderManag
     }
 
     private long getIntervalMillis() {
-        return getResources().getIntArray(R.array.interval_millis)[mInterval];
+        return ActivityUtils.getIntervalMillis(getActivity(), mInterval);
     }
 
     /*

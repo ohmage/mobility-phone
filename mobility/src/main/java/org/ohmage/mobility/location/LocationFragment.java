@@ -213,17 +213,11 @@ public class LocationFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private long getIntervalMillis() {
-        return getResources().getIntArray(R.array.interval_millis)[mInterval];
+        return ActivityUtils.getIntervalMillis(getActivity(), mInterval);
     }
 
     private int getPriority() {
-        switch(mPriority) {
-            case 0: return LocationRequest.PRIORITY_HIGH_ACCURACY;
-            case 1: return LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
-            case 2: return LocationRequest.PRIORITY_LOW_POWER;
-            case 3: return LocationRequest.PRIORITY_NO_POWER;
-        }
-        return LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
+        return ActivityUtils.getPriority(mPriority);
     }
 
     /*

@@ -19,15 +19,19 @@ public class AutoStartUp extends BroadcastReceiver {
         SharedPreferences prefs = context.getSharedPreferences(ActivityUtils.SHARED_PREFERENCES,
                 Context.MODE_PRIVATE);
 
+        int intervalPref = prefs.getInt(ActivityUtils.KEY_ACTIVITY_INTERVAL, 1);
+        long interval = ActivityUtils.getIntervalMillis(context, intervalPref);
+
         if (prefs.getBoolean(ActivityUtils.KEY_ACTIVITY_RUNNING, false)) {
-            ActivityDetectionRequester activityDetectionRequester = new ActivityDetectionRequester(context);
-            activityDetectionRequester.requestUpdates(prefs.getInt(ActivityUtils.KEY_ACTIVITY_INTERVAL, 1));
+            ActivityDetectionRequester ad = new ActivityDetectionRequester(context);
+            ad.requestUpdates(interval);
         }
 
         if (prefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, false)) {
-            LocationDetectionRequester locationDetectionRequester = new LocationDetectionRequester(context);
-            locationDetectionRequester.requestUpdates(prefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, 1),
-                    prefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, 1));
+            int priorityPref = prefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, 1);
+            int priority = ActivityUtils.getPriority(priorityPref);
+            LocationDetectionRequester ld = new LocationDetectionRequester(context);
+            ld.requestUpdates(interval, priority);
         }
     }
 }

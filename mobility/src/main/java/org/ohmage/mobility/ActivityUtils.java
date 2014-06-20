@@ -1,5 +1,9 @@
 package org.ohmage.mobility;
 
+import android.content.Context;
+
+import com.google.android.gms.location.LocationRequest;
+
 /**
  * Constants for the mobility app
  */
@@ -11,6 +15,20 @@ public final class ActivityUtils {
     }
 
     public static final String APPTAG = "Mobility";
+
+    public static long getIntervalMillis(Context context, int interval) {
+        return context.getResources().getIntArray(R.array.interval_millis)[interval];
+    }
+
+    public static int getPriority(int priority) {
+        switch(priority) {
+            case 0: return LocationRequest.PRIORITY_HIGH_ACCURACY;
+            case 1: return LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
+            case 2: return LocationRequest.PRIORITY_LOW_POWER;
+            case 3: return LocationRequest.PRIORITY_NO_POWER;
+        }
+        return LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
+    }
 
     /*
      * Define a request code to send to Google Play services
