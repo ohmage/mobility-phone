@@ -19,6 +19,7 @@ package org.ohmage.mobility.location;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
@@ -65,6 +66,8 @@ public class LocationDetectionRequester extends DetectionRequester<LocationClien
 
     @Override
     protected void requestUpdatesFromClient(Context context, LocationClient client, PendingIntent intent) {
+        Log.d(ActivityUtils.APPTAG, "Starting Location: " + mIntervalMillis + ", " + mPriority);
+
         mLocationRequest.setInterval(mIntervalMillis);
         mLocationRequest.setPriority(mPriority);
         mLocationRequest.setFastestInterval(60000);

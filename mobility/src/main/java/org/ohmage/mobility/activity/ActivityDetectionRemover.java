@@ -16,24 +16,14 @@
 
 package org.ohmage.mobility.activity;
 
-import android.app.Activity;
-import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.IntentSender.SendIntentException;
-import android.os.Bundle;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
-import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.ActivityRecognitionClient;
 
 import org.ohmage.mobility.ActivityUtils;
 import org.ohmage.mobility.DetectionRemover;
-import org.ohmage.mobility.R;
 
 /**
  * Class for connecting to Location Services and removing activity recognition updates.
@@ -53,6 +43,8 @@ public class ActivityDetectionRemover extends DetectionRemover<ActivityRecogniti
 
     @Override
     protected void removeUpdatesFromClient(Context context, ActivityRecognitionClient client, PendingIntent intent) {
+        Log.d(ActivityUtils.APPTAG, "stop activity");
+
         client.removeActivityUpdates(intent);
 
         // Save request state

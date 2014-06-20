@@ -19,6 +19,7 @@ package org.ohmage.mobility.activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognitionClient;
 
@@ -55,6 +56,7 @@ public class ActivityDetectionRequester extends DetectionRequester<ActivityRecog
 
     @Override
     protected void requestUpdatesFromClient(Context context, ActivityRecognitionClient client, PendingIntent intent) {
+        Log.d(ActivityUtils.APPTAG, "Starting Activity: " + mIntervalMillis);
         client.requestActivityUpdates(mIntervalMillis, intent);
 
         // Save request state

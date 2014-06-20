@@ -2,6 +2,7 @@ package org.ohmage.mobility.location;
 
 import android.app.PendingIntent;
 import android.content.Context;
+import android.util.Log;
 
 import com.google.android.gms.location.LocationClient;
 
@@ -26,6 +27,8 @@ public class LocationDetectionRemover extends DetectionRemover<LocationClient> {
 
     @Override
     protected void removeUpdatesFromClient(Context context, LocationClient client, PendingIntent intent) {
+        Log.d(ActivityUtils.APPTAG, "stop location");
+
         client.removeLocationUpdates(intent);
 
         // Save request state
