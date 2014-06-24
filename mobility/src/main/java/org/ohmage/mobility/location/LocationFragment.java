@@ -5,52 +5,40 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.provider.BaseColumns;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.ohmage.mobility.ActivityUtils;
 import org.ohmage.mobility.MobilityContentProvider;
 import org.ohmage.mobility.R;
 
+import java.util.ArrayList;
+
 
 /**
  * A fragment representing a list of Location points.
  */
-public class LocationFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-
-    /**
-     * The fragment's ListView/GridView.
-     */
-    private AbsListView mListView;
-
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
-    private ArrayAdapter mAdapter;
+public class LocationFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     // Store the current request type (ADD or REMOVE)
     private ActivityUtils.REQUEST_TYPE mRequestType;
@@ -78,6 +66,8 @@ public class LocationFragment extends Fragment implements LoaderManager.LoaderCa
 
     // Is the classifier running?
     private boolean mRunning;
+
+    private ArrayList<LatLng> mLocations = new ArrayList<LatLng>();
 
     public static LocationFragment newInstance() {
         LocationFragment fragment = new LocationFragment();
@@ -111,8 +101,6 @@ public class LocationFragment extends Fragment implements LoaderManager.LoaderCa
         // Get the state of the detector
         mRunning = mPrefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, false);
 
-        mAdapter = new ArrayAdapter<Spanned>(getActivity(), R.layout.item_layout, R.id.log_text);
-
         getLoaderManager().initLoader(0, null, this);
     }
 
@@ -121,9 +109,8 @@ public class LocationFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.location_fragment, container, false);
 
-        // Set the adapter
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        ViewGroup mapContainer = (ViewGroup) view.findViewById(R.id.map_container);
+        mapContainer.addView(super.onCreateView(inflater, container, savedInstanceState));
 
         // Set up the interval spinner
         mIntervalSpinner = (Spinner) view.findViewById(R.id.interval);
@@ -192,24 +179,50 @@ public class LocationFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        data.moveToFirst();
+        final GoogleMap map = getMap();
 
-        // Clear the adapter of existing data
-        mAdapter.clear();
+        boolean moveMap = mLocations.isEmpty();
+
+        // Clear the map of existing data
+        mLocations.clear();
+        map.clear();
+
+        data.moveToPosition(-1);
 
         // Add all points
         while (data.moveToNext()) {
-            String activity = data.getString(0);
-            int first = activity.toString().indexOf("|");
-            SpannableString item = new SpannableString(activity.toString().replace("|", "\n"));
-            item.setSpan(new StyleSpan(Typeface.BOLD), 0, first, 0);
-            mAdapter.add(item);
+            String[] latlng = data.getString(0).split("\\|")[1].split(",");
+            mLocations.add(new LatLng(Double.valueOf(latlng[0]), Double.valueOf(latlng[1])));
+        }
+
+        map.addPolyline(new PolylineOptions().geodesic(true).addAll(mLocations));
+
+        // Move the map if needed
+        if(moveMap && !mLocations.isEmpty()) {
+
+            map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+                @Override
+                public void onMapLoaded() {
+                    LatLngBounds.Builder bounds = LatLngBounds.builder();
+                    for(LatLng point : mLocations) {
+                        bounds.include(point);
+                    }
+                    map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(),
+                            getResources().getDimensionPixelSize(R.dimen.gutter)));
+                    if(map.getCameraPosition().zoom > 19) {
+                        map.moveCamera(CameraUpdateFactory.zoomTo(19));
+                    }
+                }
+            });
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mAdapter.clear();
+        GoogleMap map = getMap();
+        if(map != null) {
+            map.clear();
+        }
     }
 
     private long getIntervalMillis() {
