@@ -23,6 +23,8 @@ import android.location.Location;
 
 import com.google.android.gms.location.LocationClient;
 
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema;
+import edu.cornell.tech.smalldata.omhclientlib.services.OmhDsuWriter;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
@@ -59,9 +61,31 @@ public class LocationListenerIntentService extends IntentService {
             // Write the result to the stream
             writeResultStream(result);
 
+            // Write the result to the DSU
+            writeResultToDsu(result);
+
             // Log the update
             logLocationResult(result);
         }
+    }
+
+    private void writeResultToDsu(Location result) {
+
+        if (result != null){
+
+            double latitude = result.getLatitude();
+            double longitude = result.getLongitude();
+            double accuracy = result.getAccuracy();
+            double altitude = result.getAltitude();
+            double bearing = result.getBearing();
+            double speed = result.getSpeed();
+
+            LocationSchema locationSchema = new LocationSchema(latitude, longitude, accuracy, altitude, bearing, speed);
+
+            OmhDsuWriter.writeDataPoint(getApplicationContext(), locationSchema);
+
+        }
+
     }
 
     /**

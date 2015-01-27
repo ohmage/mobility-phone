@@ -10,15 +10,21 @@ android {
     buildToolsVersion "19.1.0"
 
     defaultConfig {
-        applicationId "org.ohmage.mobility"
+        applicationId "org.ohmage.android.mobility"
         minSdkVersion 9
         targetSdkVersion 19
-        versionCode 48
-        versionName "2.0.4"
+        versionCode 201000
+        versionName "2.1.0"
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -32,4 +38,5 @@ dependencies {
     compile 'org.ohmage:android-stream-lib:2.0-SNAPSHOT@aar'
     compile 'joda-time:joda-time:2.3'
     compile 'com.android.support:support-v4:19.+'
+    compile project(":omhClientLib")
 }

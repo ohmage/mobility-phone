@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="C:\Users\dev\.gradle\caches\modules-2\files-2.1\joda-time\joda-time\2.3\56498efd17752898cfcc3868c1b6211a07b12b8f\joda-time-2.3.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="56498efd17752898cfcc3868c1b6211a07b12b8f">
+        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\joda-time-2.3-98753da2640d4043413450d155ccb279a8085b3e.jar" />
+    </item>
+    <item
+        jar="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\exploded-aar\org.ohmage\android-stream-lib\2.0-SNAPSHOT\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3b81e9eb66ab1217ba5aa9b72b43539a423dfd45">
+        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\classes-725a7f12b96c317b552fb89d4ee8efdb49cdda9c.jar" />
+    </item>
+    <item
+        jar="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\exploded-aar\com.google.android.gms\play-services\4.4.52\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3dfdf1db5ce5ea2999a5dcde8c8e650b02660059">
+        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\classes-8a1c7dbaba02fdb8a7f236b3b661f326626b0888.jar" />
+    </item>
+    <item
+        jar="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\exploded-aar\mobility-phone\omhClientLib\unspecified\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="be92792de5a9ed96aafd83ab81d9fa6347b9342f">
+        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\classes-7d772ae1a085be82541238ec0efd48765fe69445.jar" />
+    </item>
+    <item
+        jar="C:\Program Files (x86)\Android\android-sdk\extras\android\m2repository\com\android\support\support-v4\19.1.0\support-v4-19.1.0.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
+        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\support-v4-19.1.0-c30e376a8a37b42530721aa3276156097e39d8df.jar" />
+    </item>
+    <item
+        jar="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\exploded-aar\com.android.support\appcompat-v7\19.1.0\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3499ceba05ca1f6037c6a2fad73df8f636224a28">
+        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\classes-76f6ff3a40889df7fc79623fd47393c0fae37557.jar" />
+    </item>
+
+</items>

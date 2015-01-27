@@ -23,6 +23,9 @@ import android.content.Intent;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
+import edu.cornell.tech.smalldata.omhclientlib.schema.MobilitySchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema;
+import edu.cornell.tech.smalldata.omhclientlib.services.OmhDsuWriter;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
@@ -63,9 +66,36 @@ public class ActivityRecognitionIntentService extends IntentService {
             // Write the result to the stream
             writeResultStream(result);
 
+            // Write the result to the DSU
+            writeResultToDsu(result);
+
             // Log the update
             logActivityRecognitionResult(result);
         }
+    }
+
+    private void writeResultToDsu(ActivityRecognitionResult result) {
+
+        if (result != null) {
+
+            ProbableActivitySchema[] probableActivitySchemas = new ProbableActivitySchema[result.getProbableActivities().size()];
+
+            int i = 0;
+            for (DetectedActivity detectedActivity : result.getProbableActivities()) {
+
+                // Get the activity type, confidence level, and human-readable name
+                int activityType = detectedActivity.getType();
+                int confidence = detectedActivity.getConfidence();
+                String activityName = getNameFromType(activityType);
+
+                probableActivitySchemas[i++] = new ProbableActivitySchema(activityName, confidence);
+            }
+
+            MobilitySchema mobilitySchema = new MobilitySchema(probableActivitySchemas);
+
+            OmhDsuWriter.writeDataPoint(getApplicationContext(), mobilitySchema);
+        }
+
     }
 
     /**
