@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="omhclientlib_display_datapoint_submitted_message">no</string>
+
+    <string name="apps_dsu_client_id">org.ohmage.android.mobility</string>
+
+    <string name="apps_dsu_client_secret">5Eo43jkLD7z76c</string>
+
+    <string name="acquisition_provenance_source_name">Mobility</string>
+
+</resources>

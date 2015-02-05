@@ -3,6 +3,9 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="org.ohmage.mobility">
 
+    <uses-sdk android:targetSdkVersion="19" android:minSdkVersion="9"
+              tools:overrideLibrary="edu.cornell.tech.smalldata.omhclientlib"/>
+
     <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -47,7 +50,8 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyAEkUH1FVkCDrETFD-o7xMJ_WpzeHoFOvQ" />
+            android:value="AIzaSyBLxNnA5Is0cxRWo7fIzUR4VtW6N6WliBU" />
+            <!--android:value="AIzaSyAEkUH1FVkCDrETFD-o7xMJ_WpzeHoFOvQ" />-->
 
         <provider
             android:name=".MobilityContentProvider"
