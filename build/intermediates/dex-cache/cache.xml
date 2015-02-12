@@ -2,18 +2,18 @@
 <items version="2" >
 
     <item
+        jar="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\exploded-aar\omhClientLib-release\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="03b3fbf53401672d30271410d16fe7694a2b8665">
+        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\classes-df67700ffc7268e4f697ea5a9a0ab9d4348f8a04.jar" />
+    </item>
+    <item
         jar="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\exploded-aar\com.google.android.gms\play-services\4.4.52\classes.jar"
         jumboMode="false"
         revision="19.1.0"
         sha1="3dfdf1db5ce5ea2999a5dcde8c8e650b02660059">
         <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\classes-8a1c7dbaba02fdb8a7f236b3b661f326626b0888.jar" />
-    </item>
-    <item
-        jar="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\exploded-aar\mobility-phone\omhClientLib\unspecified\classes.jar"
-        jumboMode="false"
-        revision="19.1.0"
-        sha1="002932bbc36f48bd4feb225134952801e3c9d006">
-        <dex dex="C:\Files\vif\dev\AndroidStudio\OpenmHealth\mobility-phone\mobility\build\intermediates\pre-dexed\debug\classes-7d772ae1a085be82541238ec0efd48765fe69445.jar" />
     </item>
     <item
         jar="C:\Program Files (x86)\Android\android-sdk\extras\android\m2repository\com\android\support\support-v4\19.1.0\support-v4-19.1.0.jar"

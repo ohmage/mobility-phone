@@ -9,4 +9,6 @@
 
     <string name="acquisition_provenance_source_name">Mobility</string>
 
+    <string name="omhclientlib_syncadapter_provider_authority">org.ohmage.android.mobility.omhclientlib.syncadapter.provider</string>
+
 </resources>
