@@ -50,8 +50,7 @@
 
         <meta-data
                 android:name="com.google.android.maps.v2.API_KEY"
-                android:value="AIzaSyBLxNnA5Is0cxRWo7fIzUR4VtW6N6WliBU" />
-        <!--android:value="AIzaSyAEkUH1FVkCDrETFD-o7xMJ_WpzeHoFOvQ" />-->
+                android:value="@string/maps_api_key" />
 
         <provider
                 android:name=".MobilityContentProvider"

@@ -26,5 +26,6 @@
     <string name="unknown_activity_request_code">Received an unknown activity request code %1$d in onActivityResult.</string>
     <string name="title_activity">Activity</string>
     <string name="title_location">Location</string>
+    <string name="maps_api_key">AIzaSyBS4lWvtILLZBN8bD_Us2RNhPSYiIt_LsA</string>
 
 </resources>
