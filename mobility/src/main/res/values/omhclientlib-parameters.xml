@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="dsu_root_url">https://ohmage-omh.smalldata.io/dsu</string>
+
     <string name="omhclientlib_display_datapoint_submitted_message">no</string>
 
-    <string name="apps_dsu_client_id">org.ohmage.android.mobility</string>
+    <string name="apps_dsu_client_id">org.openmhealth.android.mobility</string>
 
     <string name="apps_dsu_client_secret">5Eo43jkLD7z76c</string>
 

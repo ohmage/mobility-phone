@@ -149,14 +149,12 @@ ADDED from AndroidManifest.xml:55:9
 		ADDED from AndroidManifest.xml:56:17
 activity#edu.cornell.tech.smalldata.omhclientlib.StartUserInterventionActivity
 ADDED from AndroidManifest.xml:61:9
-MERGED from :omhClientLib-release::28:9
 	android:label
 		ADDED from AndroidManifest.xml:63:17
 	android:name
 		ADDED from AndroidManifest.xml:62:17
 service#edu.cornell.tech.smalldata.omhclientlib.services.AuthorizationCodeService
 ADDED from AndroidManifest.xml:66:9
-MERGED from :omhClientLib-release::33:9
 	android:exported
 		ADDED from AndroidManifest.xml:69:17
 	android:enabled
@@ -165,7 +163,6 @@ MERGED from :omhClientLib-release::33:9
 		ADDED from AndroidManifest.xml:67:17
 service#edu.cornell.tech.smalldata.omhclientlib.services.UploadToDsuService
 ADDED from AndroidManifest.xml:71:9
-MERGED from :omhClientLib-release::38:9
 	android:exported
 		ADDED from AndroidManifest.xml:74:17
 	android:enabled
@@ -174,7 +171,6 @@ MERGED from :omhClientLib-release::38:9
 		ADDED from AndroidManifest.xml:72:17
 service#edu.cornell.tech.smalldata.omhclientlib.syncadapter.AuthenticatorService
 ADDED from AndroidManifest.xml:76:9
-MERGED from :omhClientLib-release::43:9
 	android:name
 		ADDED from AndroidManifest.xml:76:18
 intent-filter#android.accounts.AccountAuthenticator
@@ -185,14 +181,12 @@ ADDED from AndroidManifest.xml:78:17
 		ADDED from AndroidManifest.xml:78:25
 meta-data#android.accounts.AccountAuthenticator
 ADDED from AndroidManifest.xml:81:13
-MERGED from :omhClientLib-release::48:13
 	android:resource
 		ADDED from AndroidManifest.xml:83:21
 	android:name
 		ADDED from AndroidManifest.xml:82:21
 service#edu.cornell.tech.smalldata.omhclientlib.syncadapter.SyncAdapterService
 ADDED from AndroidManifest.xml:85:9
-MERGED from :omhClientLib-release::52:9
 	android:process
 		ADDED from AndroidManifest.xml:88:17
 	android:exported
@@ -207,14 +201,12 @@ ADDED from AndroidManifest.xml:90:17
 		ADDED from AndroidManifest.xml:90:25
 meta-data#android.content.SyncAdapter
 ADDED from AndroidManifest.xml:92:13
-MERGED from :omhClientLib-release::60:13
 	android:resource
 		ADDED from AndroidManifest.xml:93:24
 	android:name
 		ADDED from AndroidManifest.xml:92:24
 provider#edu.cornell.tech.smalldata.omhclientlib.syncadapter.SyncAdapterContentProvider
 ADDED from AndroidManifest.xml:96:9
-MERGED from :omhClientLib-release::65:9
 	android:syncable
 		ADDED from AndroidManifest.xml:100:17
 	android:exported
