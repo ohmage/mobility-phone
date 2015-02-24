@@ -13,8 +13,8 @@ android {
         applicationId "org.ohmage.android.mobility"
         minSdkVersion 9
         targetSdkVersion 19
-        versionCode 201006
-        versionName "2.1.6"
+        versionCode 201007
+        versionName "2.1.7"
     }
 
     compileOptions {
