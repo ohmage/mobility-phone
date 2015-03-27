@@ -93,13 +93,13 @@ public class LocationFragment extends SupportMapFragment implements LoaderManage
                 Context.MODE_PRIVATE);
 
         // Get the selected interval
-        mInterval = mPrefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, 1);
+        mInterval = mPrefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, 0);
 
         // Get the priority
         mPriority = mPrefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, 1);
 
         // Get the state of the detector
-        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, false);
+        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, true);
 
         getLoaderManager().initLoader(0, null, this);
     }

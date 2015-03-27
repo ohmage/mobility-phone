@@ -26,6 +26,25 @@
     <string name="unknown_activity_request_code">Received an unknown activity request code %1$d in onActivityResult.</string>
     <string name="title_activity">Activity</string>
     <string name="title_location">Location</string>
-    <string name="maps_api_key">AIzaSyBS4lWvtILLZBN8bD_Us2RNhPSYiIt_LsA</string>
+    <string name="maps_api_key">AIzaSyCDNoxzMFoE8yquu9pVOoNKp6AVj9HM9Qo</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_sign_out">Sign Out</string>
+    <string name="sync_data">Upload Data Now</string>
+
+    <!-- for omhclientlib -->
+    <string name="dsu_provider_authorities">io.smalldatalab.android.mobility.account</string>
+
+    <!--dsu settings-->
+    <string name="dsu_client_id">io.smalldatalab.android.mobility</string>
+    <string name="dsu_client_secret">YLt2yYCtfxII164MWS1DsuGqkwnoXa9TpNUSTMhDXLLZy4VEWLf0PeULnGyrgv</string>
+    <string name="dsu_client_url">https://ohmage-omh.smalldata.io/dsu</string>
+    <string name="schema_namespace">io.smalldatalab</string>
+    <string name="location_schema_name">mobility-android-location-stream</string>
+    <string name="activity_schema_name">mobility-android-activity-stream</string>
+    <string name="schema_version">1.0</string>
+    <string name="acquisition_source_name">Mobility-Android</string>
+    <string name="acquisition_modality">sensed</string>
 
 </resources>
