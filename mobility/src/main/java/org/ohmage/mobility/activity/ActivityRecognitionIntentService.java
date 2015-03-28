@@ -43,6 +43,7 @@ import io.smalldatalab.omhclient.DSUDataPointBuilder;
 public class ActivityRecognitionIntentService extends IntentService {
 
 
+    Long lastSampleTime = -1L;
     public ActivityRecognitionIntentService() {
         // Set the label for the service's background thread
         super("ActivityRecognitionIntentService");
@@ -53,9 +54,9 @@ public class ActivityRecognitionIntentService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-
-        // If the intent contains an update
-        if (ActivityRecognitionResult.hasResult(intent)) {
+        Long currentTime = new DateTime().getMillis();
+        // If the intent contains an update and limit the sample rate to at highest every 5 seconds
+        if (ActivityRecognitionResult.hasResult(intent) && currentTime - lastSampleTime > 5000) {
 
             // Get the update
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
@@ -65,7 +66,10 @@ public class ActivityRecognitionIntentService extends IntentService {
 
             // Log the update
             logActivityRecognitionResult(result);
+
+            lastSampleTime = currentTime;
         }
+
     }
 
     private void writeResultToDsu(ActivityRecognitionResult result) {
