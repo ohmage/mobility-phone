@@ -39,6 +39,8 @@
     <string name="dsu_client_id">io.smalldatalab.android.mobility</string>
     <string name="dsu_client_secret">YLt2yYCtfxII164MWS1DsuGqkwnoXa9TpNUSTMhDXLLZy4VEWLf0PeULnGyrgv</string>
     <string name="dsu_client_url">https://ohmage-omh.smalldata.io/dsu</string>
+
+    <!--omh schema settings -->
     <string name="schema_namespace">io.smalldatalab</string>
     <string name="location_schema_name">mobility-android-location-stream</string>
     <string name="activity_schema_name">mobility-android-activity-stream</string>
