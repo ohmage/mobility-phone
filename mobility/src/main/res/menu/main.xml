@@ -21,8 +21,7 @@
     <item
         android:title="@string/sync_data"
         android:id="@+id/sync_data"
-        android:orderInCategory="101"
-        />
+        android:orderInCategory="101" />
 
     <item
         android:id="@+id/action_sign_out"

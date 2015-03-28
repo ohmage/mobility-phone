@@ -5,7 +5,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <include android:id="@+id/controls" layout="@layout/activity_fragment_controls" />
+    <include
+        android:id="@+id/controls"
+        layout="@layout/activity_fragment_controls" />
 
     <FrameLayout
         android:layout_width="match_parent"

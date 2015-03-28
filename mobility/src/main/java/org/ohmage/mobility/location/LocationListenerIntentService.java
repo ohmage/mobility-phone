@@ -23,7 +23,6 @@ import android.location.Location;
 
 import com.google.android.gms.location.LocationClient;
 
-
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -70,7 +69,7 @@ public class LocationListenerIntentService extends IntentService {
 
     private void writeResultToDsu(Location result) {
 
-        if (result != null){
+        if (result != null) {
             try {
                 JSONObject body = new JSONObject();
                 body.put("latitude", result.getLatitude());
@@ -96,11 +95,9 @@ public class LocationListenerIntentService extends IntentService {
             }
 
 
-
         }
 
     }
-
 
 
     /**

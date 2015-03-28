@@ -1,15 +1,7 @@
 package org.ohmage.mobility;
 
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -20,22 +12,11 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.orm.SugarApp;
-
-import org.ohmage.mobility.activity.ActivityDetectionRemover;
-import org.ohmage.mobility.activity.ActivityDetectionRequester;
 import org.ohmage.mobility.activity.ActivityRecognitionFragment;
 import org.ohmage.mobility.location.LocationFragment;
 
-import java.io.IOException;
 import java.util.Locale;
 
 import io.smalldatalab.omhclient.DSUClient;
@@ -85,10 +66,21 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         // Init a DSU client
         mDSUClient =
                 new DSUClient(
-                    this.getString(R.string.dsu_client_url),
-                    this.getString(R.string.dsu_client_id),
-                    this.getString(R.string.dsu_client_secret),
-                    this);
+                        this.getString(R.string.dsu_client_url),
+                        this.getString(R.string.dsu_client_id),
+                        this.getString(R.string.dsu_client_secret),
+                        this);
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // show LoginActivity if the user has not sign in
+        if (!mDSUClient.isSignedIn()) {
+            Intent mainActivityIntent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(mainActivityIntent);
+        }
     }
 
     @Override
@@ -103,28 +95,32 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_sign_out:
-                new Thread(){
+                new Thread() {
                     @Override
-                    public void run(){
+                    public void run() {
                         try {
                             mDSUClient.blockingSignOut();
                         } catch (Exception e) {
                             Log.e(TAG, "Logout error", e);
                         }
-                        finish();
+                        Intent mainActivityIntent = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(mainActivityIntent);
+
                     }
                 }.start();
                 return true;
-            case  R.id.sync_data:
+            case R.id.sync_data:
                 mDSUClient.forceSync();
                 Toast.makeText(this, "Start uploading data.", Toast.LENGTH_SHORT).show();
                 return true;
@@ -132,6 +128,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         return super.onOptionsItemSelected(item);
     }
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.

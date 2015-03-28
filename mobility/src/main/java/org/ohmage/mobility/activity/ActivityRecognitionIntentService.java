@@ -19,24 +19,22 @@ package org.ohmage.mobility.activity;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
-import edu.cornell.tech.smalldata.omhclientlib.schema.MobilitySchema;
-import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema;
-import edu.cornell.tech.smalldata.omhclientlib.services.OmhDsuWriter;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.mobility.ActivityUtils;
 import org.ohmage.mobility.MobilityContentProvider;
-import org.ohmage.streams.StreamPointBuilder;
+import org.ohmage.mobility.R;
 
-import java.util.Date;
-import java.util.TimeZone;
+import io.smalldatalab.omhclient.DSUDataPoint;
+import io.smalldatalab.omhclient.DSUDataPointBuilder;
+
 
 /**
  * Service that receives ActivityRecognition updates. It receives updates
@@ -44,7 +42,6 @@ import java.util.TimeZone;
  */
 public class ActivityRecognitionIntentService extends IntentService {
 
-    private StreamPointBuilder mPointBuilder = new StreamPointBuilder();
 
     public ActivityRecognitionIntentService() {
         // Set the label for the service's background thread
@@ -63,9 +60,6 @@ public class ActivityRecognitionIntentService extends IntentService {
             // Get the update
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
 
-            // Write the result to the stream
-            writeResultStream(result);
-
             // Write the result to the DSU
             writeResultToDsu(result);
 
@@ -77,60 +71,43 @@ public class ActivityRecognitionIntentService extends IntentService {
     private void writeResultToDsu(ActivityRecognitionResult result) {
 
         if (result != null) {
-
-            ProbableActivitySchema[] probableActivitySchemas = new ProbableActivitySchema[result.getProbableActivities().size()];
-
-            int i = 0;
-            for (DetectedActivity detectedActivity : result.getProbableActivities()) {
-
-                // Get the activity type, confidence level, and human-readable name
-                int activityType = detectedActivity.getType();
-                int confidence = detectedActivity.getConfidence();
-                String activityName = getNameFromType(activityType);
-
-                probableActivitySchemas[i++] = new ProbableActivitySchema(activityName, confidence);
-            }
-
-            MobilitySchema mobilitySchema = new MobilitySchema(probableActivitySchemas);
-
-            OmhDsuWriter.writeDataPoint(getApplicationContext(), mobilitySchema);
-        }
-
-    }
-
-    /**
-     * Write the activity recognition update to the ohmage stream
-     *
-     * @param result The result extracted from the incoming Intent
-     */
-    private void writeResultStream(ActivityRecognitionResult result) {
-
-        mPointBuilder.clear().setStream(ActivityUtils.ACTIVITY_STREAM_ID,
-                ActivityUtils.ACTIVITY_STREAM_VERSION).now().withId();
-
-        JSONArray json = new JSONArray();
-
-        // Get all the probable activities from the updated result
-        for (DetectedActivity detectedActivity : result.getProbableActivities()) {
-
-            // Get the activity type, confidence level, and human-readable name
-            int activityType = detectedActivity.getType();
-            int confidence = detectedActivity.getConfidence();
-            String activityName = getNameFromType(activityType);
-
-            JSONObject activity = new JSONObject();
             try {
-                activity.put("activity", activityName);
-                activity.put("confidence", confidence);
-                json.put(activity);
-            } catch (JSONException e) {
-                e.printStackTrace();
+                JSONArray json = new JSONArray();
+
+                // Get all the probable activities from the updated result
+                for (DetectedActivity detectedActivity : result.getProbableActivities()) {
+
+                    // Get the activity type, confidence level, and human-readable name
+                    int activityType = detectedActivity.getType();
+                    int confidence = detectedActivity.getConfidence();
+                    String activityName = getNameFromType(activityType);
+
+                    JSONObject activity = new JSONObject();
+
+                    activity.put("activity", activityName);
+                    activity.put("confidence", confidence);
+                    json.put(activity);
+
+                }
+                JSONObject body = new JSONObject();
+                body.put("activities", json);
+                DSUDataPoint datapoint = new DSUDataPointBuilder()
+                        .setSchemaNamespace(getString(R.string.schema_namespace))
+                        .setSchemaName(getString(R.string.activity_schema_name))
+                        .setSchemaVersion(getString(R.string.schema_version))
+                        .setAcquisitionModality(getString(R.string.acquisition_modality))
+                        .setAcquisitionSource(getString(R.string.acquisition_source_name))
+                        .setCreationDateTime(new DateTime(result.getTime()))
+                        .setBody(body).createDSUDataPoint();
+                datapoint.save();
+            } catch (Exception e) {
+                Log.e(this.getClass().getSimpleName(), "Create datapoint failed", e);
             }
+
         }
 
-        mPointBuilder.setData(json.toString());
-        mPointBuilder.write(getContentResolver());
     }
+
 
     /**
      * Write the activity recognition update to the log file

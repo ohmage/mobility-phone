@@ -21,11 +21,15 @@ public final class ActivityUtils {
     }
 
     public static int getPriority(int priority) {
-        switch(priority) {
-            case 0: return LocationRequest.PRIORITY_HIGH_ACCURACY;
-            case 1: return LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
-            case 2: return LocationRequest.PRIORITY_LOW_POWER;
-            case 3: return LocationRequest.PRIORITY_NO_POWER;
+        switch (priority) {
+            case 0:
+                return LocationRequest.PRIORITY_HIGH_ACCURACY;
+            case 1:
+                return LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
+            case 2:
+                return LocationRequest.PRIORITY_LOW_POWER;
+            case 3:
+                return LocationRequest.PRIORITY_NO_POWER;
         }
         return LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
     }

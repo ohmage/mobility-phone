@@ -198,18 +198,18 @@ public class LocationFragment extends SupportMapFragment implements LoaderManage
         map.addPolyline(new PolylineOptions().geodesic(true).addAll(mLocations));
 
         // Move the map if needed
-        if(moveMap && !mLocations.isEmpty()) {
+        if (moveMap && !mLocations.isEmpty()) {
 
             map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
                 @Override
                 public void onMapLoaded() {
                     LatLngBounds.Builder bounds = LatLngBounds.builder();
-                    for(LatLng point : mLocations) {
+                    for (LatLng point : mLocations) {
                         bounds.include(point);
                     }
                     map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(),
                             getResources().getDimensionPixelSize(R.dimen.gutter)));
-                    if(map.getCameraPosition().zoom > 19) {
+                    if (map.getCameraPosition().zoom > 19) {
                         map.moveCamera(CameraUpdateFactory.zoomTo(19));
                     }
                 }
@@ -220,7 +220,7 @@ public class LocationFragment extends SupportMapFragment implements LoaderManage
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         GoogleMap map = getMap();
-        if(map != null) {
+        if (map != null) {
             map.clear();
         }
     }

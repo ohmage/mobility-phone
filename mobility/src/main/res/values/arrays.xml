@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array
-        name="intervals">
+    <string-array name="intervals">
         <item>1 Minute</item>
         <item>5 Minutes</item>
         <item>10 Minutes</item>
@@ -11,8 +10,7 @@
         <item>300000</item>
         <item>600000</item>
     </array>
-    <string-array
-        name="priorities">
+    <string-array name="priorities">
         <item>Best</item>
         <item>Block</item>
         <item>City</item>

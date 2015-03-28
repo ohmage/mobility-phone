@@ -96,10 +96,10 @@ public class ActivityRecognitionFragment extends Fragment implements LoaderManag
                 Context.MODE_PRIVATE);
 
         // Get the selected interval
-        mInterval = mPrefs.getInt(ActivityUtils.KEY_ACTIVITY_INTERVAL, 1);
+        mInterval = mPrefs.getInt(ActivityUtils.KEY_ACTIVITY_INTERVAL, 0);
 
         // Get the state of the detector
-        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_ACTIVITY_RUNNING, false);
+        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_ACTIVITY_RUNNING, true);
 
         mAdapter = new ArrayAdapter<Spanned>(getActivity(), R.layout.item_layout, R.id.log_text);
 
