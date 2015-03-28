@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.ohmage.mobility.ActivityUtils;
+import org.ohmage.mobility.DefaultPreferences;
 import org.ohmage.mobility.MobilityContentProvider;
 import org.ohmage.mobility.R;
 
@@ -93,13 +94,13 @@ public class LocationFragment extends SupportMapFragment implements LoaderManage
                 Context.MODE_PRIVATE);
 
         // Get the selected interval
-        mInterval = mPrefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, 0);
+        mInterval = mPrefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, DefaultPreferences.LOCATION_INTERVAL);
 
         // Get the priority
-        mPriority = mPrefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, 1);
+        mPriority = mPrefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, DefaultPreferences.LOCATION_PRIORITY);
 
         // Get the state of the detector
-        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, true);
+        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, DefaultPreferences.LOCATION_RUNNING);
 
         getLoaderManager().initLoader(0, null, this);
     }

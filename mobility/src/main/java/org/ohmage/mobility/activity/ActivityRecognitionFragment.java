@@ -31,6 +31,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.ohmage.mobility.ActivityUtils;
+import org.ohmage.mobility.DefaultPreferences;
 import org.ohmage.mobility.MobilityContentProvider;
 import org.ohmage.mobility.R;
 
@@ -95,11 +96,11 @@ public class ActivityRecognitionFragment extends Fragment implements LoaderManag
         mPrefs = getActivity().getSharedPreferences(ActivityUtils.SHARED_PREFERENCES,
                 Context.MODE_PRIVATE);
 
-        // Get the selected interval
-        mInterval = mPrefs.getInt(ActivityUtils.KEY_ACTIVITY_INTERVAL, 0);
+        // Get the selected interval (default is one minute)
+        mInterval = mPrefs.getInt(ActivityUtils.KEY_ACTIVITY_INTERVAL, DefaultPreferences.ACTIVITY_INTERVAL);
 
-        // Get the state of the detector
-        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_ACTIVITY_RUNNING, true);
+        // Get the state of the detector (default is started)
+        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_ACTIVITY_RUNNING, DefaultPreferences.ACTIVITY_RUNNING);
 
         mAdapter = new ArrayAdapter<Spanned>(getActivity(), R.layout.item_layout, R.id.log_text);
 
