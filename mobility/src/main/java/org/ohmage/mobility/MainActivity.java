@@ -1,7 +1,11 @@
 package org.ohmage.mobility;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -70,6 +74,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                         this.getString(R.string.dsu_client_id),
                         this.getString(R.string.dsu_client_secret),
                         this);
+
+        AutoStartUp.repeatingAutoStart(this);
+
 
     }
 

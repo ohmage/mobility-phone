@@ -18,19 +18,25 @@ package org.ohmage.mobility.activity;
 
 import android.app.IntentService;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.location.LocationRequest;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.ohmage.mobility.ActivityUtils;
+import org.ohmage.mobility.DefaultPreferences;
 import org.ohmage.mobility.MobilityContentProvider;
 import org.ohmage.mobility.R;
+import org.ohmage.mobility.location.LocationDetectionRequester;
 
 import io.smalldatalab.omhclient.DSUDataPoint;
 import io.smalldatalab.omhclient.DSUDataPointBuilder;
@@ -49,6 +55,7 @@ public class ActivityRecognitionIntentService extends IntentService {
         super("ActivityRecognitionIntentService");
     }
 
+
     /**
      * Called when a new activity detection update is available.
      */
@@ -56,18 +63,47 @@ public class ActivityRecognitionIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         Long currentTime = new DateTime().getMillis();
         // If the intent contains an update and limit the sample rate to at highest every 5 seconds
-        if (ActivityRecognitionResult.hasResult(intent) && currentTime - lastSampleTime > 5000) {
+        if (ActivityRecognitionResult.hasResult(intent)) {
 
             // Get the update
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
 
-            // Write the result to the DSU
-            writeResultToDsu(result);
+            if(currentTime - lastSampleTime > 5000) {
+                // Write the result to the DSU
+                writeResultToDsu(result);
 
-            // Log the update
-            logActivityRecognitionResult(result);
+                // Log the update
+                logActivityRecognitionResult(result);
 
-            lastSampleTime = currentTime;
+                lastSampleTime = currentTime;
+            }
+            //** increase the location sample rate and accuracy if the user is active. **
+
+            // get on move confidence (i.e. max(walking, running))
+            int onMoveConfidence = 0;
+            for (DetectedActivity detectedActivity : result.getProbableActivities()) {
+                if((DetectedActivity.RUNNING == detectedActivity.getType() ||
+                   DetectedActivity.WALKING == detectedActivity.getType())){
+                    onMoveConfidence += detectedActivity.getConfidence();
+
+                }
+            }
+            Long locationInterval;
+            int locationAccuracy;
+            if(onMoveConfidence > 40){
+                locationInterval = 1000L;
+                locationAccuracy = LocationRequest.PRIORITY_HIGH_ACCURACY;
+            }else{
+                SharedPreferences prefs = this.getSharedPreferences(ActivityUtils.SHARED_PREFERENCES,
+                        Context.MODE_PRIVATE);
+                int intervalPref = prefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, DefaultPreferences.LOCATION_INTERVAL);
+                locationInterval = ActivityUtils.getIntervalMillis(this, intervalPref);
+                int priorityPref = prefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, DefaultPreferences.LOCATION_PRIORITY);
+                locationAccuracy = ActivityUtils.getPriority(priorityPref);
+            }
+            Log.i(ActivityUtils.APPTAG, "Set location interval to "+ locationInterval + " accuracy "+ locationAccuracy);
+            LocationDetectionRequester ld = new LocationDetectionRequester(this);
+            ld.requestUpdates(locationInterval, locationAccuracy);
         }
 
     }
