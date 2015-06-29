@@ -55,56 +55,66 @@ public class ActivityRecognitionIntentService extends IntentService {
         super("ActivityRecognitionIntentService");
     }
 
+    private void dynamicChangeLocationSampleRate(ActivityRecognitionResult result){
+        //** increase the location sample rate and accuracy if the user is active. **
+
+        // get on move confidence (i.e. max(walking, running))
+        int onMoveConfidence = 0;
+        for (DetectedActivity detectedActivity : result.getProbableActivities()) {
+            if ((DetectedActivity.RUNNING == detectedActivity.getType() ||
+                    DetectedActivity.WALKING == detectedActivity.getType())) {
+                onMoveConfidence += detectedActivity.getConfidence();
+
+            }
+        }
+        Long locationInterval;
+        int locationAccuracy;
+        if (onMoveConfidence > 40) {
+            locationInterval = 5000L;
+            locationAccuracy = LocationRequest.PRIORITY_HIGH_ACCURACY;
+        } else {
+            SharedPreferences prefs =ActivityRecognitionIntentService.this.getSharedPreferences(ActivityUtils.SHARED_PREFERENCES,
+                    Context.MODE_PRIVATE);
+            int intervalPref = prefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, DefaultPreferences.LOCATION_INTERVAL);
+            locationInterval = ActivityUtils.getIntervalMillis(ActivityRecognitionIntentService.this, intervalPref);
+            int priorityPref = prefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, DefaultPreferences.LOCATION_PRIORITY);
+            locationAccuracy = ActivityUtils.getPriority(priorityPref);
+        }
+        Log.i(ActivityUtils.APPTAG, "Set location interval to " + locationInterval + " accuracy " + locationAccuracy);
+        LocationDetectionRequester ld = new LocationDetectionRequester(ActivityRecognitionIntentService.this);
+        ld.requestUpdates(locationInterval, locationAccuracy);
+    }
 
     /**
      * Called when a new activity detection update is available.
      */
     @Override
-    protected void onHandleIntent(Intent intent) {
-        Long currentTime = new DateTime().getMillis();
-        // If the intent contains an update and limit the sample rate to at highest every 5 seconds
-        if (ActivityRecognitionResult.hasResult(intent)) {
+    protected void onHandleIntent(final Intent intent) {
+        // start a new thread to receive data to avoid stuck the IntentService which use only single thread
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.e(ActivityRecognitionIntentService.class.getSimpleName(), intent.toString());
 
-            // Get the update
-            ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
+                // If the intent contains an update
+                if (ActivityRecognitionResult.hasResult(intent)) {
 
-            if(currentTime - lastSampleTime > 5000) {
-                // Write the result to the DSU
-                writeResultToDsu(result);
+                    // Get the update
+                    ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
 
-                // Log the update
-                logActivityRecognitionResult(result);
 
-                lastSampleTime = currentTime;
-            }
-            //** increase the location sample rate and accuracy if the user is active. **
+                    // Write the result to the DSU
+                    writeResultToDsu(result);
 
-            // get on move confidence (i.e. max(walking, running))
-            int onMoveConfidence = 0;
-            for (DetectedActivity detectedActivity : result.getProbableActivities()) {
-                if((DetectedActivity.RUNNING == detectedActivity.getType() ||
-                   DetectedActivity.WALKING == detectedActivity.getType())){
-                    onMoveConfidence += detectedActivity.getConfidence();
+                    // Log the update
+                    Log.e(ActivityRecognitionIntentService.class.getSimpleName(), result.toString());
+                    logActivityRecognitionResult(result);
+
+                    // Disable dynamicChangeLocationSampleRate to save battery
+                    // dynamicChangeLocationSampleRate(result);
 
                 }
-            }
-            Long locationInterval;
-            int locationAccuracy;
-            if(onMoveConfidence > 40){
-                locationInterval = 1000L;
-                locationAccuracy = LocationRequest.PRIORITY_HIGH_ACCURACY;
-            }else{
-                SharedPreferences prefs = this.getSharedPreferences(ActivityUtils.SHARED_PREFERENCES,
-                        Context.MODE_PRIVATE);
-                int intervalPref = prefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, DefaultPreferences.LOCATION_INTERVAL);
-                locationInterval = ActivityUtils.getIntervalMillis(this, intervalPref);
-                int priorityPref = prefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, DefaultPreferences.LOCATION_PRIORITY);
-                locationAccuracy = ActivityUtils.getPriority(priorityPref);
-            }
-            Log.i(ActivityUtils.APPTAG, "Set location interval to "+ locationInterval + " accuracy "+ locationAccuracy);
-            LocationDetectionRequester ld = new LocationDetectionRequester(this);
-            ld.requestUpdates(locationInterval, locationAccuracy);
-        }
+            }}).start();
 
     }
 
