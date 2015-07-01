@@ -47,16 +47,17 @@ import io.smalldatalab.omhclient.DSUDataPointBuilder;
  * in the background, even if the main Activity is not visible.
  */
 public class ActivityRecognitionIntentService extends IntentService {
-
-
-    Long lastSampleTime = -1L;
     public ActivityRecognitionIntentService() {
         // Set the label for the service's background thread
         super("ActivityRecognitionIntentService");
     }
 
+    /**
+     * Increase the location sample rate and accuracy if the user is active. (currently disabled)
+     * @param result void
+     */
     private void dynamicChangeLocationSampleRate(ActivityRecognitionResult result){
-        //** increase the location sample rate and accuracy if the user is active. **
+        //**  **
 
         // get on move confidence (i.e. max(walking, running))
         int onMoveConfidence = 0;
