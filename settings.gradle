@@ -1,1 +1,1 @@
-include ':mobility'
+include ':mobility', '..:omh-dsu-android-client-lib:omhclient_library'
