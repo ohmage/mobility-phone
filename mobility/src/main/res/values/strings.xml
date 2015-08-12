@@ -48,4 +48,11 @@
     <string name="acquisition_source_name">Mobility-Android</string>
     <string name="acquisition_modality">sensed</string>
 
+    <string name="edit_url">(Edit server address)</string>
+    <string name="or">~ or ~</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="login">Login</string>
+    <string name="visualize">Visualize</string>
+
 </resources>

@@ -59,7 +59,7 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/app_name"
-            android:theme="@style/LogoTheme">
+            android:theme="@android:style/Theme.Light">
 
         </activity>
     </application>
