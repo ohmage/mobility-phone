@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.ohmage.mobility.ActivityUtils;
+import org.ohmage.mobility.DefaultPreferences;
 import org.ohmage.mobility.MobilityContentProvider;
 import org.ohmage.mobility.R;
 
@@ -93,13 +94,13 @@ public class LocationFragment extends SupportMapFragment implements LoaderManage
                 Context.MODE_PRIVATE);
 
         // Get the selected interval
-        mInterval = mPrefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, 1);
+        mInterval = mPrefs.getInt(ActivityUtils.KEY_LOCATION_INTERVAL, DefaultPreferences.LOCATION_INTERVAL);
 
         // Get the priority
-        mPriority = mPrefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, 1);
+        mPriority = mPrefs.getInt(ActivityUtils.KEY_LOCATION_PRIORITY, DefaultPreferences.LOCATION_PRIORITY);
 
         // Get the state of the detector
-        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, false);
+        mRunning = mPrefs.getBoolean(ActivityUtils.KEY_LOCATION_RUNNING, DefaultPreferences.LOCATION_RUNNING);
 
         getLoaderManager().initLoader(0, null, this);
     }
@@ -198,18 +199,18 @@ public class LocationFragment extends SupportMapFragment implements LoaderManage
         map.addPolyline(new PolylineOptions().geodesic(true).addAll(mLocations));
 
         // Move the map if needed
-        if(moveMap && !mLocations.isEmpty()) {
+        if (moveMap && !mLocations.isEmpty()) {
 
             map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
                 @Override
                 public void onMapLoaded() {
                     LatLngBounds.Builder bounds = LatLngBounds.builder();
-                    for(LatLng point : mLocations) {
+                    for (LatLng point : mLocations) {
                         bounds.include(point);
                     }
                     map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(),
                             getResources().getDimensionPixelSize(R.dimen.gutter)));
-                    if(map.getCameraPosition().zoom > 19) {
+                    if (map.getCameraPosition().zoom > 19) {
                         map.moveCamera(CameraUpdateFactory.zoomTo(19));
                     }
                 }
@@ -220,7 +221,7 @@ public class LocationFragment extends SupportMapFragment implements LoaderManage
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         GoogleMap map = getMap();
-        if(map != null) {
+        if (map != null) {
             map.clear();
         }
     }

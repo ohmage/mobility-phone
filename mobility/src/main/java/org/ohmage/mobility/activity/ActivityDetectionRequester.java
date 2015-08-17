@@ -68,7 +68,6 @@ public class ActivityDetectionRequester extends DetectionRequester<ActivityRecog
     protected ActivityRecognitionClient createGooglePlayServicesClient(Context context) {
         return new ActivityRecognitionClient(context, this, this);
     }
-
     @Override
     protected Intent getIntentService(Context context) {
         return new Intent(context, ActivityRecognitionIntentService.class);

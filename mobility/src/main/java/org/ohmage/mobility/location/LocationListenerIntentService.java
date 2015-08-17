@@ -23,16 +23,17 @@ import android.location.Location;
 
 import com.google.android.gms.location.LocationClient;
 
-import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema;
-import edu.cornell.tech.smalldata.omhclientlib.services.OmhDsuWriter;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.mobility.ActivityUtils;
 import org.ohmage.mobility.MobilityContentProvider;
-import org.ohmage.streams.StreamPointBuilder;
+import org.ohmage.mobility.R;
+
+import io.smalldatalab.omhclient.DSUDataPoint;
+import io.smalldatalab.omhclient.DSUDataPointBuilder;
+
 
 /**
  * Service that receives location updates. It receives updates
@@ -40,7 +41,6 @@ import org.ohmage.streams.StreamPointBuilder;
  */
 public class LocationListenerIntentService extends IntentService {
 
-    private StreamPointBuilder mPointBuilder = new StreamPointBuilder();
 
     public LocationListenerIntentService() {
         // Set the label for the service's background thread
@@ -58,8 +58,6 @@ public class LocationListenerIntentService extends IntentService {
         // If the intent contains an update
         if (result != null) {
 
-            // Write the result to the stream
-            writeResultStream(result);
 
             // Write the result to the DSU
             writeResultToDsu(result);
@@ -71,53 +69,36 @@ public class LocationListenerIntentService extends IntentService {
 
     private void writeResultToDsu(Location result) {
 
-        if (result != null){
+        if (result != null) {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("latitude", result.getLatitude());
+                body.put("longitude", result.getLongitude());
+                body.put("accuracy", result.getAccuracy());
+                body.put("altitude", result.getAltitude());
+                body.put("bearing", result.getBearing());
+                body.put("speed", result.getSpeed());
+                body.put("timestamp", result.getTime());
 
-            double latitude = result.getLatitude();
-            double longitude = result.getLongitude();
-            double accuracy = result.getAccuracy();
-            double altitude = result.getAltitude();
-            double bearing = result.getBearing();
-            double speed = result.getSpeed();
 
-            LocationSchema locationSchema = new LocationSchema(latitude, longitude, accuracy, altitude, bearing, speed);
+                DSUDataPoint datapoint = new DSUDataPointBuilder()
+                        .setSchemaNamespace(getString(R.string.schema_namespace))
+                        .setSchemaName(getString(R.string.location_schema_name))
+                        .setSchemaVersion(getString(R.string.schema_version))
+                        .setAcquisitionModality(getString(R.string.acquisition_modality))
+                        .setAcquisitionSource(getString(R.string.acquisition_source_name))
+                        .setCreationDateTime(new DateTime(result.getTime()))
+                        .setBody(body).createDSUDataPoint();
+                datapoint.save();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
-            OmhDsuWriter.writeDataPoint(getApplicationContext(), locationSchema);
 
         }
 
     }
 
-    /**
-     * Write the location update to the ohmage stream
-     *
-     * @param result The result extracted from the incoming Intent
-     */
-    private void writeResultStream(Location result) {
-
-        mPointBuilder.clear().setStream(ActivityUtils.LOCATION_STREAM_ID,
-                ActivityUtils.LOCATION_STREAM_VERSION).now().withId();
-
-        JSONObject json = new JSONObject();
-
-        try {
-            json.put("latitude", result.getLatitude());
-            json.put("longitude", result.getLongitude());
-            if (result.hasAccuracy())
-                json.put("accuracy", result.getAccuracy());
-            if (result.hasAltitude())
-                json.put("altitude", result.getAltitude());
-            if (result.hasBearing())
-                json.put("bearing", result.getBearing());
-            if (result.hasSpeed())
-                json.put("speed", result.getSpeed());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        mPointBuilder.setData(json.toString());
-        mPointBuilder.write(getContentResolver());
-    }
 
     /**
      * Write the location update to the log file

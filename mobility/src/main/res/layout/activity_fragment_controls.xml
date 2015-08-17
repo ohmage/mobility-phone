@@ -14,4 +14,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:entries="@array/intervals" />
+
+    <Button
+        android:id="@+id/visualize_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/visualize"
+        android:layout_weight="1"/>
 </LinearLayout>

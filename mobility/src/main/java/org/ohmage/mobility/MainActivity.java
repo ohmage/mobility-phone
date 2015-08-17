@@ -1,10 +1,11 @@
 package org.ohmage.mobility;
 
-import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -13,30 +14,28 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Spinner;
-import android.widget.TextView;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-
-import org.ohmage.mobility.activity.ActivityDetectionRemover;
-import org.ohmage.mobility.activity.ActivityDetectionRequester;
 import org.ohmage.mobility.activity.ActivityRecognitionFragment;
 import org.ohmage.mobility.location.LocationFragment;
 
 import java.util.Locale;
 
+import io.smalldatalab.omhclient.DSUClient;
+
 
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
 
+    final static String TAG = MainActivity.class.getSimpleName();
     SectionsPagerAdapter mSectionsPagerAdapter;
-
+    DSUClient mDSUClient;
     ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -68,6 +67,27 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                             .setTabListener(this)
             );
         }
+        // Init a DSU client
+        mDSUClient =
+                new DSUClient(
+                        DSUHelper.getUrl(this),
+                        this.getString(R.string.dsu_client_id),
+                        this.getString(R.string.dsu_client_secret),
+                        this);
+
+        AutoStartUp.repeatingAutoStart(this);
+
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // show LoginActivity if the user has not sign in
+        if (!mDSUClient.isSignedIn()) {
+            Intent mainActivityIntent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(mainActivityIntent);
+        }
     }
 
     @Override
@@ -81,6 +101,39 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_sign_out:
+                new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            mDSUClient.blockingSignOut();
+                        } catch (Exception e) {
+                            Log.e(TAG, "Logout error", e);
+                        }
+                        Intent mainActivityIntent = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(mainActivityIntent);
+
+                    }
+                }.start();
+                return true;
+            case R.id.sync_data:
+                mDSUClient.forceSync();
+                Toast.makeText(this, "Start uploading data.", Toast.LENGTH_SHORT).show();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     /**

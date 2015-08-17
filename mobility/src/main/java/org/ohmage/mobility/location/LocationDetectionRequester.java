@@ -70,7 +70,7 @@ public class LocationDetectionRequester extends DetectionRequester<LocationClien
 
         mLocationRequest.setInterval(mIntervalMillis);
         mLocationRequest.setPriority(mPriority);
-        mLocationRequest.setFastestInterval(60000);
+        mLocationRequest.setFastestInterval(1000);
         client.requestLocationUpdates(mLocationRequest, intent);
 
         // Save request state

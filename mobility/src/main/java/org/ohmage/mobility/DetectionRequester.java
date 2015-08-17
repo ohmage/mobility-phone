@@ -31,8 +31,6 @@ import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallback
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
-import org.ohmage.mobility.activity.ActivityRecognitionIntentService;
-
 /**
  * Class for connecting to Location Services and activity recognition updates.
  * <b>
@@ -86,7 +84,7 @@ public abstract class DetectionRequester<T extends GooglePlayServicesClient>
      * Allows callers to cancel this pending intent which will force the request to stop.
      */
     public void cancelPendingIntent() {
-        if(mRequestPendingIntent != null) {
+        if (mRequestPendingIntent != null) {
             mRequestPendingIntent.cancel();
             mRequestPendingIntent = null;
         }
