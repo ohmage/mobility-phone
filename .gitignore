@@ -1,16 +1,19 @@
-# built application files
-*.apk
-*.ap_
+# Ignored by AndroidStudio
+*.iws
+*.iml
+.idea/
 
-# files for the dex VM
-*.dex
+# Folders related to builds
+.gradle/
+**/build/
 
-# Java class files
-*.class
-
-# generated files
-bin/
-gen/
-
-# Local configuration file (sdk path, etc)
+# Local settings
+.idea/workspace.xml
 local.properties
+signing.gradle
+
+# User dictionaries
+.idea/dictionaries/
+
+# libraries
+.idea/libraries/

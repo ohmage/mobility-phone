@@ -1,14 +1,13 @@
 MobilityPhone
 =============
 
-MobilityPhone is an activity classification service for Android. It sends points to the ohmage client (2.13 or higher) to be uploaded to a server.
+MobilityPhone uses the Google Play Services' [ActivityRecognitionClient] to periodically classify a user's activity. It
+sends classified data points to the ohmage 3.0 client on the phone which then uploads them to an ohmage server.
 
-For the 3.0-compliant version of MobilityPhone, check out the google branch in this repository.
+The app captures two ohmage streams: [Activity] and [Location]. Each stream is uploaded independently and each stream may be controlled independently.
 
-Dependencies
-============
+For Location, the maximum frequency of data collection is every minute. For Activity, the maximum frequency of data collection is dependent on the Google activity classifier (2-3 times per minute is a good bound on the max).
 
-* [ohmageProbeLibrary](https://github.com/cens/ohmageProbeLibrary)
-* [AccelService](https://github.com/ohmage/AccelService)
-* [WiFiGPSLocation](https://github.com/ohmage/WiFiGPSLocation)
-* [LogProbe](https://github.com/cens/LogProbe)
+[ActivityRecognitionClient]: http://developer.android.com/reference/com/google/android/gms/location/ActivityRecognitionClient.html
+[Activity]: https://dev.ohmage.org/stream/ba902741-3f4b-4909-a15a-f799ba36469b
+[Location]: https://dev.ohmage.org/stream/8131a709-9342-47f8-b893-dcf9c824342c
