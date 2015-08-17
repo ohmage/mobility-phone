@@ -6,22 +6,15 @@ if (gradle.startParameter.taskNames.contains('assembleRelease')) {
 }
 
 android {
-    signingConfigs {
-        SDL {
-            keyAlias 'android-key'
-            keyPassword '1qaz@WSX'
-            storeFile file('/Users/jared/workspaces/smalldatalabs/keys/android/keystore.jks')
-            storePassword '1qaz@WSX'
-        }
-    }
+
     compileSdkVersion 19
     buildToolsVersion "19.1.0"
     defaultConfig {
         applicationId "io.smalldatalab.android.mobility"
         minSdkVersion 9
         targetSdkVersion 19
-        versionCode 300002
-        versionName "3.0.2"
+        versionCode 301001
+        versionName "3.1.1"
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -32,9 +25,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-        debug {
-            signingConfig signingConfigs.SDL
-        }
+
     }
     repositories {
         maven {
