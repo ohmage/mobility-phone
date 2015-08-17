@@ -108,7 +108,7 @@ public class ActivityRecognitionIntentService extends IntentService {
                     writeResultToDsu(result);
 
                     // Log the update
-                    Log.e(ActivityRecognitionIntentService.class.getSimpleName(), result.toString());
+                    Log.i(ActivityRecognitionIntentService.class.getSimpleName(), result.toString());
                     logActivityRecognitionResult(result);
 
                     // Disable dynamicChangeLocationSampleRate to save battery
