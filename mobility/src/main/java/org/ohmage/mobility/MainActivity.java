@@ -70,7 +70,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         // Init a DSU client
         mDSUClient =
                 new DSUClient(
-                        this.getString(R.string.dsu_client_url),
+                        DSUHelper.getUrl(this),
                         this.getString(R.string.dsu_client_id),
                         this.getString(R.string.dsu_client_secret),
                         this);

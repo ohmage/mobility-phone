@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.support.v4.app.Fragment;
@@ -31,6 +32,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.ohmage.mobility.ActivityUtils;
+import org.ohmage.mobility.DSUHelper;
 import org.ohmage.mobility.DefaultPreferences;
 import org.ohmage.mobility.MobilityContentProvider;
 import org.ohmage.mobility.R;
@@ -151,6 +153,22 @@ public class ActivityRecognitionFragment extends Fragment implements LoaderManag
         } else {
             startButton.setText(R.string.start_updates);
         }
+
+        Button visualizeButton = (Button) view.findViewById(R.id.visualize_button);
+        // Hide if server is not default, because it doesn't work elsewhere, yet.
+        if(DSUHelper.getUrl(getActivity()).equals(getActivity().getString(R.string.dsu_client_url))){
+            visualizeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Uri uri = Uri.parse("http://ohmage-omh.smalldata.io/mobility-ui/#");
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(intent);
+                }
+            });
+        } else {
+            visualizeButton.setVisibility(View.GONE);
+        }
+
 
         return view;
     }
